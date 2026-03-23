@@ -6,51 +6,55 @@ Page({
     isAdmin: false
   },
 
-  onShow: function() {
+  onShow: function () {
     var userInfo = storage.getUserInfo();
+    if (!userInfo) {
+      wx.reLaunch({ url: '/pages/login/login' });
+      return;
+    }
     this.setData({
       userInfo: userInfo,
-      isAdmin: userInfo && userInfo.role === 'admin'
+      isAdmin: userInfo.role === 'admin'
     });
   },
 
-  goLogin: function() {
+  goLogin: function () {
     wx.navigateTo({ url: '/pages/login/login' });
   },
 
-  goMine: function() {
+  goMine: function () {
     wx.navigateTo({ url: '/pages/mine/mine' });
   },
 
-  goTraining: function() {
+  goTraining: function () {
     wx.navigateTo({ url: '/pages/training/list/list' });
   },
 
-  goFlag: function() {
+  goFlag: function () {
     wx.navigateTo({ url: '/pages/flag/list/list' });
   },
 
-  goMember: function() {
+  goMember: function () {
     wx.navigateTo({ url: '/pages/member/list/list' });
   },
 
-  goTutorial: function() {
+  goTutorial: function () {
     wx.navigateTo({ url: '/pages/tutorial/list/list' });
   },
 
-  goTrainingCreate: function() {
+  goTrainingCreate: function () {
     wx.navigateTo({ url: '/pages/training/create/create' });
   },
 
-  goFlagCreate: function() {
+  goFlagCreate: function () {
     wx.navigateTo({ url: '/pages/flag/create/create' });
   },
 
-  goMemberAdd: function() {
+  goMemberAdd: function () {
     wx.navigateTo({ url: '/pages/member/edit/edit' });
   },
 
-  goTutorialAdd: function() {
+  goTutorialAdd: function () {
     wx.navigateTo({ url: '/pages/tutorial/edit/edit' });
   }
 });

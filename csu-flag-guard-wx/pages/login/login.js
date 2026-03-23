@@ -3,32 +3,42 @@ var util = require('../../utils/util');
 
 Page({
   data: {
-    name: '',
-    role: 'member'
+    studentId: '',
+    password: '',
+    passwordVisible: false
   },
 
-  onNameInput: function(e) {
-    this.setData({ name: e.detail.value });
+  onStudentIdInput: function (e) {
+    this.setData({ studentId: e.detail.value });
   },
 
-  selectRole: function(e) {
-    this.setData({ role: e.currentTarget.dataset.role });
+  onPasswordInput: function (e) {
+    this.setData({ password: e.detail.value });
   },
 
-  handleLogin: function() {
-    var name = this.data.name.trim();
-    if (!name) {
-      util.showToast('请输入姓名');
+  togglePasswordVisible: function () {
+    this.setData({ passwordVisible: !this.data.passwordVisible });
+  },
+
+  handleLogin: function () {
+    var studentId = this.data.studentId.trim();
+    var password = this.data.password;
+    if (!studentId) {
+      util.showToast('请输入学号');
       return;
     }
-
-    var userInfo = {
-      name: name,
-      role: this.data.role
-    };
+    if (!password) {
+      util.showToast('请输入密码');
+      return;
+    }
+    var userInfo = storage.loginByCredentials(studentId, password);
+    if (!userInfo) {
+      util.showToast('学号或密码错误');
+      return;
+    }
     storage.setUserInfo(userInfo);
     util.showToast('登录成功', 'success');
-    setTimeout(function() {
+    setTimeout(function () {
       wx.reLaunch({ url: '/pages/index/index' });
     }, 1500);
   }

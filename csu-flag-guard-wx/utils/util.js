@@ -39,9 +39,17 @@ function getStatusColor(status) {
 }
 
 function calcAttendanceStats(attendance) {
+  var keyMap = {
+    '正常': 'normal',
+    '迟到': 'late',
+    '缺席': 'absent',
+    '缺勤': 'absent',
+    '已到': 'arrived',
+    '请假': 'leave'
+  };
   var stats = { total: attendance.length };
-  attendance.forEach(function(item) {
-    var key = item.status;
+  attendance.forEach(function (item) {
+    var key = keyMap[item.status] || item.status;
     stats[key] = (stats[key] || 0) + 1;
   });
   return stats;

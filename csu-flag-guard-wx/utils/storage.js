@@ -66,7 +66,7 @@ function update(key, id, data) {
   var list = getList(key);
   for (var i = 0; i < list.length; i++) {
     if (list[i].id === id) {
-      Object.keys(data).forEach(function(k) {
+      Object.keys(data).forEach(function (k) {
         list[i][k] = data[k];
       });
       wx.setStorageSync(key, list);
@@ -78,7 +78,7 @@ function update(key, id, data) {
 
 function remove(key, id) {
   var list = getList(key);
-  list = list.filter(function(item) { return item.id !== id; });
+  list = list.filter(function (item) { return item.id !== id; });
   wx.setStorageSync(key, list);
 }
 
@@ -99,6 +99,24 @@ function isAdmin() {
   return user && user.role === 'admin';
 }
 
+// 学号 + 密码登录验证，成功返回用户信息，失败返回 null
+function loginByCredentials(studentId, password) {
+  var members = getList(KEYS.MEMBERS);
+  for (var i = 0; i < members.length; i++) {
+    if (members[i].studentId === studentId && members[i].password === password) {
+      var adminPositions = ['队长', '副队长'];
+      var role = adminPositions.indexOf(members[i].position) !== -1 ? 'admin' : 'member';
+      return {
+        name: members[i].name,
+        role: role,
+        studentId: members[i].studentId,
+        memberId: members[i].id
+      };
+    }
+  }
+  return null;
+}
+
 module.exports = {
   KEYS: KEYS,
   initMockData: initMockData,
@@ -110,5 +128,6 @@ module.exports = {
   getUserInfo: getUserInfo,
   setUserInfo: setUserInfo,
   clearUserInfo: clearUserInfo,
-  isAdmin: isAdmin
+  isAdmin: isAdmin,
+  loginByCredentials: loginByCredentials
 };

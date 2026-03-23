@@ -25,48 +25,20 @@
   margin: 0 40rpx;
 }
 
-.role-selector {
+.password-row {
   display: flex;
-  gap: 20rpx;
+  align-items: center;
 }
 
-.role-option {
+.password-input {
   flex: 1;
-  text-align: center;
-  padding: 30rpx 20rpx;
-  border: 2rpx solid #E8E8E8;
-  border-radius: 12rpx;
-  background: #FAFAFA;
-  position: relative;
 }
 
-.role-option.active {
-  border-color: #C41A1A;
-  background: #FFF5F5;
-}
-
-.role-icon-text {
-  font-size: 48rpx;
-  margin-bottom: 10rpx;
-}
-
-.role-name {
+.password-eye {
+  padding: 0 20rpx;
+  color: #576B95;
   font-size: 26rpx;
-  color: #666666;
-}
-
-.role-option.active .role-name {
-  color: #C41A1A;
-  font-weight: bold;
-}
-
-.role-check {
-  position: absolute;
-  top: 10rpx;
-  right: 14rpx;
-  font-size: 24rpx;
-  color: #C41A1A;
-  font-weight: bold;
+  white-space: nowrap;
 }
 
 .login-btn {
