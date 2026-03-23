@@ -1,0 +1,41 @@
+<view class="container">
+  <view class="card">
+    <view class="section-header">{{isEdit ? '编辑教程' : '新增教程'}}</view>
+
+    <view class="form-group">
+      <text class="form-label">标题 *</text>
+      <input class="form-input" placeholder="请输入教程标题" value="{{form.title}}" bindinput="onInput" data-field="title" />
+    </view>
+
+    <view class="form-group">
+      <text class="form-label">分类 *</text>
+      <picker mode="selector" range="{{categoryOptions}}" bindchange="onCategoryPick">
+        <view class="form-input">{{form.category || '请选择分类'}}</view>
+      </picker>
+    </view>
+
+    <view class="form-group">
+      <text class="form-label">动作要领 / 内容 *</text>
+      <textarea class="form-textarea" style="min-height: 240rpx;" placeholder="请输入教程内容" value="{{form.content}}" bindinput="onInput" data-field="content" />
+    </view>
+
+    <view class="form-group">
+      <text class="form-label">注意事项</text>
+      <textarea class="form-textarea" placeholder="请输入注意事项" value="{{form.tips}}" bindinput="onInput" data-field="tips" />
+    </view>
+
+    <view class="form-group">
+      <text class="form-label">常见错误</text>
+      <textarea class="form-textarea" placeholder="请输入常见错误" value="{{form.commonMistakes}}" bindinput="onInput" data-field="commonMistakes" />
+    </view>
+
+    <view class="form-group">
+      <text class="form-label">训练总结</text>
+      <textarea class="form-textarea" placeholder="请输入训练总结" value="{{form.summary}}" bindinput="onInput" data-field="summary" />
+    </view>
+  </view>
+
+  <view class="submit-area">
+    <button class="btn-primary" bindtap="handleSubmit">{{isEdit ? '保存修改' : '新增教程'}}</button>
+  </view>
+</view>

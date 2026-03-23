@@ -1,0 +1,25 @@
+<view class="container">
+  <!-- 分类筛选 -->
+  <view class="filter-bar">
+    <view class="filter-tag {{currentCategory === '' ? 'active' : ''}}" bindtap="filterCategory" data-category="">全部</view>
+    <view class="filter-tag {{currentCategory === item ? 'active' : ''}}" wx:for="{{categories}}" wx:key="*this" bindtap="filterCategory" data-category="{{item}}">{{item}}</view>
+  </view>
+
+  <!-- 教程列表 -->
+  <view wx:if="{{filteredList.length > 0}}">
+    <view class="tutorial-card card" wx:for="{{filteredList}}" wx:key="id" bindtap="goDetail" data-id="{{item.id}}">
+      <view class="tutorial-header">
+        <view class="tutorial-title">{{item.title}}</view>
+        <view class="tutorial-category">{{item.category}}</view>
+      </view>
+      <view class="tutorial-preview">{{item.content}}</view>
+    </view>
+  </view>
+
+  <view class="empty-state" wx:else>
+    <view class="empty-icon">📖</view>
+    <view class="empty-text">暂无教程</view>
+  </view>
+
+  <view class="fab-btn" wx:if="{{isAdmin}}" bindtap="goAdd">+</view>
+</view>

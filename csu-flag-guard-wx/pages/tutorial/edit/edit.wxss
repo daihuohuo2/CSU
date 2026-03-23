@@ -1,0 +1,3 @@
+.submit-area {
+  padding: 30rpx 24rpx 60rpx;
+}

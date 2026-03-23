@@ -1,0 +1,38 @@
+<view class="container">
+  <!-- 筛选栏 -->
+  <view class="filter-bar">
+    <view class="filter-tag {{currentType === '' ? 'active' : ''}}" bindtap="filterType" data-type="">全部</view>
+    <view class="filter-tag {{currentType === '升旗' ? 'active' : ''}}" bindtap="filterType" data-type="升旗">升旗</view>
+    <view class="filter-tag {{currentType === '降旗' ? 'active' : ''}}" bindtap="filterType" data-type="降旗">降旗</view>
+  </view>
+
+  <!-- 列表 -->
+  <view class="list-wrap" wx:if="{{filteredList.length > 0}}">
+    <view class="list-item card" wx:for="{{filteredList}}" wx:key="id" bindtap="goDetail" data-id="{{item.id}}">
+      <view class="list-item-header">
+        <view class="list-item-title">{{item.title}}</view>
+        <view class="flag-type-tag {{item.type === '升旗' ? 'up' : 'down'}}">{{item.type}}</view>
+      </view>
+      <view class="list-item-info">
+        <text class="list-item-date">📅 {{item.date}}</text>
+        <text class="list-item-time">⏰ {{item.time}}</text>
+      </view>
+      <view class="list-item-info">
+        <text class="list-item-location">📍 {{item.location}}</text>
+      </view>
+      <view class="list-item-stats">
+        <text class="stat-tag" style="background: #E8F5E9; color: #07C160;">正常 {{item.stats.正常 || 0}}</text>
+        <text class="stat-tag" style="background: #FFF3E0; color: #FFA500;">迟到 {{item.stats.迟到 || 0}}</text>
+        <text class="stat-tag" style="background: #FFEBEE; color: #EE0000;">缺席 {{item.stats.缺席 || 0}}</text>
+        <text class="stat-tag" style="background: #E8EAF6; color: #576B95;">请假 {{item.stats.请假 || 0}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="empty-state" wx:else>
+    <view class="empty-icon">🚩</view>
+    <view class="empty-text">暂无升降旗记录</view>
+  </view>
+
+  <view class="fab-btn" wx:if="{{isAdmin}}" bindtap="goCreate">+</view>
+</view>

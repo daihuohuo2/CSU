@@ -1,0 +1,70 @@
+<view class="container" wx:if="{{detail}}">
+  <!-- 基本信息 -->
+  <view class="card">
+    <view class="detail-title">{{detail.title}}</view>
+    <view class="detail-type">{{detail.type}}</view>
+    <view class="info-row">
+      <text class="info-label">日期</text>
+      <text class="info-value">{{detail.date}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">时间</text>
+      <text class="info-value">{{detail.time}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">地点</text>
+      <text class="info-value">{{detail.location}}</text>
+    </view>
+    <view class="info-row" wx:if="{{detail.description}}">
+      <text class="info-label">描述</text>
+      <text class="info-value">{{detail.description}}</text>
+    </view>
+  </view>
+
+  <!-- 考勤统计 -->
+  <view class="card">
+    <view class="section-header">考勤统计</view>
+    <view class="stats-row">
+      <view class="stat-box">
+        <view class="stat-num" style="color: #333;">{{stats.total}}</view>
+        <view class="stat-label">总人数</view>
+      </view>
+      <view class="stat-box">
+        <view class="stat-num" style="color: #07C160;">{{stats.已到 || 0}}</view>
+        <view class="stat-label">已到</view>
+      </view>
+      <view class="stat-box">
+        <view class="stat-num" style="color: #FFA500;">{{stats.迟到 || 0}}</view>
+        <view class="stat-label">迟到</view>
+      </view>
+      <view class="stat-box">
+        <view class="stat-num" style="color: #EE0000;">{{stats.缺勤 || 0}}</view>
+        <view class="stat-label">缺勤</view>
+      </view>
+      <view class="stat-box">
+        <view class="stat-num" style="color: #576B95;">{{stats.请假 || 0}}</view>
+        <view class="stat-label">请假</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 考勤明细 -->
+  <view class="card">
+    <view class="section-header">考勤明细</view>
+    <view class="att-item" wx:for="{{detail.attendance}}" wx:key="memberId">
+      <view class="att-name">{{item.name}}</view>
+      <view wx:if="{{isAdmin}}" class="att-status-selector">
+        <view class="att-status-btn {{item.status === '已到' ? 'active-green' : ''}}" bindtap="changeStatus" data-index="{{index}}" data-status="已到">已到</view>
+        <view class="att-status-btn {{item.status === '迟到' ? 'active-orange' : ''}}" bindtap="changeStatus" data-index="{{index}}" data-status="迟到">迟到</view>
+        <view class="att-status-btn {{item.status === '缺勤' ? 'active-red' : ''}}" bindtap="changeStatus" data-index="{{index}}" data-status="缺勤">缺勤</view>
+        <view class="att-status-btn {{item.status === '请假' ? 'active-blue' : ''}}" bindtap="changeStatus" data-index="{{index}}" data-status="请假">请假</view>
+      </view>
+      <view wx:else class="status-badge" style="background: {{statusColors[item.status]}};">{{item.status}}</view>
+    </view>
+  </view>
+
+  <!-- 管理员操作 -->
+  <view class="bottom-actions" wx:if="{{isAdmin}}">
+    <button class="btn-danger" bindtap="handleDelete">删除此训练</button>
+  </view>
+</view>

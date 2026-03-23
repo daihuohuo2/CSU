@@ -1,0 +1,75 @@
+<view class="container">
+  <!-- 个人信息头部 -->
+  <view class="profile-header" wx:if="{{userInfo}}">
+    <view class="profile-avatar">{{userInfo.name[0]}}</view>
+    <view class="profile-info">
+      <view class="profile-name">{{userInfo.name}}</view>
+      <view class="profile-role {{isAdmin ? 'admin' : ''}}">{{isAdmin ? '管理员' : '普通成员'}}</view>
+    </view>
+  </view>
+
+  <!-- 个人档案 -->
+  <view class="card" wx:if="{{memberInfo}}">
+    <view class="section-header">个人档案</view>
+    <view class="info-row">
+      <text class="info-label">学号</text>
+      <text class="info-value">{{memberInfo.studentId}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">学院</text>
+      <text class="info-value">{{memberInfo.college}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">专业</text>
+      <text class="info-value">{{memberInfo.major}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">年级 / 班级</text>
+      <text class="info-value">{{memberInfo.grade}} {{memberInfo.className}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">职务</text>
+      <text class="info-value">{{memberInfo.position}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">入队时间</text>
+      <text class="info-value">{{memberInfo.joinDate}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">状态</text>
+      <text class="info-value">{{memberInfo.status}}</text>
+    </view>
+  </view>
+
+  <!-- 功能菜单 -->
+  <view class="card menu-card">
+    <view class="mine-menu-item" bindtap="goTraining">
+      <text class="mine-menu-icon">📋</text>
+      <text class="mine-menu-text">我的训练记录</text>
+      <text class="arrow-right">›</text>
+    </view>
+    <view class="mine-menu-item" bindtap="goFlag">
+      <text class="mine-menu-icon">🚩</text>
+      <text class="mine-menu-text">我的升降旗记录</text>
+      <text class="arrow-right">›</text>
+    </view>
+  </view>
+
+  <view class="card menu-card">
+    <view class="mine-menu-item" bindtap="switchRole">
+      <text class="mine-menu-icon">🔄</text>
+      <text class="mine-menu-text">切换身份</text>
+      <text class="arrow-right">›</text>
+    </view>
+    <view class="mine-menu-item" bindtap="resetData">
+      <text class="mine-menu-icon">🔃</text>
+      <text class="mine-menu-text">重置数据</text>
+      <text class="arrow-right">›</text>
+    </view>
+    <view class="mine-menu-item logout" bindtap="handleLogout">
+      <text class="mine-menu-icon">🚪</text>
+      <text class="mine-menu-text" style="color: #EE4D4D;">退出登录</text>
+      <text class="arrow-right">›</text>
+    </view>
+  </view>
+</view>

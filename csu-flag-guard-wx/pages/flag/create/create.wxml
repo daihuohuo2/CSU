@@ -1,0 +1,54 @@
+<view class="container">
+  <view class="card">
+    <view class="section-header">创建升降旗任务</view>
+
+    <view class="form-group">
+      <text class="form-label">任务标题 *</text>
+      <input class="form-input" placeholder="请输入任务标题" value="{{title}}" bindinput="onInput" data-field="title" />
+    </view>
+
+    <view class="form-group">
+      <text class="form-label">任务类型 *</text>
+      <picker mode="selector" range="{{typeOptions}}" bindchange="onTypePick">
+        <view class="form-input picker-value">{{type || '请选择类型'}}</view>
+      </picker>
+    </view>
+
+    <view class="form-group">
+      <text class="form-label">日期 *</text>
+      <picker mode="date" value="{{date}}" bindchange="onDatePick">
+        <view class="form-input picker-value">{{date || '请选择日期'}}</view>
+      </picker>
+    </view>
+
+    <view class="form-group">
+      <text class="form-label">时间</text>
+      <input class="form-input" placeholder="如：07:20" value="{{time}}" bindinput="onInput" data-field="time" />
+    </view>
+
+    <view class="form-group">
+      <text class="form-label">地点</text>
+      <input class="form-input" placeholder="请输入地点" value="{{location}}" bindinput="onInput" data-field="location" />
+    </view>
+
+    <view class="form-group">
+      <text class="form-label">描述</text>
+      <textarea class="form-textarea" placeholder="请输入描述" value="{{description}}" bindinput="onInput" data-field="description" />
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="section-header">参与成员</view>
+    <view class="member-check-item" wx:for="{{members}}" wx:key="id">
+      <view class="check-info">
+        <text class="check-name">{{item.name}}</text>
+        <text class="check-pos">{{item.position}}</text>
+      </view>
+      <switch checked="{{item.checked}}" bindchange="toggleMember" data-index="{{index}}" color="#C41A1A" />
+    </view>
+  </view>
+
+  <view class="submit-area">
+    <button class="btn-primary" bindtap="handleSubmit">创建任务</button>
+  </view>
+</view>

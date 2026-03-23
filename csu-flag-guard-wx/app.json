@@ -1,0 +1,28 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/login/login",
+    "pages/mine/mine",
+    "pages/training/list/list",
+    "pages/training/detail/detail",
+    "pages/training/create/create",
+    "pages/flag/list/list",
+    "pages/flag/detail/detail",
+    "pages/flag/create/create",
+    "pages/member/list/list",
+    "pages/member/detail/detail",
+    "pages/member/edit/edit",
+    "pages/tutorial/list/list",
+    "pages/tutorial/detail/detail",
+    "pages/tutorial/edit/edit"
+  ],
+  "window": {
+    "backgroundTextStyle": "dark",
+    "navigationBarBackgroundColor": "#8B0000",
+    "navigationBarTitleText": "中南大学国旗班",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#F2F2F2"
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}
