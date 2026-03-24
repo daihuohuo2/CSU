@@ -139,7 +139,8 @@ async function ensureCloud() {
 }
 
 async function fetchAll(collectionRef, query) {
-  var limit = 100;
+  // 小程序端云数据库单次查询通常最多返回 20 条，超过后需要手动翻页。
+  var limit = 20;
   var result = [];
   var hasQuery = query && Object.keys(query).length > 0;
   var offset = 0;
@@ -226,6 +227,7 @@ async function getList(key) {
   var list = await fetchAll(getCollection(key));
   return sortByUpdatedAt(list).map(function(item) {
     var plain = Object.assign({}, item);
+    plain._docId = plain._id;
     delete plain._id;
     return key === KEYS.MEMBERS ? enrichMember(plain) : plain;
   });
@@ -236,6 +238,7 @@ async function getById(key, id) {
   var res = await getCollection(key).where({ id: id }).limit(1).get();
   if (!res.data || !res.data.length) return null;
   var plain = Object.assign({}, res.data[0]);
+  plain._docId = plain._id;
   delete plain._id;
   return key === KEYS.MEMBERS ? enrichMember(plain) : plain;
 }
@@ -250,22 +253,60 @@ async function add(key, item) {
   return data;
 }
 
+async function updateMemberInCloud(id, data) {
+  var payload = clone(data);
+  var res = await wx.cloud.callFunction({
+    name: 'memberManage',
+    data: {
+      action: 'update',
+      id: id,
+      docId: payload._docId || '',
+      data: payload
+    }
+  });
+  var result = res.result || {};
+  if (!result.success) {
+    throw new Error(result.message || '成员更新失败');
+  }
+  return result.member ? enrichMember(result.member) : null;
+}
+
 async function update(key, id, data) {
   await ensureReady();
-  var collection = getCollection(key);
-  var target = await collection.where({ id: id }).limit(1).get();
-  if (!target.data || !target.data.length) {
-    return null;
+
+  if (key === KEYS.MEMBERS) {
+    var updatedMember = await updateMemberInCloud(id, data);
+    if (updatedMember) {
+      syncCurrentUserInfo(updatedMember);
+    }
+    return updatedMember;
   }
 
-  var doc = target.data[0];
-  await collection.doc(doc._id).update({
-    data: Object.assign({}, clone(data), {
+  var collection = getCollection(key);
+  var payload = clone(data);
+  var docId = payload._docId;
+  delete payload._docId;
+
+  if (!docId) {
+    var target = await collection.where({ id: id }).limit(1).get();
+    if (!target.data || !target.data.length) {
+      return null;
+    }
+    docId = target.data[0]._id;
+  }
+
+  await collection.doc(docId).update({
+    data: Object.assign({}, payload, {
       updatedAt: Date.now()
     })
   });
 
-  return getById(key, id);
+  var updatedItem = await getById(key, id);
+  if (key === KEYS.MEMBERS) {
+    syncCurrentUserInfo(updatedItem);
+  }
+
+  return updatedItem;
 }
 
 async function remove(key, id) {
@@ -306,6 +347,34 @@ function setUserInfo(info) {
 
 function clearUserInfo() {
   wx.removeStorageSync(KEYS.USER_INFO);
+}
+
+function buildUserInfoFromMember(member) {
+  if (!member) return null;
+
+  return {
+    name: member.name,
+    role: hasAdminPosition(member.position) ? 'admin' : 'member',
+    studentId: member.studentId,
+    memberId: member.id
+  };
+}
+
+function syncCurrentUserInfo(member) {
+  var user = getUserInfo();
+  if (!user || !member) {
+    return;
+  }
+
+  var isSameMember = user.memberId
+    ? user.memberId === member.id
+    : user.studentId && user.studentId === member.studentId;
+
+  if (!isSameMember) {
+    return;
+  }
+
+  setUserInfo(buildUserInfoFromMember(member));
 }
 
 function isAdmin() {
@@ -350,6 +419,7 @@ module.exports = {
   getUserInfo: getUserInfo,
   setUserInfo: setUserInfo,
   clearUserInfo: clearUserInfo,
+  buildUserInfoFromMember: buildUserInfoFromMember,
   isAdmin: isAdmin,
   loginByCredentials: loginByCredentials
 };

@@ -14,6 +14,7 @@ Page({
   data: {
     isEdit: false,
     editId: '',
+    editDocId: '',
     form: {
       name: '', gender: '', studentId: '', college: '', major: '',
       grade: '', className: '', department: '', phone: '', wechat: '',
@@ -43,6 +44,7 @@ Page({
           this.setData({
             isEdit: true,
             editId: options.id,
+            editDocId: member._docId || '',
             form: {
               name: member.name || '',
               gender: member.gender || '',
@@ -56,8 +58,8 @@ Page({
               wechat: member.wechat || '',
               joinDate: member.joinDate || '',
               position: positions,
-      status: member.status || '在队',
-      remark: member.remark || ''
+              status: member.status || '在队',
+              remark: member.remark || ''
             }
           });
           this.syncPositionOptions(positions);
@@ -110,6 +112,10 @@ Page({
     this.setData({ 'form.joinDate': e.detail.value });
   },
 
+  goExcelImport: function() {
+    wx.navigateTo({ url: '/pages/member/import/import' });
+  },
+
   handleSubmit: async function() {
     var form = this.data.form;
     if (!form.name.trim()) { util.showToast('请输入姓名'); return; }
@@ -120,7 +126,14 @@ Page({
 
     try {
       if (this.data.isEdit) {
-        await storage.update(storage.KEYS.MEMBERS, this.data.editId, form);
+        var updatedMember = await storage.update(
+          storage.KEYS.MEMBERS,
+          this.data.editId,
+          Object.assign({}, form, { _docId: this.data.editDocId })
+        );
+        if (!updatedMember) {
+          throw new Error('未找到要更新的成员记录');
+        }
         util.showToast('修改成功', 'success');
       } else {
         var member = Object.assign({}, form, {
@@ -133,7 +146,7 @@ Page({
       setTimeout(function() { wx.navigateBack(); }, 1500);
     } catch (err) {
       console.error(err);
-      util.showToast('保存失败');
+      util.showToast(err.message || '保存失败');
     }
   }
 });

@@ -1,6 +1,9 @@
 <view class="container">
   <view class="card">
-    <view class="section-header">{{isEdit ? '编辑成员档案' : '新增成员'}}</view>
+    <view class="edit-header">
+      <view class="edit-title">{{isEdit ? '编辑成员档案' : '新增成员'}}</view>
+      <view wx:if="{{!isEdit}}" class="header-action" bindtap="goExcelImport">Excel导入</view>
+    </view>
 
     <view class="form-group">
       <text class="form-label">姓名 *</text>

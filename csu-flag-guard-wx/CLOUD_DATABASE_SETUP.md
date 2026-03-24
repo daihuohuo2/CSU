@@ -9,6 +9,11 @@
 - `flag_ceremonies`
 - `tutorials`
 
+## 当前使用的云函数
+
+- `memberImport`
+- `memberManage`
+
 应用启动时会自动检查这些集合：
 
 - 如果集合里还没有数据，就把 [mock/data.js](/d:/VScode%20minipro/CSU/csu-flag-guard-wx/mock/data.js) 里的初始数据写进去
@@ -24,6 +29,11 @@
    - `trainings`
    - `flag_ceremonies`
    - `tutorials`
+5. 在开发者工具中上传并部署 `cloudfunctions/memberImport`
+6. 在开发者工具中上传并部署 `cloudfunctions/memberManage`
+7. 为云函数安装依赖后再部署一次，依赖包括：
+   - `wx-server-sdk`
+   - `xlsx`（仅 `memberImport` 需要）
 
 ## 权限建议
 
@@ -48,4 +58,3 @@
 
 - 云数据库初始化：[storage.js](/d:/VScode%20minipro/CSU/csu-flag-guard-wx/utils/storage.js)
 - 应用启动初始化：[app.js](/d:/VScode%20minipro/CSU/csu-flag-guard-wx/app.js)
-

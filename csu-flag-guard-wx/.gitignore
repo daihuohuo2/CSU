@@ -1,0 +1,27 @@
+# OS / Editor
+.DS_Store
+Thumbs.db
+.vscode/
+
+# WeChat DevTools local config
+project.private.config.json
+
+# Node / package managers
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Mini program / build artifacts
+miniprogram_npm/
+dist/
+coverage/
+
+# Cloud functions dependencies
+cloudfunctions/*/node_modules/
+
+# Local test or nested repos
+test/
+test/.git/
+test/.git

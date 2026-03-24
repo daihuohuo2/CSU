@@ -13,6 +13,7 @@
     "pages/department/work/work",
     "pages/member/list/list",
     "pages/member/detail/detail",
+    "pages/member/import/import",
     "pages/member/edit/edit",
     "pages/tutorial/list/list",
     "pages/tutorial/detail/detail",
