@@ -14,7 +14,7 @@ Page({
 
   onShow: function() {
     var detail = storage.getById(storage.KEYS.MEMBERS, this.data.id);
-    this.setData({ detail: detail });
+    this.setData({ detail: storage.enrichMember(detail) });
   },
 
   goEdit: function() {

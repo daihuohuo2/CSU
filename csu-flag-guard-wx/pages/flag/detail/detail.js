@@ -1,12 +1,17 @@
 var storage = require('../../../utils/storage');
 var util = require('../../../utils/util');
 
+var LEGACY_QUEUE_MEMBER_IDS = ['m001', 'm002', 'm003'];
+
 Page({
   data: {
     id: '',
     detail: null,
     stats: {},
     isAdmin: false,
+    isRaiseFlag: false,
+    queueAttendance: [],
+    audienceAttendance: [],
     statusColors: {
       '正常': '#07C160',
       '迟到': '#FFA500',
@@ -23,13 +28,53 @@ Page({
     this.loadData();
   },
 
+  isRaiseFlagTask: function(detail) {
+    return !!detail && (detail.type === '升旗' || detail.type === '鍗囨棗');
+  },
+
+  buildAttendanceGroups: function(detail) {
+    var queueAttendance = [];
+    var audienceAttendance = [];
+    var attendance = (detail && detail.attendance) || [];
+    var queueIds = (detail && detail.queueMemberIds) || [];
+    var audienceIds = (detail && detail.audienceMemberIds) || [];
+    var hasExplicitGroups = queueIds.length > 0 || audienceIds.length > 0;
+
+    if (!hasExplicitGroups) {
+      queueIds = LEGACY_QUEUE_MEMBER_IDS;
+    }
+
+    attendance.forEach(function(item, index) {
+      var record = Object.assign({ originalIndex: index }, item);
+      if (queueIds.indexOf(item.memberId) !== -1) {
+        queueAttendance.push(record);
+      } else {
+        audienceAttendance.push(record);
+      }
+    });
+
+    return {
+      isRaiseFlag: this.isRaiseFlagTask(detail),
+      queueAttendance: queueAttendance,
+      audienceAttendance: audienceAttendance
+    };
+  },
+
+  updateDetailState: function(detail) {
+    var groups = this.buildAttendanceGroups(detail);
+    this.setData({
+      detail: detail,
+      stats: util.calcAttendanceStats((detail && detail.attendance) || []),
+      isRaiseFlag: groups.isRaiseFlag,
+      queueAttendance: groups.queueAttendance,
+      audienceAttendance: groups.audienceAttendance
+    });
+  },
+
   loadData: function() {
     var detail = storage.getById(storage.KEYS.FLAG_CEREMONIES, this.data.id);
     if (detail) {
-      this.setData({
-        detail: detail,
-        stats: util.calcAttendanceStats(detail.attendance || [])
-      });
+      this.updateDetailState(detail);
     }
   },
 
@@ -39,10 +84,7 @@ Page({
     var detail = this.data.detail;
     detail.attendance[index].status = status;
     storage.update(storage.KEYS.FLAG_CEREMONIES, this.data.id, { attendance: detail.attendance });
-    this.setData({
-      detail: detail,
-      stats: util.calcAttendanceStats(detail.attendance)
-    });
+    this.updateDetailState(detail);
     util.showToast('已更新', 'success');
   },
 

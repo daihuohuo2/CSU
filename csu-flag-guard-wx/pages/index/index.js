@@ -3,7 +3,8 @@ var storage = require('../../utils/storage');
 Page({
   data: {
     userInfo: null,
-    isAdmin: false
+    isAdmin: false,
+    memberInfo: null
   },
 
   onShow: function () {
@@ -12,9 +13,16 @@ Page({
       wx.reLaunch({ url: '/pages/login/login' });
       return;
     }
+
+    var memberInfo = null;
+    if (userInfo.memberId) {
+      memberInfo = storage.enrichMember(storage.getById(storage.KEYS.MEMBERS, userInfo.memberId));
+    }
+
     this.setData({
       userInfo: userInfo,
-      isAdmin: userInfo.role === 'admin'
+      isAdmin: userInfo.role === 'admin',
+      memberInfo: memberInfo
     });
   },
 
@@ -36,6 +44,14 @@ Page({
 
   goMember: function () {
     wx.navigateTo({ url: '/pages/member/list/list' });
+  },
+
+  goDepartment: function () {
+    wx.navigateTo({ url: '/pages/department/list/list' });
+  },
+
+  goDepartmentWork: function () {
+    wx.navigateTo({ url: '/pages/department/work/work' });
   },
 
   goTutorial: function () {

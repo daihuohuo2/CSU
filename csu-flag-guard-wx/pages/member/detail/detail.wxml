@@ -1,12 +1,10 @@
 <view class="container" wx:if="{{detail}}">
-  <!-- 头部 -->
   <view class="detail-header">
     <view class="detail-avatar">{{detail.name[0]}}</view>
     <view class="detail-name">{{detail.name}}</view>
-    <view class="detail-pos">{{detail.position}}</view>
+    <view class="detail-pos">{{detail.positionText}}</view>
   </view>
 
-  <!-- 基本信息 -->
   <view class="card">
     <view class="section-header">基本信息</view>
     <view class="info-row">
@@ -37,9 +35,12 @@
       <text class="info-label">班级</text>
       <text class="info-value">{{detail.className}}</text>
     </view>
+    <view class="info-row">
+      <text class="info-label">部门</text>
+      <text class="info-value">{{detail.department || '未分配'}}</text>
+    </view>
   </view>
 
-  <!-- 联系方式 -->
   <view class="card">
     <view class="section-header">联系方式</view>
     <view class="info-row">
@@ -52,7 +53,6 @@
     </view>
   </view>
 
-  <!-- 队伍信息 -->
   <view class="card">
     <view class="section-header">队伍信息</view>
     <view class="info-row">
@@ -61,7 +61,7 @@
     </view>
     <view class="info-row">
       <text class="info-label">职务</text>
-      <text class="info-value">{{detail.position}}</text>
+      <text class="info-value">{{detail.positionText}}</text>
     </view>
     <view class="info-row">
       <text class="info-label">状态</text>
@@ -73,7 +73,6 @@
     </view>
   </view>
 
-  <!-- 管理员操作 -->
   <view class="bottom-actions" wx:if="{{isAdmin}}">
     <button class="btn-primary" style="margin-bottom: 20rpx;" bindtap="goEdit">编辑档案</button>
     <button class="btn-danger" bindtap="handleDelete">删除成员</button>

@@ -1,26 +1,24 @@
 <view class="container">
-  <!-- 搜索栏 -->
   <view class="search-bar">
     <input class="search-input" placeholder="搜索成员姓名/学号" value="{{keyword}}" bindinput="onSearch" />
   </view>
 
-  <!-- 筛选 -->
   <view class="filter-bar">
     <view class="filter-tag {{currentStatus === '' ? 'active' : ''}}" bindtap="filterStatus" data-status="">全部</view>
     <view class="filter-tag {{currentStatus === '在队' ? 'active' : ''}}" bindtap="filterStatus" data-status="在队">在队</view>
     <view class="filter-tag {{currentStatus === '离队' ? 'active' : ''}}" bindtap="filterStatus" data-status="离队">离队</view>
   </view>
 
-  <!-- 成员列表 -->
   <view wx:if="{{filteredList.length > 0}}">
     <view class="member-card card" wx:for="{{filteredList}}" wx:key="id" bindtap="goDetail" data-id="{{item.id}}">
       <view class="member-avatar">{{item.name[0]}}</view>
       <view class="member-info">
         <view class="member-name-row">
           <text class="member-name">{{item.name}}</text>
-          <text class="member-pos">{{item.position}}</text>
+          <text class="member-pos">{{item.positionText}}</text>
         </view>
         <view class="member-sub">{{item.college}} · {{item.grade}}级</view>
+        <view class="member-sub">部门：{{item.department || '未分配'}}</view>
         <view class="member-sub">学号：{{item.studentId}}</view>
       </view>
       <view class="member-status {{item.status === '在队' ? 'status-active' : 'status-inactive'}}">{{item.status}}</view>

@@ -1,24 +1,43 @@
 var storage = require('../../../utils/storage');
 var util = require('../../../utils/util');
 
+function buildPositionOptions(selectedPositions) {
+  return storage.POSITION_OPTIONS.map(function(label) {
+    return {
+      label: label,
+      checked: selectedPositions.indexOf(label) !== -1
+    };
+  });
+}
+
 Page({
   data: {
     isEdit: false,
     editId: '',
     form: {
       name: '', gender: '', studentId: '', college: '', major: '',
-      grade: '', className: '', phone: '', wechat: '',
-      joinDate: '', position: '', status: '在队', remark: ''
+      grade: '', className: '', department: '', phone: '', wechat: '',
+      joinDate: '', position: [], status: '在队', remark: ''
     },
+    positionSummary: '',
     genderOptions: ['男', '女'],
-    positionOptions: ['队长', '副队长', '旗手', '护旗手', '队员'],
+    departmentOptions: storage.DEPARTMENT_OPTIONS,
+    positionOptions: buildPositionOptions([]),
     statusOptions: ['在队', '离队']
+  },
+
+  syncPositionOptions: function(positions) {
+    this.setData({
+      positionOptions: buildPositionOptions(positions),
+      positionSummary: storage.getPositionText(positions)
+    });
   },
 
   onLoad: function(options) {
     if (options.id) {
       var member = storage.getById(storage.KEYS.MEMBERS, options.id);
       if (member) {
+        var positions = storage.normalizePositions(member.position);
         this.setData({
           isEdit: true,
           editId: options.id,
@@ -30,17 +49,21 @@ Page({
             major: member.major || '',
             grade: member.grade || '',
             className: member.className || '',
+            department: member.department || '',
             phone: member.phone || '',
             wechat: member.wechat || '',
             joinDate: member.joinDate || '',
-            position: member.position || '',
+            position: positions,
             status: member.status || '在队',
             remark: member.remark || ''
           }
         });
+        this.syncPositionOptions(positions);
         wx.setNavigationBarTitle({ title: '编辑成员' });
+        return;
       }
     }
+    this.syncPositionOptions(this.data.form.position);
   },
 
   onInput: function(e) {
@@ -53,8 +76,24 @@ Page({
     this.setData({ 'form.gender': this.data.genderOptions[e.detail.value] });
   },
 
-  onPositionPick: function(e) {
-    this.setData({ 'form.position': this.data.positionOptions[e.detail.value] });
+  onDepartmentPick: function(e) {
+    this.setData({ 'form.department': this.data.departmentOptions[e.detail.value] });
+  },
+
+  togglePosition: function(e) {
+    var value = e.currentTarget.dataset.value;
+    var positions = this.data.form.position.slice();
+    var existsIndex = positions.indexOf(value);
+
+    if (e.detail.value && existsIndex === -1) {
+      positions.push(value);
+    }
+    if (!e.detail.value && existsIndex !== -1) {
+      positions.splice(existsIndex, 1);
+    }
+
+    this.setData({ 'form.position': positions });
+    this.syncPositionOptions(positions);
   },
 
   onStatusPick: function(e) {
@@ -70,6 +109,8 @@ Page({
     if (!form.name.trim()) { util.showToast('请输入姓名'); return; }
     if (!form.gender) { util.showToast('请选择性别'); return; }
     if (!form.studentId.trim()) { util.showToast('请输入学号'); return; }
+    if (!form.department) { util.showToast('请选择部门'); return; }
+    if (!form.position.length) { util.showToast('请至少选择一个职务'); return; }
 
     if (this.data.isEdit) {
       storage.update(storage.KEYS.MEMBERS, this.data.editId, form);

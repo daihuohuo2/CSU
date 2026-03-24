@@ -1,6 +1,10 @@
 var storage = require('../../../utils/storage');
 var util = require('../../../utils/util');
 
+function isActiveMember(member) {
+  return !member.status || member.status === '在队' || member.status === '鍦ㄩ槦';
+}
+
 Page({
   data: {
     title: '',
@@ -10,13 +14,27 @@ Page({
     location: '',
     description: '',
     typeOptions: ['升旗', '降旗'],
-    members: []
+    members: [],
+    audienceMembers: []
   },
 
   onLoad: function() {
-    var members = storage.getList(storage.KEYS.MEMBERS);
-    members.forEach(function(m) { m.checked = true; });
-    this.setData({ members: members });
+    var members = storage.enrichMembers(storage.getList(storage.KEYS.MEMBERS))
+      .filter(isActiveMember)
+      .map(function(member) {
+        return Object.assign({}, member, { checked: false });
+      });
+
+    this.setData({
+      members: members,
+      audienceMembers: this.getAudienceMembers(members)
+    });
+  },
+
+  getAudienceMembers: function(members) {
+    return members.filter(function(member) {
+      return !member.checked;
+    });
   },
 
   onInput: function(e) {
@@ -34,23 +52,51 @@ Page({
   },
 
   toggleMember: function(e) {
-    var obj = {};
-    obj['members[' + e.currentTarget.dataset.index + '].checked'] = e.detail.value;
-    this.setData(obj);
+    var index = e.currentTarget.dataset.index;
+    var members = this.data.members.slice();
+    members[index] = Object.assign({}, members[index], {
+      checked: e.detail.value
+    });
+
+    this.setData({
+      members: members,
+      audienceMembers: this.getAudienceMembers(members)
+    });
   },
 
   handleSubmit: function() {
-    if (!this.data.title.trim()) { util.showToast('请输入任务标题'); return; }
-    if (!this.data.type) { util.showToast('请选择任务类型'); return; }
-    if (!this.data.date) { util.showToast('请选择日期'); return; }
+    if (!this.data.title.trim()) {
+      util.showToast('请输入任务标题');
+      return;
+    }
+    if (!this.data.type) {
+      util.showToast('请选择任务类型');
+      return;
+    }
+    if (!this.data.date) {
+      util.showToast('请选择日期');
+      return;
+    }
 
-    var selected = this.data.members.filter(function(m) { return m.checked; });
-    if (selected.length === 0) { util.showToast('请至少选择一名成员'); return; }
+    var queueMembers = this.data.members.filter(function(member) {
+      return member.checked;
+    });
+    if (queueMembers.length === 0) {
+      util.showToast('请至少选择一名上岗成员');
+      return;
+    }
 
-    var attendance = selected.map(function(m) {
-      return { memberId: m.id, name: m.name, status: '正常' };
+    var audienceMembers = this.getAudienceMembers(this.data.members);
+    var attendanceMembers = queueMembers.concat(audienceMembers);
+    var attendance = attendanceMembers.map(function(member) {
+      return {
+        memberId: member.id,
+        name: member.name,
+        status: '正常'
+      };
     });
 
+    var userInfo = storage.getUserInfo();
     var item = {
       id: util.generateId('f'),
       title: this.data.title.trim(),
@@ -59,12 +105,16 @@ Page({
       time: this.data.time || '',
       location: this.data.location || '',
       description: this.data.description || '',
-      createdBy: 'admin',
+      createdBy: userInfo ? userInfo.name : 'admin',
+      queueMemberIds: queueMembers.map(function(member) { return member.id; }),
+      audienceMemberIds: audienceMembers.map(function(member) { return member.id; }),
       attendance: attendance
     };
 
     storage.add(storage.KEYS.FLAG_CEREMONIES, item);
     util.showToast('创建成功', 'success');
-    setTimeout(function() { wx.navigateBack(); }, 1500);
+    setTimeout(function() {
+      wx.navigateBack();
+    }, 1500);
   }
 });

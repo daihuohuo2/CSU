@@ -34,8 +34,8 @@
     "disableSWC": true
   },
   "compileType": "miniprogram",
-  "libVersion": "2.19.4",
-  "appid": "wxc1487e042867ed9a",
+  "libVersion": "3.15.0",
+  "appid": "wxa9de6e6a3fbfc0bc",
   "projectname": "csu-flag-guard-wx",
   "condition": {},
   "simulatorPluginLibVersion": {},

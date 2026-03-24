@@ -3,37 +3,37 @@ var members = [
     id: 'm001', name: '刘伟', gender: '男', studentId: '8301120001', password: '123456',
     college: '计算机学院', major: '计算机科学与技术', grade: '2023',
     className: '计科2301班', phone: '13800138001', wechat: 'liuwei_wx',
-    joinDate: '2023-09-01', position: '队长', status: '在队', remark: '表现优秀'
+    joinDate: '2023-09-01', department: '办公室成员', position: ['班长'], status: '在队', remark: '表现优秀'
   },
   {
     id: 'm002', name: '王芳', gender: '女', studentId: '8301120002', password: '123456',
     college: '文学与新闻传播学院', major: '汉语言文学', grade: '2023',
     className: '文学2301班', phone: '13800138002', wechat: 'wangfang_wx',
-    joinDate: '2023-09-01', position: '副队长', status: '在队', remark: ''
+    joinDate: '2023-09-01', department: '宣传部成员', position: ['副班长'], status: '在队', remark: ''
   },
   {
     id: 'm003', name: '张强', gender: '男', studentId: '8301120003', password: '123456',
     college: '机电工程学院', major: '机械设计制造及自动化', grade: '2024',
     className: '机械2401班', phone: '13800138003', wechat: 'zhangqiang_wx',
-    joinDate: '2024-09-01', position: '队员', status: '在队', remark: ''
+    joinDate: '2024-09-01', department: '特勤部成员', position: ['队员'], status: '在队', remark: ''
   },
   {
     id: 'm004', name: '李敏', gender: '女', studentId: '8301120004', password: '123456',
     college: '外国语学院', major: '英语', grade: '2024',
     className: '英语2401班', phone: '13800138004', wechat: 'limin_wx',
-    joinDate: '2024-09-01', position: '队员', status: '在队', remark: ''
+    joinDate: '2024-09-01', department: '办公室成员', position: ['队员'], status: '在队', remark: ''
   },
   {
     id: 'm005', name: '陈浩', gender: '男', studentId: '8301120005', password: '123456',
     college: '土木工程学院', major: '土木工程', grade: '2023',
     className: '土木2301班', phone: '13800138005', wechat: 'chenhao_wx',
-    joinDate: '2023-09-15', position: '旗手', status: '在队', remark: ''
+    joinDate: '2023-09-15', department: '财务部成员', position: ['擎旗手'], status: '在队', remark: ''
   },
   {
     id: 'm006', name: '赵雪', gender: '女', studentId: '8301120006', password: '123456',
     college: '数学与统计学院', major: '数学与应用数学', grade: '2024',
     className: '数学2401班', phone: '13800138006', wechat: 'zhaoxue_wx',
-    joinDate: '2024-09-01', position: '队员', status: '在队', remark: '新队员'
+    joinDate: '2024-09-01', department: '宣传部成员', position: ['队员'], status: '在队', remark: '新队员'
   }
 ];
 

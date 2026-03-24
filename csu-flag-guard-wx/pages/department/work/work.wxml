@@ -1,0 +1,33 @@
+<view class="container">
+  <view class="empty-wrap" wx:if="{{!loading && (!memberInfo || !memberInfo.department || memberInfo.department === '未分配')}}">
+    <view class="loading-spinner"></view>
+    <view class="empty-title">你还未分配所属部门，请稍后再查看</view>
+  </view>
+
+  <block wx:elif="{{!loading && departmentMeta}}">
+    <view class="card dept-banner">
+      <view class="dept-banner-icon" style="background: {{departmentMeta.bgColor}}; color: {{departmentMeta.color}};">{{departmentMeta.icon}}</view>
+      <view class="dept-banner-body">
+        <view class="dept-banner-title">{{departmentMeta.title}}</view>
+        <view class="dept-banner-subtitle">{{departmentMeta.subtitle}}</view>
+        <view class="dept-banner-tag">{{memberInfo.department}}</view>
+      </view>
+    </view>
+
+    <view class="card">
+      <view class="section-header">部门任务</view>
+      <view class="placeholder-box">
+        <view class="placeholder-title">待完善</view>
+        <view class="placeholder-text">当前部门暂未分配任务，或内部菜单尚未设置完成。</view>
+      </view>
+    </view>
+
+    <view class="card">
+      <view class="section-header">部门功能</view>
+      <view class="placeholder-box">
+        <view class="placeholder-title">待完善</view>
+        <view class="placeholder-text">后续可在这里补充 {{departmentMeta.title}} 的专属工作入口与内部菜单。</view>
+      </view>
+    </view>
+  </block>
+</view>

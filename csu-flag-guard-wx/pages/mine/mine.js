@@ -15,12 +15,11 @@ Page({
       return;
     }
     var isAdmin = userInfo.role === 'admin';
-    // 尝试匹配成员档案
     var members = storage.getList(storage.KEYS.MEMBERS);
     var memberInfo = null;
     for (var i = 0; i < members.length; i++) {
       if (members[i].name === userInfo.name) {
-        memberInfo = members[i];
+        memberInfo = storage.enrichMember(members[i]);
         break;
       }
     }
@@ -51,7 +50,6 @@ Page({
   },
 
   resetData: function() {
-    var that = this;
     wx.showModal({
       title: '确认重置',
       content: '将清除所有数据并恢复为初始 Mock 数据，确定吗？',
@@ -69,7 +67,6 @@ Page({
   },
 
   handleLogout: function() {
-    var that = this;
     wx.showModal({
       title: '确认退出',
       content: '确定退出登录吗？',

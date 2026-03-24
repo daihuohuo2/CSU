@@ -1,7 +1,7 @@
 <view class="container" wx:if="{{detail}}">
   <view class="card">
     <view class="detail-title">{{detail.title}}</view>
-    <view class="flag-type-tag {{detail.type === '升旗' ? 'up' : 'down'}}">{{detail.type}}</view>
+    <view class="flag-type-tag {{isRaiseFlag ? 'up' : 'down'}}">{{detail.type}}</view>
     <view class="info-row">
       <text class="info-label">日期</text>
       <text class="info-value">{{detail.date}}</text>
@@ -48,20 +48,61 @@
 
   <view class="card">
     <view class="section-header">考勤明细</view>
-    <view class="att-item" wx:for="{{detail.attendance}}" wx:key="memberId">
-      <view class="att-name">{{item.name}}</view>
-      <view wx:if="{{isAdmin}}" class="att-status-selector">
-        <view class="att-status-btn {{item.status === '正常' ? 'active-green' : ''}}" bindtap="changeStatus"
-          data-index="{{index}}" data-status="正常">正常</view>
-        <view class="att-status-btn {{item.status === '迟到' ? 'active-orange' : ''}}" bindtap="changeStatus"
-          data-index="{{index}}" data-status="迟到">迟到</view>
-        <view class="att-status-btn {{item.status === '缺席' ? 'active-red' : ''}}" bindtap="changeStatus"
-          data-index="{{index}}" data-status="缺席">缺席</view>
-        <view class="att-status-btn {{item.status === '请假' ? 'active-blue' : ''}}" bindtap="changeStatus"
-          data-index="{{index}}" data-status="请假">请假</view>
+
+    <block wx:if="{{isRaiseFlag}}">
+      <view class="att-group">
+        <view class="att-group-title">队列成员</view>
+        <view class="att-item" wx:for="{{queueAttendance}}" wx:key="memberId">
+          <view class="att-name">{{item.name}}</view>
+          <view wx:if="{{isAdmin}}" class="att-status-selector">
+            <view class="att-status-btn {{item.status === '正常' ? 'active-green' : ''}}" bindtap="changeStatus"
+              data-index="{{item.originalIndex}}" data-status="正常">正常</view>
+            <view class="att-status-btn {{item.status === '迟到' ? 'active-orange' : ''}}" bindtap="changeStatus"
+              data-index="{{item.originalIndex}}" data-status="迟到">迟到</view>
+            <view class="att-status-btn {{item.status === '缺席' ? 'active-red' : ''}}" bindtap="changeStatus"
+              data-index="{{item.originalIndex}}" data-status="缺席">缺席</view>
+            <view class="att-status-btn {{item.status === '请假' ? 'active-blue' : ''}}" bindtap="changeStatus"
+              data-index="{{item.originalIndex}}" data-status="请假">请假</view>
+          </view>
+          <view wx:else class="status-badge" style="background: {{statusColors[item.status]}};">{{item.status}}</view>
+        </view>
       </view>
-      <view wx:else class="status-badge" style="background: {{statusColors[item.status]}};">{{item.status}}</view>
-    </view>
+
+      <view class="att-group">
+        <view class="att-group-title">观礼成员</view>
+        <view class="att-item" wx:for="{{audienceAttendance}}" wx:key="memberId">
+          <view class="att-name">{{item.name}}</view>
+          <view wx:if="{{isAdmin}}" class="att-status-selector">
+            <view class="att-status-btn {{item.status === '正常' ? 'active-green' : ''}}" bindtap="changeStatus"
+              data-index="{{item.originalIndex}}" data-status="正常">正常</view>
+            <view class="att-status-btn {{item.status === '迟到' ? 'active-orange' : ''}}" bindtap="changeStatus"
+              data-index="{{item.originalIndex}}" data-status="迟到">迟到</view>
+            <view class="att-status-btn {{item.status === '缺席' ? 'active-red' : ''}}" bindtap="changeStatus"
+              data-index="{{item.originalIndex}}" data-status="缺席">缺席</view>
+            <view class="att-status-btn {{item.status === '请假' ? 'active-blue' : ''}}" bindtap="changeStatus"
+              data-index="{{item.originalIndex}}" data-status="请假">请假</view>
+          </view>
+          <view wx:else class="status-badge" style="background: {{statusColors[item.status]}};">{{item.status}}</view>
+        </view>
+      </view>
+    </block>
+
+    <block wx:else>
+      <view class="att-item" wx:for="{{detail.attendance}}" wx:key="memberId">
+        <view class="att-name">{{item.name}}</view>
+        <view wx:if="{{isAdmin}}" class="att-status-selector">
+          <view class="att-status-btn {{item.status === '正常' ? 'active-green' : ''}}" bindtap="changeStatus"
+            data-index="{{index}}" data-status="正常">正常</view>
+          <view class="att-status-btn {{item.status === '迟到' ? 'active-orange' : ''}}" bindtap="changeStatus"
+            data-index="{{index}}" data-status="迟到">迟到</view>
+          <view class="att-status-btn {{item.status === '缺席' ? 'active-red' : ''}}" bindtap="changeStatus"
+            data-index="{{index}}" data-status="缺席">缺席</view>
+          <view class="att-status-btn {{item.status === '请假' ? 'active-blue' : ''}}" bindtap="changeStatus"
+            data-index="{{index}}" data-status="请假">请假</view>
+        </view>
+        <view wx:else class="status-badge" style="background: {{statusColors[item.status]}};">{{item.status}}</view>
+      </view>
+    </block>
   </view>
 
   <view class="bottom-actions" wx:if="{{isAdmin}}">

@@ -40,6 +40,13 @@
     </view>
 
     <view class="form-group">
+      <text class="form-label">部门 *</text>
+      <picker mode="selector" range="{{departmentOptions}}" bindchange="onDepartmentPick">
+        <view class="form-input">{{form.department || '请选择部门'}}</view>
+      </picker>
+    </view>
+
+    <view class="form-group">
       <text class="form-label">手机号</text>
       <input class="form-input" type="number" placeholder="请输入手机号" value="{{form.phone}}" bindinput="onInput" data-field="phone" />
     </view>
@@ -57,10 +64,12 @@
     </view>
 
     <view class="form-group">
-      <text class="form-label">职务</text>
-      <picker mode="selector" range="{{positionOptions}}" bindchange="onPositionPick">
-        <view class="form-input">{{form.position || '请选择职务'}}</view>
-      </picker>
+      <text class="form-label">职务 *</text>
+      <view class="position-summary {{positionSummary ? '' : 'placeholder'}}">{{positionSummary || '请选择职务'}}</view>
+      <view class="position-item" wx:for="{{positionOptions}}" wx:key="label">
+        <text class="position-name">{{item.label}}</text>
+        <switch checked="{{item.checked}}" bindchange="togglePosition" data-value="{{item.label}}" color="#C41A1A" />
+      </view>
     </view>
 
     <view class="form-group">

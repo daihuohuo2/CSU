@@ -1,5 +1,42 @@
 var mockData = require('../mock/data');
 
+var POSITION_OPTIONS = [
+  '班长',
+  '副班长',
+  '办公室主任',
+  '特勤部部长',
+  '财务部部长',
+  '宣传部部长',
+  '擎旗手',
+  '撒旗手',
+  '升旗手',
+  '指挥员',
+  '队员'
+];
+
+var DEPARTMENT_OPTIONS = [
+  '办公室成员',
+  '财务部成员',
+  '特勤部成员',
+  '宣传部成员'
+];
+
+var ADMIN_POSITIONS = [
+  '班长',
+  '副班长',
+  '办公室主任',
+  '特勤部部长',
+  '财务部部长',
+  '宣传部部长'
+];
+
+var LEGACY_POSITION_MAP = {
+  '队长': '班长',
+  '副队长': '副班长',
+  '旗手': '擎旗手',
+  '护旗手': '升旗手'
+};
+
 var KEYS = {
   MEMBERS: 'fg_members',
   TRAININGS: 'fg_trainings',
@@ -82,6 +119,44 @@ function remove(key, id) {
   wx.setStorageSync(key, list);
 }
 
+function normalizePositions(position) {
+  var list = Array.isArray(position) ? position.slice() : (position ? [position] : []);
+  var normalized = [];
+
+  list.forEach(function(item) {
+    var mapped = LEGACY_POSITION_MAP[item] || item;
+    if (mapped && normalized.indexOf(mapped) === -1) {
+      normalized.push(mapped);
+    }
+  });
+
+  return normalized;
+}
+
+function getPositionText(position) {
+  return normalizePositions(position).join('、');
+}
+
+function hasAdminPosition(position) {
+  var positions = normalizePositions(position);
+  return positions.some(function(item) {
+    return ADMIN_POSITIONS.indexOf(item) !== -1;
+  });
+}
+
+function enrichMember(member) {
+  if (!member) return null;
+  var positions = normalizePositions(member.position);
+  return Object.assign({}, member, {
+    position: positions,
+    positionText: positions.join('、')
+  });
+}
+
+function enrichMembers(members) {
+  return (members || []).map(enrichMember);
+}
+
 function getUserInfo() {
   return wx.getStorageSync(KEYS.USER_INFO) || null;
 }
@@ -99,13 +174,11 @@ function isAdmin() {
   return user && user.role === 'admin';
 }
 
-// 学号 + 密码登录验证，成功返回用户信息，失败返回 null
 function loginByCredentials(studentId, password) {
   var members = getList(KEYS.MEMBERS);
   for (var i = 0; i < members.length; i++) {
     if (members[i].studentId === studentId && members[i].password === password) {
-      var adminPositions = ['队长', '副队长'];
-      var role = adminPositions.indexOf(members[i].position) !== -1 ? 'admin' : 'member';
+      var role = hasAdminPosition(members[i].position) ? 'admin' : 'member';
       return {
         name: members[i].name,
         role: role,
@@ -119,12 +192,20 @@ function loginByCredentials(studentId, password) {
 
 module.exports = {
   KEYS: KEYS,
+  POSITION_OPTIONS: POSITION_OPTIONS,
+  DEPARTMENT_OPTIONS: DEPARTMENT_OPTIONS,
+  ADMIN_POSITIONS: ADMIN_POSITIONS,
   initMockData: initMockData,
   getList: getList,
   getById: getById,
   add: add,
   update: update,
   remove: remove,
+  normalizePositions: normalizePositions,
+  getPositionText: getPositionText,
+  hasAdminPosition: hasAdminPosition,
+  enrichMember: enrichMember,
+  enrichMembers: enrichMembers,
   getUserInfo: getUserInfo,
   setUserInfo: setUserInfo,
   clearUserInfo: clearUserInfo,

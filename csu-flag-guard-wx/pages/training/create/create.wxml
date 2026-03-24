@@ -43,7 +43,7 @@
     <view class="member-check-item" wx:for="{{members}}" wx:key="id">
       <view class="check-info">
         <text class="check-name">{{item.name}}</text>
-        <text class="check-pos">{{item.position}}</text>
+        <text class="check-pos">{{item.positionText}}</text>
       </view>
       <switch checked="{{item.checked}}" bindchange="toggleMember" data-index="{{index}}" color="#C41A1A" />
     </view>

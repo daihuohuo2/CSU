@@ -14,8 +14,7 @@ Page({
   },
 
   onLoad: function() {
-    // 加载所有成员，默认全选
-    var members = storage.getList(storage.KEYS.MEMBERS);
+    var members = storage.enrichMembers(storage.getList(storage.KEYS.MEMBERS));
     members.forEach(function(m) {
       m.checked = true;
     });

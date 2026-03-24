@@ -1,0 +1,47 @@
+.intro-card {
+  margin-bottom: 0;
+}
+
+.intro-text {
+  font-size: 24rpx;
+  color: #999;
+  line-height: 1.8;
+}
+
+.department-list {
+  padding-top: 4rpx;
+}
+
+.department-item {
+  display: flex;
+  align-items: center;
+  padding: 30rpx;
+}
+
+.department-icon {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 22rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 42rpx;
+  margin-right: 24rpx;
+  flex-shrink: 0;
+}
+
+.department-body {
+  flex: 1;
+}
+
+.department-name {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.department-desc {
+  font-size: 24rpx;
+  color: #999;
+  margin-top: 6rpx;
+}

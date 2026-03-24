@@ -44,6 +44,17 @@
   margin-top: 8rpx;
 }
 
+.att-group + .att-group {
+  margin-top: 24rpx;
+}
+
+.att-group-title {
+  font-size: 26rpx;
+  font-weight: bold;
+  color: #666666;
+  margin-bottom: 8rpx;
+}
+
 .att-item {
   display: flex;
   align-items: center;

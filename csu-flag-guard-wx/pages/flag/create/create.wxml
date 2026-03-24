@@ -38,14 +38,30 @@
   </view>
 
   <view class="card">
-    <view class="section-header">参与成员</view>
+    <view class="section-header">上岗成员</view>
+    <view class="section-tip">勾选后将自动从观礼成员中移出</view>
     <view class="member-check-item" wx:for="{{members}}" wx:key="id">
       <view class="check-info">
         <text class="check-name">{{item.name}}</text>
-        <text class="check-pos">{{item.position}}</text>
+        <text class="check-pos">{{item.positionText}}</text>
       </view>
       <switch checked="{{item.checked}}" bindchange="toggleMember" data-index="{{index}}" color="#C41A1A" />
     </view>
+  </view>
+
+  <view class="card">
+    <view class="section-header">观礼成员</view>
+    <view class="section-tip">默认包含全部在队成员，勾选上岗成员后会自动更新</view>
+    <view wx:if="{{audienceMembers.length}}">
+      <view class="member-check-item" wx:for="{{audienceMembers}}" wx:key="id">
+        <view class="check-info">
+          <text class="check-name">{{item.name}}</text>
+          <text class="check-pos">{{item.positionText}}</text>
+        </view>
+        <text class="preview-tag">观礼</text>
+      </view>
+    </view>
+    <view wx:else class="member-empty">当前无观礼成员</view>
   </view>
 
   <view class="submit-area">

@@ -9,6 +9,8 @@
     "pages/flag/list/list",
     "pages/flag/detail/detail",
     "pages/flag/create/create",
+    "pages/department/list/list",
+    "pages/department/work/work",
     "pages/member/list/list",
     "pages/member/detail/detail",
     "pages/member/edit/edit",

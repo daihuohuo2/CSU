@@ -15,7 +15,7 @@ Page({
   },
 
   loadData: function() {
-    var list = storage.getList(storage.KEYS.MEMBERS);
+    var list = storage.enrichMembers(storage.getList(storage.KEYS.MEMBERS));
     this.setData({ list: list });
     this.applyFilter();
   },

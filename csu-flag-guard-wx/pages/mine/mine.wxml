@@ -28,8 +28,12 @@
       <text class="info-value">{{memberInfo.grade}} {{memberInfo.className}}</text>
     </view>
     <view class="info-row">
+      <text class="info-label">部门</text>
+      <text class="info-value">{{memberInfo.department || '未分配'}}</text>
+    </view>
+    <view class="info-row">
       <text class="info-label">职务</text>
-      <text class="info-value">{{memberInfo.position}}</text>
+      <text class="info-value">{{memberInfo.positionText}}</text>
     </view>
     <view class="info-row">
       <text class="info-label">入队时间</text>

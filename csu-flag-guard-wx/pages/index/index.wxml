@@ -49,6 +49,22 @@
       </view>
       <text class="arrow-right">›</text>
     </view>
+    <view class="menu-item card" wx:if="{{isAdmin}}" bindtap="goDepartment">
+      <view class="menu-icon" style="background: #FFF6E8; color: #A85C00;">🏢</view>
+      <view class="menu-body">
+        <view class="menu-text">部门管理</view>
+        <view class="menu-desc">办公室与各部门菜单</view>
+      </view>
+      <text class="arrow-right">›</text>
+    </view>
+    <view class="menu-item card" wx:if="{{!isAdmin}}" bindtap="goDepartmentWork">
+      <view class="menu-icon" style="background: #EEF8F2; color: #1D8A52;">🧩</view>
+      <view class="menu-body">
+        <view class="menu-text">部门工作</view>
+        <view class="menu-desc">{{memberInfo && memberInfo.department ? memberInfo.department : '查看所属部门工作安排'}}</view>
+      </view>
+      <text class="arrow-right">›</text>
+    </view>
     <view class="menu-item card" bindtap="goTutorial">
       <view class="menu-icon" style="background: #F0FFF0; color: #07C160;">📖</view>
       <view class="menu-body">
