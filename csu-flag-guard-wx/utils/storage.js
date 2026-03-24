@@ -30,6 +30,8 @@ var ADMIN_POSITIONS = [
   '宣传部部长'
 ];
 
+var DEFAULT_MEMBER_PASSWORD = '123456';
+
 var LEGACY_POSITION_MAP = {
   '队长': '班长',
   '副队长': '副班长',
@@ -45,78 +47,30 @@ var KEYS = {
   USER_INFO: 'fg_user_info'
 };
 
-function initMockData() {
-  try {
-    var m = wx.getStorageSync(KEYS.MEMBERS);
-    if (!m || m.length === 0) {
-      wx.setStorageSync(KEYS.MEMBERS, mockData.members);
-    }
-  } catch (e) {
-    wx.setStorageSync(KEYS.MEMBERS, mockData.members);
-  }
-  try {
-    var t = wx.getStorageSync(KEYS.TRAININGS);
-    if (!t || t.length === 0) {
-      wx.setStorageSync(KEYS.TRAININGS, mockData.trainings);
-    }
-  } catch (e) {
-    wx.setStorageSync(KEYS.TRAININGS, mockData.trainings);
-  }
-  try {
-    var f = wx.getStorageSync(KEYS.FLAG_CEREMONIES);
-    if (!f || f.length === 0) {
-      wx.setStorageSync(KEYS.FLAG_CEREMONIES, mockData.flagCeremonies);
-    }
-  } catch (e) {
-    wx.setStorageSync(KEYS.FLAG_CEREMONIES, mockData.flagCeremonies);
-  }
-  try {
-    var tu = wx.getStorageSync(KEYS.TUTORIALS);
-    if (!tu || tu.length === 0) {
-      wx.setStorageSync(KEYS.TUTORIALS, mockData.tutorials);
-    }
-  } catch (e) {
-    wx.setStorageSync(KEYS.TUTORIALS, mockData.tutorials);
-  }
+var COLLECTIONS = {};
+COLLECTIONS[KEYS.MEMBERS] = 'members';
+COLLECTIONS[KEYS.TRAININGS] = 'trainings';
+COLLECTIONS[KEYS.FLAG_CEREMONIES] = 'flag_ceremonies';
+COLLECTIONS[KEYS.TUTORIALS] = 'tutorials';
+
+var cloudInitPromise = null;
+var readyPromise = null;
+var db = null;
+
+function clone(data) {
+  return JSON.parse(JSON.stringify(data));
 }
 
-function getList(key) {
-  return wx.getStorageSync(key) || [];
+function getCollectionName(key) {
+  return COLLECTIONS[key];
 }
 
-function getById(key, id) {
-  var list = getList(key);
-  for (var i = 0; i < list.length; i++) {
-    if (list[i].id === id) return list[i];
+function getCollection(key) {
+  var collectionName = getCollectionName(key);
+  if (!collectionName) {
+    throw new Error('Unknown collection key: ' + key);
   }
-  return null;
-}
-
-function add(key, item) {
-  var list = getList(key);
-  list.unshift(item);
-  wx.setStorageSync(key, list);
-  return item;
-}
-
-function update(key, id, data) {
-  var list = getList(key);
-  for (var i = 0; i < list.length; i++) {
-    if (list[i].id === id) {
-      Object.keys(data).forEach(function (k) {
-        list[i][k] = data[k];
-      });
-      wx.setStorageSync(key, list);
-      return list[i];
-    }
-  }
-  return null;
-}
-
-function remove(key, id) {
-  var list = getList(key);
-  list = list.filter(function (item) { return item.id !== id; });
-  wx.setStorageSync(key, list);
+  return db.collection(collectionName);
 }
 
 function normalizePositions(position) {
@@ -148,6 +102,7 @@ function enrichMember(member) {
   if (!member) return null;
   var positions = normalizePositions(member.position);
   return Object.assign({}, member, {
+    password: member.password || DEFAULT_MEMBER_PASSWORD,
     position: positions,
     positionText: positions.join('、')
   });
@@ -155,6 +110,190 @@ function enrichMember(member) {
 
 function enrichMembers(members) {
   return (members || []).map(enrichMember);
+}
+
+function sortByUpdatedAt(list) {
+  return list.sort(function(a, b) {
+    var aTime = a.updatedAt || a.createdAt || 0;
+    var bTime = b.updatedAt || b.createdAt || 0;
+    return bTime - aTime;
+  });
+}
+
+async function ensureCloud() {
+  if (cloudInitPromise) return cloudInitPromise;
+
+  cloudInitPromise = (async function() {
+    if (!wx.cloud) {
+      throw new Error('当前基础库不支持云开发，请在微信开发者工具中开启云开发。');
+    }
+    wx.cloud.init({
+      env: wx.cloud.DYNAMIC_CURRENT_ENV,
+      traceUser: true
+    });
+    db = wx.cloud.database();
+    return db;
+  })();
+
+  return cloudInitPromise;
+}
+
+async function fetchAll(collectionRef, query) {
+  var limit = 100;
+  var result = [];
+  var hasQuery = query && Object.keys(query).length > 0;
+  var offset = 0;
+
+  while (true) {
+    var ref = hasQuery ? collectionRef.where(query) : collectionRef;
+    var res = await ref.skip(offset).limit(limit).get();
+    var data = res.data || [];
+    result = result.concat(data);
+    if (data.length < limit) {
+      break;
+    }
+    offset += data.length;
+  }
+
+  return result;
+}
+
+function withTimestamps(item, fallbackCreatedAt) {
+  var now = Date.now();
+  return Object.assign({}, clone(item), {
+    createdAt: item.createdAt || fallbackCreatedAt || now,
+    updatedAt: now
+  });
+}
+
+async function seedCollection(key, seedList) {
+  var collection = getCollection(key);
+  var list = await fetchAll(collection);
+  if (list.length > 0) {
+    return;
+  }
+
+  for (var i = 0; i < seedList.length; i++) {
+    var seedItem = withTimestamps(seedList[i], Date.now() - i);
+    await collection.add({ data: seedItem });
+  }
+}
+
+async function seedMockData() {
+  await seedCollection(KEYS.MEMBERS, mockData.members);
+  await seedCollection(KEYS.TRAININGS, mockData.trainings);
+  await seedCollection(KEYS.FLAG_CEREMONIES, mockData.flagCeremonies);
+  await seedCollection(KEYS.TUTORIALS, mockData.tutorials);
+}
+
+async function backfillMemberDefaults() {
+  var collection = getCollection(KEYS.MEMBERS);
+  var members = await fetchAll(collection);
+
+  for (var i = 0; i < members.length; i++) {
+    if (members[i].password) {
+      continue;
+    }
+
+    await collection.doc(members[i]._id).update({
+      data: {
+        password: DEFAULT_MEMBER_PASSWORD,
+        updatedAt: Date.now()
+      }
+    });
+  }
+}
+
+async function ensureReady() {
+  if (readyPromise) return readyPromise;
+
+  readyPromise = (async function() {
+    await ensureCloud();
+    await seedMockData();
+    await backfillMemberDefaults();
+    return db;
+  })();
+
+  return readyPromise;
+}
+
+async function initMockData() {
+  return ensureReady();
+}
+
+async function getList(key) {
+  await ensureReady();
+  var list = await fetchAll(getCollection(key));
+  return sortByUpdatedAt(list).map(function(item) {
+    var plain = Object.assign({}, item);
+    delete plain._id;
+    return key === KEYS.MEMBERS ? enrichMember(plain) : plain;
+  });
+}
+
+async function getById(key, id) {
+  await ensureReady();
+  var res = await getCollection(key).where({ id: id }).limit(1).get();
+  if (!res.data || !res.data.length) return null;
+  var plain = Object.assign({}, res.data[0]);
+  delete plain._id;
+  return key === KEYS.MEMBERS ? enrichMember(plain) : plain;
+}
+
+async function add(key, item) {
+  await ensureReady();
+  var normalizedItem = key === KEYS.MEMBERS
+    ? Object.assign({}, item, { password: item.password || DEFAULT_MEMBER_PASSWORD })
+    : item;
+  var data = withTimestamps(normalizedItem);
+  await getCollection(key).add({ data: data });
+  return data;
+}
+
+async function update(key, id, data) {
+  await ensureReady();
+  var collection = getCollection(key);
+  var target = await collection.where({ id: id }).limit(1).get();
+  if (!target.data || !target.data.length) {
+    return null;
+  }
+
+  var doc = target.data[0];
+  await collection.doc(doc._id).update({
+    data: Object.assign({}, clone(data), {
+      updatedAt: Date.now()
+    })
+  });
+
+  return getById(key, id);
+}
+
+async function remove(key, id) {
+  await ensureReady();
+  var collection = getCollection(key);
+  var target = await collection.where({ id: id }).limit(1).get();
+  if (!target.data || !target.data.length) {
+    return;
+  }
+
+  await collection.doc(target.data[0]._id).remove();
+}
+
+async function clearCollection(key) {
+  var collection = getCollection(key);
+  var list = await fetchAll(collection);
+  for (var i = 0; i < list.length; i++) {
+    await collection.doc(list[i]._id).remove();
+  }
+}
+
+async function resetData() {
+  await ensureCloud();
+  await clearCollection(KEYS.MEMBERS);
+  await clearCollection(KEYS.TRAININGS);
+  await clearCollection(KEYS.FLAG_CEREMONIES);
+  await clearCollection(KEYS.TUTORIALS);
+  await seedMockData();
 }
 
 function getUserInfo() {
@@ -171,11 +310,11 @@ function clearUserInfo() {
 
 function isAdmin() {
   var user = getUserInfo();
-  return user && user.role === 'admin';
+  return !!(user && user.role === 'admin');
 }
 
-function loginByCredentials(studentId, password) {
-  var members = getList(KEYS.MEMBERS);
+async function loginByCredentials(studentId, password) {
+  var members = await getList(KEYS.MEMBERS);
   for (var i = 0; i < members.length; i++) {
     if (members[i].studentId === studentId && members[i].password === password) {
       var role = hasAdminPosition(members[i].position) ? 'admin' : 'member';
@@ -195,7 +334,9 @@ module.exports = {
   POSITION_OPTIONS: POSITION_OPTIONS,
   DEPARTMENT_OPTIONS: DEPARTMENT_OPTIONS,
   ADMIN_POSITIONS: ADMIN_POSITIONS,
+  DEFAULT_MEMBER_PASSWORD: DEFAULT_MEMBER_PASSWORD,
   initMockData: initMockData,
+  resetData: resetData,
   getList: getList,
   getById: getById,
   add: add,

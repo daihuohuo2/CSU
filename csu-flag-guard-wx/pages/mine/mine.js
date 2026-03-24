@@ -8,24 +8,29 @@ Page({
     memberInfo: null
   },
 
-  onShow: function() {
+  onShow: async function() {
     var userInfo = storage.getUserInfo();
     if (!userInfo) {
       wx.reLaunch({ url: '/pages/login/login' });
       return;
     }
-    var isAdmin = userInfo.role === 'admin';
-    var members = storage.getList(storage.KEYS.MEMBERS);
+
     var memberInfo = null;
-    for (var i = 0; i < members.length; i++) {
-      if (members[i].name === userInfo.name) {
-        memberInfo = storage.enrichMember(members[i]);
-        break;
+    if (userInfo.memberId) {
+      memberInfo = storage.enrichMember(await storage.getById(storage.KEYS.MEMBERS, userInfo.memberId));
+    } else {
+      var members = await storage.getList(storage.KEYS.MEMBERS);
+      for (var i = 0; i < members.length; i++) {
+        if (members[i].name === userInfo.name) {
+          memberInfo = storage.enrichMember(members[i]);
+          break;
+        }
       }
     }
+
     this.setData({
       userInfo: userInfo,
-      isAdmin: isAdmin,
+      isAdmin: userInfo.role === 'admin',
       memberInfo: memberInfo
     });
   },
@@ -52,15 +57,20 @@ Page({
   resetData: function() {
     wx.showModal({
       title: '确认重置',
-      content: '将清除所有数据并恢复为初始 Mock 数据，确定吗？',
-      success: function(res) {
+      content: '将清除云端数据并恢复为初始 Mock 数据，确定吗？',
+      success: async function(res) {
         if (res.confirm) {
-          wx.clearStorageSync();
-          storage.initMockData();
-          util.showToast('数据已重置', 'success');
-          setTimeout(function() {
-            wx.reLaunch({ url: '/pages/login/login' });
-          }, 1500);
+          try {
+            await storage.resetData();
+            storage.clearUserInfo();
+            util.showToast('数据已重置', 'success');
+            setTimeout(function() {
+              wx.reLaunch({ url: '/pages/login/login' });
+            }, 1500);
+          } catch (err) {
+            console.error(err);
+            util.showToast('重置失败，请检查云开发配置');
+          }
         }
       }
     });

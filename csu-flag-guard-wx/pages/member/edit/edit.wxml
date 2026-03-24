@@ -17,6 +17,7 @@
     <view class="form-group">
       <text class="form-label">学号 *</text>
       <input class="form-input" placeholder="请输入学号" value="{{form.studentId}}" bindinput="onInput" data-field="studentId" />
+      <view class="form-tip" wx:if="{{!isEdit}}">新增成员默认初始密码为 {{storageDefaultPassword || '123456'}}</view>
     </view>
 
     <view class="form-group">

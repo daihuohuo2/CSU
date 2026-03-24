@@ -12,9 +12,14 @@ Page({
     this.setData({ id: options.id, isAdmin: storage.isAdmin() });
   },
 
-  onShow: function() {
-    var detail = storage.getById(storage.KEYS.MEMBERS, this.data.id);
-    this.setData({ detail: storage.enrichMember(detail) });
+  onShow: async function() {
+    try {
+      var detail = await storage.getById(storage.KEYS.MEMBERS, this.data.id);
+      this.setData({ detail: storage.enrichMember(detail) });
+    } catch (err) {
+      console.error(err);
+      util.showToast('加载成员失败');
+    }
   },
 
   goEdit: function() {
@@ -26,11 +31,16 @@ Page({
     wx.showModal({
       title: '确认删除',
       content: '确定删除该成员档案吗？',
-      success: function(res) {
+      success: async function(res) {
         if (res.confirm) {
-          storage.remove(storage.KEYS.MEMBERS, that.data.id);
-          util.showToast('已删除', 'success');
-          setTimeout(function() { wx.navigateBack(); }, 1500);
+          try {
+            await storage.remove(storage.KEYS.MEMBERS, that.data.id);
+            util.showToast('已删除', 'success');
+            setTimeout(function() { wx.navigateBack(); }, 1500);
+          } catch (err) {
+            console.error(err);
+            util.showToast('删除失败');
+          }
         }
       }
     });

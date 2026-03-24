@@ -20,6 +20,7 @@ Page({
       joinDate: '', position: [], status: '在队', remark: ''
     },
     positionSummary: '',
+    storageDefaultPassword: storage.DEFAULT_MEMBER_PASSWORD,
     genderOptions: ['男', '女'],
     departmentOptions: storage.DEPARTMENT_OPTIONS,
     positionOptions: buildPositionOptions([]),
@@ -33,34 +34,39 @@ Page({
     });
   },
 
-  onLoad: function(options) {
+  onLoad: async function(options) {
     if (options.id) {
-      var member = storage.getById(storage.KEYS.MEMBERS, options.id);
-      if (member) {
-        var positions = storage.normalizePositions(member.position);
-        this.setData({
-          isEdit: true,
-          editId: options.id,
-          form: {
-            name: member.name || '',
-            gender: member.gender || '',
-            studentId: member.studentId || '',
-            college: member.college || '',
-            major: member.major || '',
-            grade: member.grade || '',
-            className: member.className || '',
-            department: member.department || '',
-            phone: member.phone || '',
-            wechat: member.wechat || '',
-            joinDate: member.joinDate || '',
-            position: positions,
-            status: member.status || '在队',
-            remark: member.remark || ''
-          }
-        });
-        this.syncPositionOptions(positions);
-        wx.setNavigationBarTitle({ title: '编辑成员' });
-        return;
+      try {
+        var member = await storage.getById(storage.KEYS.MEMBERS, options.id);
+        if (member) {
+          var positions = storage.normalizePositions(member.position);
+          this.setData({
+            isEdit: true,
+            editId: options.id,
+            form: {
+              name: member.name || '',
+              gender: member.gender || '',
+              studentId: member.studentId || '',
+              college: member.college || '',
+              major: member.major || '',
+              grade: member.grade || '',
+              className: member.className || '',
+              department: member.department || '',
+              phone: member.phone || '',
+              wechat: member.wechat || '',
+              joinDate: member.joinDate || '',
+              position: positions,
+      status: member.status || '在队',
+      remark: member.remark || ''
+            }
+          });
+          this.syncPositionOptions(positions);
+          wx.setNavigationBarTitle({ title: '编辑成员' });
+          return;
+        }
+      } catch (err) {
+        console.error(err);
+        util.showToast('加载成员失败');
       }
     }
     this.syncPositionOptions(this.data.form.position);
@@ -104,7 +110,7 @@ Page({
     this.setData({ 'form.joinDate': e.detail.value });
   },
 
-  handleSubmit: function() {
+  handleSubmit: async function() {
     var form = this.data.form;
     if (!form.name.trim()) { util.showToast('请输入姓名'); return; }
     if (!form.gender) { util.showToast('请选择性别'); return; }
@@ -112,14 +118,22 @@ Page({
     if (!form.department) { util.showToast('请选择部门'); return; }
     if (!form.position.length) { util.showToast('请至少选择一个职务'); return; }
 
-    if (this.data.isEdit) {
-      storage.update(storage.KEYS.MEMBERS, this.data.editId, form);
-      util.showToast('修改成功', 'success');
-    } else {
-      var member = Object.assign({}, form, { id: util.generateId('m') });
-      storage.add(storage.KEYS.MEMBERS, member);
-      util.showToast('新增成功', 'success');
+    try {
+      if (this.data.isEdit) {
+        await storage.update(storage.KEYS.MEMBERS, this.data.editId, form);
+        util.showToast('修改成功', 'success');
+      } else {
+        var member = Object.assign({}, form, {
+          id: util.generateId('m'),
+          password: storage.DEFAULT_MEMBER_PASSWORD
+        });
+        await storage.add(storage.KEYS.MEMBERS, member);
+        util.showToast('新增成功', 'success');
+      }
+      setTimeout(function() { wx.navigateBack(); }, 1500);
+    } catch (err) {
+      console.error(err);
+      util.showToast('保存失败');
     }
-    setTimeout(function() { wx.navigateBack(); }, 1500);
   }
 });

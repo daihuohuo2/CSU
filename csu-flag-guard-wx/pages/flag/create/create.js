@@ -18,17 +18,22 @@ Page({
     audienceMembers: []
   },
 
-  onLoad: function() {
-    var members = storage.enrichMembers(storage.getList(storage.KEYS.MEMBERS))
-      .filter(isActiveMember)
-      .map(function(member) {
-        return Object.assign({}, member, { checked: false });
-      });
+  onLoad: async function() {
+    try {
+      var members = storage.enrichMembers(await storage.getList(storage.KEYS.MEMBERS))
+        .filter(isActiveMember)
+        .map(function(member) {
+          return Object.assign({}, member, { checked: false });
+        });
 
-    this.setData({
-      members: members,
-      audienceMembers: this.getAudienceMembers(members)
-    });
+      this.setData({
+        members: members,
+        audienceMembers: this.getAudienceMembers(members)
+      });
+    } catch (err) {
+      console.error(err);
+      util.showToast('加载成员失败');
+    }
   },
 
   getAudienceMembers: function(members) {
@@ -64,7 +69,7 @@ Page({
     });
   },
 
-  handleSubmit: function() {
+  handleSubmit: async function() {
     if (!this.data.title.trim()) {
       util.showToast('请输入任务标题');
       return;
@@ -111,10 +116,15 @@ Page({
       attendance: attendance
     };
 
-    storage.add(storage.KEYS.FLAG_CEREMONIES, item);
-    util.showToast('创建成功', 'success');
-    setTimeout(function() {
-      wx.navigateBack();
-    }, 1500);
+    try {
+      await storage.add(storage.KEYS.FLAG_CEREMONIES, item);
+      util.showToast('创建成功', 'success');
+      setTimeout(function() {
+        wx.navigateBack();
+      }, 1500);
+    } catch (err) {
+      console.error(err);
+      util.showToast('创建失败');
+    }
   }
 });

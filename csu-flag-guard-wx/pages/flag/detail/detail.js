@@ -24,8 +24,8 @@ Page({
     this.setData({ id: options.id, isAdmin: storage.isAdmin() });
   },
 
-  onShow: function() {
-    this.loadData();
+  onShow: async function() {
+    await this.loadData();
   },
 
   isRaiseFlagTask: function(detail) {
@@ -71,21 +71,32 @@ Page({
     });
   },
 
-  loadData: function() {
-    var detail = storage.getById(storage.KEYS.FLAG_CEREMONIES, this.data.id);
-    if (detail) {
-      this.updateDetailState(detail);
+  loadData: async function() {
+    try {
+      var detail = await storage.getById(storage.KEYS.FLAG_CEREMONIES, this.data.id);
+      if (detail) {
+        this.updateDetailState(detail);
+      }
+    } catch (err) {
+      console.error(err);
+      util.showToast('加载任务失败');
     }
   },
 
-  changeStatus: function(e) {
+  changeStatus: async function(e) {
     var index = e.currentTarget.dataset.index;
     var status = e.currentTarget.dataset.status;
     var detail = this.data.detail;
     detail.attendance[index].status = status;
-    storage.update(storage.KEYS.FLAG_CEREMONIES, this.data.id, { attendance: detail.attendance });
-    this.updateDetailState(detail);
-    util.showToast('已更新', 'success');
+
+    try {
+      await storage.update(storage.KEYS.FLAG_CEREMONIES, this.data.id, { attendance: detail.attendance });
+      this.updateDetailState(detail);
+      util.showToast('已更新', 'success');
+    } catch (err) {
+      console.error(err);
+      util.showToast('更新失败');
+    }
   },
 
   handleDelete: function() {
@@ -93,11 +104,16 @@ Page({
     wx.showModal({
       title: '确认删除',
       content: '确定删除此升降旗任务吗？',
-      success: function(res) {
+      success: async function(res) {
         if (res.confirm) {
-          storage.remove(storage.KEYS.FLAG_CEREMONIES, that.data.id);
-          util.showToast('已删除', 'success');
-          setTimeout(function() { wx.navigateBack(); }, 1500);
+          try {
+            await storage.remove(storage.KEYS.FLAG_CEREMONIES, that.data.id);
+            util.showToast('已删除', 'success');
+            setTimeout(function() { wx.navigateBack(); }, 1500);
+          } catch (err) {
+            console.error(err);
+            util.showToast('删除失败');
+          }
         }
       }
     });

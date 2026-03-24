@@ -13,12 +13,17 @@ Page({
     members: []
   },
 
-  onLoad: function() {
-    var members = storage.enrichMembers(storage.getList(storage.KEYS.MEMBERS));
-    members.forEach(function(m) {
-      m.checked = true;
-    });
-    this.setData({ members: members });
+  onLoad: async function() {
+    try {
+      var members = storage.enrichMembers(await storage.getList(storage.KEYS.MEMBERS));
+      members.forEach(function(m) {
+        m.checked = true;
+      });
+      this.setData({ members: members });
+    } catch (err) {
+      console.error(err);
+      util.showToast('加载成员失败');
+    }
   },
 
   onInput: function(e) {
@@ -44,7 +49,7 @@ Page({
     this.setData(obj);
   },
 
-  handleSubmit: function() {
+  handleSubmit: async function() {
     if (!this.data.title.trim()) {
       util.showToast('请输入训练标题');
       return;
@@ -68,6 +73,7 @@ Page({
       return { memberId: m.id, name: m.name, status: '已到' };
     });
 
+    var userInfo = storage.getUserInfo();
     var training = {
       id: util.generateId('t'),
       title: this.data.title.trim(),
@@ -76,14 +82,19 @@ Page({
       time: this.data.time || '',
       location: this.data.location || '',
       description: this.data.description || '',
-      createdBy: 'admin',
+      createdBy: userInfo ? userInfo.name : 'admin',
       attendance: attendance
     };
 
-    storage.add(storage.KEYS.TRAININGS, training);
-    util.showToast('创建成功', 'success');
-    setTimeout(function() {
-      wx.navigateBack();
-    }, 1500);
+    try {
+      await storage.add(storage.KEYS.TRAININGS, training);
+      util.showToast('创建成功', 'success');
+      setTimeout(function() {
+        wx.navigateBack();
+      }, 1500);
+    } catch (err) {
+      console.error(err);
+      util.showToast('创建失败');
+    }
   }
 });

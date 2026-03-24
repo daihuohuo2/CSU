@@ -1,4 +1,5 @@
 var storage = require('../../../utils/storage');
+var util = require('../../../utils/util');
 
 Page({
   data: {
@@ -9,23 +10,31 @@ Page({
     isAdmin: false
   },
 
-  onShow: function() {
+  onShow: async function() {
     this.setData({ isAdmin: storage.isAdmin() });
-    this.loadData();
+    await this.loadData();
   },
 
-  loadData: function() {
-    var list = storage.getList(storage.KEYS.TUTORIALS);
-    // 提取分类
-    var catMap = {};
-    list.forEach(function(item) {
-      if (item.category) catMap[item.category] = true;
-    });
-    this.setData({
-      list: list,
-      categories: Object.keys(catMap)
-    });
-    this.applyFilter();
+  loadData: async function() {
+    try {
+      var list = await storage.getList(storage.KEYS.TUTORIALS);
+      var catMap = {};
+
+      list.forEach(function(item) {
+        if (item.category) {
+          catMap[item.category] = true;
+        }
+      });
+
+      this.setData({
+        list: list,
+        categories: Object.keys(catMap)
+      });
+      this.applyFilter();
+    } catch (err) {
+      console.error(err);
+      util.showToast('加载教程失败');
+    }
   },
 
   filterCategory: function(e) {
@@ -36,9 +45,13 @@ Page({
   applyFilter: function() {
     var cat = this.data.currentCategory;
     var filtered = this.data.list;
+
     if (cat) {
-      filtered = filtered.filter(function(item) { return item.category === cat; });
+      filtered = filtered.filter(function(item) {
+        return item.category === cat;
+      });
     }
+
     this.setData({ filteredList: filtered });
   },
 

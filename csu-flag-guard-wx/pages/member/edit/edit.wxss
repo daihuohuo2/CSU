@@ -11,6 +11,12 @@
   color: #999;
 }
 
+.form-tip {
+  margin-top: 12rpx;
+  font-size: 24rpx;
+  color: #999;
+}
+
 .position-item {
   display: flex;
   align-items: center;

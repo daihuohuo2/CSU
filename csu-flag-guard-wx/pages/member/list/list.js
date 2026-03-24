@@ -1,4 +1,5 @@
 var storage = require('../../../utils/storage');
+var util = require('../../../utils/util');
 
 Page({
   data: {
@@ -9,15 +10,20 @@ Page({
     isAdmin: false
   },
 
-  onShow: function() {
+  onShow: async function() {
     this.setData({ isAdmin: storage.isAdmin() });
-    this.loadData();
+    await this.loadData();
   },
 
-  loadData: function() {
-    var list = storage.enrichMembers(storage.getList(storage.KEYS.MEMBERS));
-    this.setData({ list: list });
-    this.applyFilter();
+  loadData: async function() {
+    try {
+      var list = storage.enrichMembers(await storage.getList(storage.KEYS.MEMBERS));
+      this.setData({ list: list });
+      this.applyFilter();
+    } catch (err) {
+      console.error(err);
+      util.showToast('加载成员失败');
+    }
   },
 
   onSearch: function(e) {

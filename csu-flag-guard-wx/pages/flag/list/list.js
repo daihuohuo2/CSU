@@ -9,18 +9,23 @@ Page({
     isAdmin: false
   },
 
-  onShow: function() {
+  onShow: async function() {
     this.setData({ isAdmin: storage.isAdmin() });
-    this.loadData();
+    await this.loadData();
   },
 
-  loadData: function() {
-    var list = storage.getList(storage.KEYS.FLAG_CEREMONIES);
-    list.forEach(function(item) {
-      item.stats = util.calcAttendanceStats(item.attendance || []);
-    });
-    this.setData({ list: list });
-    this.applyFilter();
+  loadData: async function() {
+    try {
+      var list = await storage.getList(storage.KEYS.FLAG_CEREMONIES);
+      list.forEach(function(item) {
+        item.stats = util.calcAttendanceStats(item.attendance || []);
+      });
+      this.setData({ list: list });
+      this.applyFilter();
+    } catch (err) {
+      console.error(err);
+      util.showToast('加载任务失败');
+    }
   },
 
   filterType: function(e) {

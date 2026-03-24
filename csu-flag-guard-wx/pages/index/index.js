@@ -7,7 +7,7 @@ Page({
     memberInfo: null
   },
 
-  onShow: function () {
+  onShow: async function () {
     var userInfo = storage.getUserInfo();
     if (!userInfo) {
       wx.reLaunch({ url: '/pages/login/login' });
@@ -16,7 +16,7 @@ Page({
 
     var memberInfo = null;
     if (userInfo.memberId) {
-      memberInfo = storage.enrichMember(storage.getById(storage.KEYS.MEMBERS, userInfo.memberId));
+      memberInfo = storage.enrichMember(await storage.getById(storage.KEYS.MEMBERS, userInfo.memberId));
     }
 
     this.setData({
