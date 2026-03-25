@@ -1,0 +1,127 @@
+.summary-card {
+  margin-bottom: 0;
+}
+
+.summary-row {
+  display: flex;
+  text-align: center;
+  margin-bottom: 20rpx;
+}
+
+.summary-box {
+  flex: 1;
+}
+
+.summary-num {
+  font-size: 40rpx;
+  font-weight: bold;
+  color: #6D3FC1;
+}
+
+.summary-label {
+  margin-top: 8rpx;
+  font-size: 24rpx;
+  color: #999;
+}
+
+.summary-tip {
+  font-size: 24rpx;
+  color: #999;
+  line-height: 1.8;
+}
+
+.action-row {
+  margin-top: 24rpx;
+}
+
+.import-btn {
+  width: 100%;
+}
+
+.progress-text {
+  margin-top: 18rpx;
+  text-align: center;
+  font-size: 25rpx;
+  color: #999;
+}
+
+.entry-card {
+  margin-bottom: 0;
+}
+
+.entry-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18rpx;
+}
+
+.entry-index {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.entry-time {
+  font-size: 22rpx;
+  color: #999;
+}
+
+.entry-content {
+  font-size: 28rpx;
+  color: #333;
+  line-height: 1.9;
+  padding: 20rpx 24rpx;
+  background: #FAFAFA;
+  border-radius: 12rpx;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.entry-empty {
+  font-size: 26rpx;
+  color: #999;
+  padding: 20rpx 0 6rpx;
+}
+
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 240rpx;
+  text-align: center;
+}
+
+.loading-text {
+  margin-top: 20rpx;
+  font-size: 26rpx;
+  color: #999;
+}
+
+.empty-subtext {
+  margin-top: 14rpx;
+  font-size: 24rpx;
+  color: #B3B3B3;
+}
+
+.pager-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20rpx;
+}
+
+.pager-btn {
+  flex: 1;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.pager-text {
+  min-width: 140rpx;
+  text-align: center;
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #333;
+}

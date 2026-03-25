@@ -1,0 +1,20 @@
+<view class="container" wx:if="{{isAdmin}}">
+  <view class="card">
+    <view class="section-header">{{gradeLabel}}人物志</view>
+    <view class="intro-text">每次提交保存为一则独立人物志。正文支持多段输入，展示时会按换行分段。</view>
+
+    <view class="form-group">
+      <text class="form-label">年级</text>
+      <view class="form-input">{{gradeLabel}}</view>
+    </view>
+
+    <view class="form-group">
+      <text class="form-label">人物志内容 *</text>
+      <textarea class="form-textarea content-textarea" maxlength="-1" placeholder="请输入一则完整的人物志内容" value="{{content}}" bindinput="onInput" />
+    </view>
+  </view>
+
+  <view class="submit-area">
+    <button class="btn-primary" bindtap="handleSubmit" loading="{{isSubmitting}}" disabled="{{isSubmitting}}">保存人物志</button>
+  </view>
+</view>

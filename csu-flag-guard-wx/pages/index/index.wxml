@@ -65,6 +65,14 @@
       </view>
       <text class="arrow-right">›</text>
     </view>
+    <view class="menu-item card" wx:if="{{isAdmin}}" bindtap="goChronicle">
+      <view class="menu-icon" style="background: #F7F1FF; color: #6D3FC1;">📚</view>
+      <view class="menu-body">
+        <view class="menu-text">人物志</view>
+        <view class="menu-desc">按年级维护人物志内容</view>
+      </view>
+      <text class="arrow-right">›</text>
+    </view>
     <view class="menu-item card" bindtap="goTutorial">
       <view class="menu-icon" style="background: #F0FFF0; color: #07C160;">📖</view>
       <view class="menu-body">

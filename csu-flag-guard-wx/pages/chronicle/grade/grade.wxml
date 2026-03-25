@@ -1,0 +1,53 @@
+<view class="container" wx:if="{{isAdmin}}">
+  <view class="card summary-card">
+    <view class="section-header">{{gradeLabel}}人物志</view>
+    <view class="summary-row">
+      <view class="summary-box">
+        <view class="summary-num">{{totalCount}}</view>
+        <view class="summary-label">总条数</view>
+      </view>
+      <view class="summary-box">
+        <view class="summary-num">{{currentPage}}</view>
+        <view class="summary-label">当前页</view>
+      </view>
+      <view class="summary-box">
+        <view class="summary-num">{{totalPages}}</view>
+        <view class="summary-label">总页数</view>
+      </view>
+    </view>
+    <view class="summary-tip">每页展示 5 则人物志内容，正文会保留换行并按整段长文本展示。</view>
+    <view class="action-row">
+      <button class="btn-secondary import-btn" bindtap="handleImport" loading="{{isImporting}}" disabled="{{isImporting}}">Excel导入</button>
+    </view>
+    <view class="progress-text" wx:if="{{progressText}}">{{progressText}}</view>
+  </view>
+
+  <view wx:if="{{pageEntries.length}}">
+    <view class="card entry-card" wx:for="{{pageEntries}}" wx:key="id">
+      <view class="entry-header">
+        <view class="entry-index">第 {{item.displayIndex}} 则</view>
+        <view class="entry-time">{{item.createdAtText || '刚刚创建'}}</view>
+      </view>
+      <view class="entry-content" wx:if="{{item.content}}">{{item.content}}</view>
+      <view class="entry-empty" wx:else>暂无正文内容</view>
+    </view>
+  </view>
+
+  <view class="card loading-state" wx:elif="{{isLoading}}">
+    <loading color="#6D3FC1"></loading>
+    <view class="loading-text">正在加载人物志...</view>
+  </view>
+
+  <view class="card empty-state" wx:else>
+    <view class="empty-text">当前年级还没有人物志内容</view>
+    <view class="empty-subtext">点击右下角 + 可以新增第一则人物志</view>
+  </view>
+
+  <view class="card pager-card" wx:if="{{totalCount > 0}}">
+    <button class="btn-secondary pager-btn" bindtap="prevPage" disabled="{{currentPage <= 1}}">上一页</button>
+    <view class="pager-text">{{currentPage}} / {{totalPages}}</view>
+    <button class="btn-secondary pager-btn" bindtap="nextPage" disabled="{{currentPage >= totalPages}}">下一页</button>
+  </view>
+
+  <view class="fab-btn" bindtap="goAdd">+</view>
+</view>

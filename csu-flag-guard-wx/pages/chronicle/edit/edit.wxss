@@ -1,0 +1,14 @@
+.intro-text {
+  font-size: 24rpx;
+  color: #999;
+  line-height: 1.8;
+  margin-bottom: 28rpx;
+}
+
+.content-textarea {
+  min-height: 480rpx;
+}
+
+.submit-area {
+  padding: 30rpx 24rpx 60rpx;
+}

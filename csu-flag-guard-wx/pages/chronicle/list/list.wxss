@@ -1,0 +1,50 @@
+.intro-card {
+  margin-bottom: 0;
+}
+
+.intro-text {
+  font-size: 24rpx;
+  color: #999;
+  line-height: 1.8;
+}
+
+.chronicle-list {
+  padding-top: 4rpx;
+}
+
+.chronicle-item {
+  display: flex;
+  align-items: center;
+  padding: 30rpx;
+}
+
+.chronicle-icon {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 22rpx;
+  background: #F7F1FF;
+  color: #6D3FC1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30rpx;
+  font-weight: bold;
+  margin-right: 24rpx;
+  flex-shrink: 0;
+}
+
+.chronicle-body {
+  flex: 1;
+}
+
+.chronicle-name {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.chronicle-desc {
+  font-size: 24rpx;
+  color: #999;
+  margin-top: 6rpx;
+}

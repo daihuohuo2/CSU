@@ -58,6 +58,10 @@ Page({
     wx.navigateTo({ url: '/pages/tutorial/list/list' });
   },
 
+  goChronicle: function () {
+    wx.navigateTo({ url: '/pages/chronicle/list/list' });
+  },
+
   goTrainingCreate: function () {
     wx.navigateTo({ url: '/pages/training/create/create' });
   },
