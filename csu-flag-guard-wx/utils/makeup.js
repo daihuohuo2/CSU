@@ -1,3 +1,7 @@
+var TRAINING_TYPE_MAKEUP = '\u8865\u8bad';
+var ATTENDANCE_STATUS_LEAVE = '\u8bf7\u5047';
+var ATTENDANCE_STATUS_UNRECORDED = '\u672a\u8bb0\u5f55';
+
 function compareAsc(a, b) {
   if (a === b) {
     return 0;
@@ -29,6 +33,15 @@ function buildTrainingMap(trainings) {
   return map;
 }
 
+function findTrainingById(trainings, trainingId) {
+  for (var i = 0; i < (trainings || []).length; i++) {
+    if (trainings[i].id === trainingId) {
+      return trainings[i];
+    }
+  }
+  return null;
+}
+
 function getToday() {
   var now = new Date();
   var year = now.getFullYear();
@@ -51,20 +64,20 @@ function getMakeupStatus(record, makeupTraining, today) {
   if (!makeupTrainingId) {
     return {
       type: 'pending',
-      text: '待补训'
+      text: '\u5f85\u8865\u8bad'
     };
   }
 
   if (makeupDate && makeupDate > currentDay) {
     return {
       type: 'scheduled',
-      text: '待参加'
+      text: '\u5f85\u53c2\u52a0'
     };
   }
 
   return {
     type: 'assigned',
-    text: '已登记补训'
+    text: '\u5df2\u767b\u8bb0\u8865\u8bad'
   };
 }
 
@@ -79,6 +92,110 @@ function stripMakeupFields(record) {
   return cleaned;
 }
 
+function assignMakeupTraining(record, training) {
+  return Object.assign({}, record, {
+    makeupTrainingId: training.id,
+    makeupTrainingTitle: training.title,
+    makeupTrainingDate: training.date,
+    makeupTrainingTime: training.time || '',
+    makeupTrainingLocation: training.location || '',
+    makeupAssignedAt: Date.now()
+  });
+}
+
+function ensureMakeupAttendanceMember(attendance, member) {
+  var list = (attendance || []).slice();
+  var index = -1;
+
+  for (var i = 0; i < list.length; i++) {
+    if (list[i].memberId === member.id) {
+      index = i;
+      break;
+    }
+  }
+
+  if (index === -1) {
+    list.push({
+      memberId: member.id,
+      name: member.name,
+      status: ATTENDANCE_STATUS_UNRECORDED
+    });
+    return {
+      attendance: list,
+      changed: true
+    };
+  }
+
+  var current = list[index] || {};
+  if (current.name === member.name) {
+    return {
+      attendance: list,
+      changed: false
+    };
+  }
+
+  list[index] = Object.assign({}, current, {
+    name: member.name
+  });
+
+  return {
+    attendance: list,
+    changed: true
+  };
+}
+
+function removeMakeupAttendanceMember(attendance, memberId) {
+  var changed = false;
+  var list = (attendance || []).filter(function(item) {
+    var shouldKeep = item.memberId !== memberId;
+    if (!shouldKeep) {
+      changed = true;
+    }
+    return shouldKeep;
+  });
+
+  return {
+    attendance: list,
+    changed: changed
+  };
+}
+
+function countLinkedMakeupRecords(trainings, memberId, makeupTrainingId, options) {
+  if (!memberId || !makeupTrainingId) {
+    return 0;
+  }
+
+  var excludeLeaveTrainingId = options && options.excludeLeaveTrainingId ? options.excludeLeaveTrainingId : '';
+  var excludeAttendanceIndex = options && typeof options.excludeAttendanceIndex === 'number'
+    ? options.excludeAttendanceIndex
+    : -1;
+  var count = 0;
+
+  (trainings || []).forEach(function(training) {
+    (training.attendance || []).forEach(function(record, index) {
+      if (record.memberId !== memberId) {
+        return;
+      }
+      if (record.status !== ATTENDANCE_STATUS_LEAVE) {
+        return;
+      }
+      if (record.makeupTrainingId !== makeupTrainingId) {
+        return;
+      }
+      if (training.id === excludeLeaveTrainingId && index === excludeAttendanceIndex) {
+        return;
+      }
+      count += 1;
+    });
+  });
+
+  return count;
+}
+
+function hasLinkedMakeupRecord(trainings, memberId, makeupTrainingId, options) {
+  return countLinkedMakeupRecords(trainings, memberId, makeupTrainingId, options) > 0;
+}
+
 function buildLeaveMakeupItems(trainings, memberId, options) {
   var items = [];
   var trainingMap = buildTrainingMap(trainings);
@@ -86,7 +203,7 @@ function buildLeaveMakeupItems(trainings, memberId, options) {
 
   (trainings || []).forEach(function(training) {
     (training.attendance || []).forEach(function(record, index) {
-      if (record.memberId !== memberId || record.status !== '请假') {
+      if (record.memberId !== memberId || record.status !== ATTENDANCE_STATUS_LEAVE) {
         return;
       }
 
@@ -142,7 +259,7 @@ function getUpcomingMakeupCount(items) {
 }
 
 function isEligibleMakeupTraining(training, options) {
-  if (!training || training.type !== '补训') {
+  if (!training || training.type !== TRAINING_TYPE_MAKEUP) {
     return false;
   }
 
@@ -224,12 +341,19 @@ function buildMemberMakeupSummaries(members, trainings, options) {
 }
 
 module.exports = {
+  assignMakeupTraining: assignMakeupTraining,
   buildLeaveMakeupItems: buildLeaveMakeupItems,
-  getPendingMakeupCount: getPendingMakeupCount,
-  getUpcomingMakeupCount: getUpcomingMakeupCount,
-  getAvailableMakeupTrainings: getAvailableMakeupTrainings,
   buildMemberMakeupSummaries: buildMemberMakeupSummaries,
-  getToday: getToday,
+  countLinkedMakeupRecords: countLinkedMakeupRecords,
+  ensureMakeupAttendanceMember: ensureMakeupAttendanceMember,
+  findTrainingById: findTrainingById,
+  getAvailableMakeupTrainings: getAvailableMakeupTrainings,
   getMakeupStatus: getMakeupStatus,
+  getPendingMakeupCount: getPendingMakeupCount,
+  getToday: getToday,
+  getUpcomingMakeupCount: getUpcomingMakeupCount,
+  hasLinkedMakeupRecord: hasLinkedMakeupRecord,
+  isEligibleMakeupTraining: isEligibleMakeupTraining,
+  removeMakeupAttendanceMember: removeMakeupAttendanceMember,
   stripMakeupFields: stripMakeupFields
 };

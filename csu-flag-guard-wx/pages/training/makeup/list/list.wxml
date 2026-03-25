@@ -19,7 +19,7 @@
   </view>
 
   <view class="empty-state" wx:if="{{!isLoading && items.length === 0}}">
-    <view class="empty-icon">📝</view>
+    <view class="empty-icon">补</view>
     <view class="empty-text">当前没有需要处理的补训记录</view>
   </view>
 
@@ -40,10 +40,10 @@
     <view class="record-block">
       <view class="record-block-label">{{item.isPending ? '待登记补训' : (item.isScheduled ? '已预约补训' : '已登记补训')}}</view>
       <view class="record-block-value" wx:if="{{item.makeupTrainingId}}">
-        {{item.makeupTrainingTitle}} · {{item.makeupTrainingDate}} {{item.makeupTrainingTime || '时间待定'}}
+        {{item.makeupTrainingTitle}} / {{item.makeupTrainingDate}} {{item.makeupTrainingTime || '时间待定'}}
       </view>
       <view class="record-block-value pending-text" wx:else>点击选择未来补训日程</view>
     </view>
-    <view class="record-action">{{item.isPending ? '去登记补训' : '调整补训'}} ›</view>
+    <view class="record-action">{{item.isPending ? '去登记补训' : '调整补训'}} &gt;</view>
   </view>
 </view>

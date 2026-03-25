@@ -119,8 +119,27 @@ function isMemberActive(member) {
   return !member.status || member.status === '在队' || member.status === '鍦ㄩ槦';
 }
 
-function normalizeTrainingType(type) {
-  return LEGACY_TRAINING_TYPE_MAP[type] || type || '';
+function normalizeTrainingType(type, title) {
+  var rawType = type ? String(type).trim() : '';
+  var rawTitle = title ? String(title).trim() : '';
+
+  if (LEGACY_TRAINING_TYPE_MAP[rawType]) {
+    return LEGACY_TRAINING_TYPE_MAP[rawType];
+  }
+
+  if (rawType === '例训' || rawType === '补训') {
+    return rawType;
+  }
+
+  if (rawTitle.indexOf('补训') !== -1) {
+    return '补训';
+  }
+
+  if (rawTitle.indexOf('例训') !== -1) {
+    return '例训';
+  }
+
+  return rawType;
 }
 
 function enrichMember(member) {
@@ -136,7 +155,7 @@ function enrichMember(member) {
 function enrichTraining(training) {
   if (!training) return null;
   return Object.assign({}, training, {
-    type: normalizeTrainingType(training.type)
+    type: normalizeTrainingType(training.type, training.title)
   });
 }
 
@@ -167,7 +186,7 @@ function normalizeItemForStorage(key, item) {
 
   if (key === KEYS.TRAININGS) {
     return Object.assign({}, item, {
-      type: normalizeTrainingType(item.type)
+      type: normalizeTrainingType(item.type, item.title)
     });
   }
 
@@ -272,7 +291,7 @@ async function backfillTrainingTypes() {
   var trainings = await fetchAll(collection);
 
   for (var i = 0; i < trainings.length; i++) {
-    var normalizedType = normalizeTrainingType(trainings[i].type);
+    var normalizedType = normalizeTrainingType(trainings[i].type, trainings[i].title);
     if (!normalizedType || normalizedType === trainings[i].type) {
       continue;
     }
@@ -522,6 +541,101 @@ async function loginByCredentials(studentId, password) {
   }
   return null;
 }
+
+POSITION_OPTIONS = [
+  '班长',
+  '超级牛逼雷霆之人',
+  '副班长',
+  '办公室主任',
+  '特勤部部长',
+  '财务部部长',
+  '宣传部部长',
+  '擎旗手',
+  '撒旗手',
+  '升旗手',
+  '指挥员',
+  '队员'
+];
+
+TRAINING_TYPE_OPTIONS = [
+  '例训',
+  '补训'
+];
+
+DEPARTMENT_OPTIONS = [
+  '办公室成员',
+  '财务部成员',
+  '特勤部成员',
+  '宣传部成员'
+];
+
+ADMIN_POSITIONS = [
+  '班长',
+  '超级牛逼雷霆之人',
+  '副班长',
+  '办公室主任',
+  '特勤部部长',
+  '财务部部长',
+  '宣传部部长'
+];
+
+LEGACY_POSITION_MAP = {
+  '队长': '班长',
+  '副队长': '副班长',
+  '旗手': '擎旗手',
+  '护旗手': '升旗手'
+};
+
+LEGACY_TRAINING_TYPE_MAP = {
+  '日常训练': '例训',
+  '专项训练': '补训',
+  '彩排': '补训'
+};
+
+getPositionText = function(position) {
+  return normalizePositions(position).join('、');
+};
+
+isMemberActive = function(member) {
+  if (!member) {
+    return false;
+  }
+
+  return !member.status || member.status === '在队';
+};
+
+normalizeTrainingType = function(type, title) {
+  var rawType = type ? String(type).trim() : '';
+  var rawTitle = title ? String(title).trim() : '';
+
+  if (LEGACY_TRAINING_TYPE_MAP[rawType]) {
+    return LEGACY_TRAINING_TYPE_MAP[rawType];
+  }
+
+  if (rawType === '例训' || rawType === '补训') {
+    return rawType;
+  }
+
+  if (rawTitle.indexOf('补训') !== -1) {
+    return '补训';
+  }
+
+  if (rawTitle.indexOf('例训') !== -1) {
+    return '例训';
+  }
+
+  return rawType;
+};
+
+enrichMember = function(member) {
+  if (!member) return null;
+  var positions = normalizePositions(member.position);
+  return Object.assign({}, member, {
+    password: member.password || DEFAULT_MEMBER_PASSWORD,
+    position: positions,
+    positionText: getPositionText(positions)
+  });
+};
 
 module.exports = {
   KEYS: KEYS,

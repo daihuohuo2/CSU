@@ -86,23 +86,37 @@ page {
 
 .form-input {
   width: 100%;
-  padding: 20rpx;
+  min-height: 96rpx;
+  padding: 22rpx 24rpx;
   border: 2rpx solid #E8E8E8;
   border-radius: 8rpx;
   font-size: 28rpx;
+  line-height: 1.4;
   box-sizing: border-box;
   background: #FAFAFA;
+  color: #333333;
+}
+
+input.form-input {
+  height: 96rpx;
+}
+
+view.form-input {
+  display: flex;
+  align-items: center;
 }
 
 .form-textarea {
   width: 100%;
-  padding: 20rpx;
+  padding: 24rpx;
   border: 2rpx solid #E8E8E8;
   border-radius: 8rpx;
   font-size: 28rpx;
+  line-height: 1.6;
   box-sizing: border-box;
   min-height: 160rpx;
   background: #FAFAFA;
+  color: #333333;
 }
 
 /* ========== 段落标题 ========== */
@@ -197,8 +211,16 @@ page {
 .search-input {
   background: #F5F5F5;
   border-radius: 30rpx;
-  padding: 16rpx 30rpx;
+  min-height: 72rpx;
+  padding: 0 30rpx;
   font-size: 26rpx;
+  line-height: 72rpx;
+  box-sizing: border-box;
+  color: #333333;
+}
+
+input.search-input {
+  height: 72rpx;
 }
 
 /* ========== 标签筛选 ========== */

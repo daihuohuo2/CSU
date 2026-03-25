@@ -1,5 +1,4 @@
 <view class="container">
-  <!-- 筛选栏 -->
   <view class="filter-bar">
     <view class="filter-tag {{currentType === '' ? 'active' : ''}}" bindtap="filterType" data-type="">全部</view>
     <view
@@ -11,7 +10,6 @@
     >{{item}}</view>
   </view>
 
-  <!-- 列表 -->
   <view class="list-wrap" wx:if="{{filteredList.length > 0}}">
     <view class="list-item card" wx:for="{{filteredList}}" wx:key="id" bindtap="goDetail" data-id="{{item.id}}">
       <view class="list-item-header">
@@ -19,11 +17,11 @@
         <view class="list-item-type">{{item.type}}</view>
       </view>
       <view class="list-item-info">
-        <text class="list-item-date">📅 {{item.date}}</text>
-        <text class="list-item-time">⏰ {{item.time}}</text>
+        <text class="list-item-date">日期：{{item.date}}</text>
+        <text class="list-item-time">时间：{{item.time || '待定'}}</text>
       </view>
       <view class="list-item-info">
-        <text class="list-item-location">📍 {{item.location}}</text>
+        <text class="list-item-location">地点：{{item.location || '待定'}}</text>
       </view>
       <view class="list-item-stats">
         <text class="stat-tag" style="background: #E8F5E9; color: #07C160;">已到 {{item.stats.arrived || 0}}</text>
@@ -34,12 +32,10 @@
     </view>
   </view>
 
-  <!-- 空状态 -->
   <view class="empty-state" wx:else>
-    <view class="empty-icon">📋</view>
+    <view class="empty-icon">训</view>
     <view class="empty-text">暂无训练记录</view>
   </view>
 
-  <!-- 管理员悬浮添加按钮 -->
   <view class="fab-btn" wx:if="{{isAdmin}}" bindtap="goCreate">+</view>
 </view>

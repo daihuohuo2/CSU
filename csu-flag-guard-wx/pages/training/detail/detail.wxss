@@ -15,7 +15,6 @@
   margin-bottom: 20rpx;
 }
 
-/* 统计 */
 .stats-row {
   display: flex;
   justify-content: space-around;
@@ -37,7 +36,6 @@
   margin-top: 8rpx;
 }
 
-/* 考勤明细 */
 .att-item {
   display: flex;
   align-items: center;
@@ -93,7 +91,20 @@
   font-weight: bold;
 }
 
-/* 底部操作 */
 .bottom-actions {
   padding: 30rpx 24rpx;
+}
+
+.action-btn {
+  margin-bottom: 20rpx;
+}
+
+.action-btn:last-child {
+  margin-bottom: 0;
+}
+
+.member-empty {
+  font-size: 24rpx;
+  color: #999999;
+  padding: 16rpx 0 4rpx;
 }

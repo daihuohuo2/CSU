@@ -1,710 +1,536 @@
 # 中南大学国旗班管理小程序
 
-> 微信原生小程序 · AppID: `wxc1487e042867ed9a` · 基础库版本: 2.19.4
+> 微信原生小程序  
+> AppID: `wxa9de6e6a3fbfc0bc`  
+> 基础库版本: `3.15.0`
 
-面向国旗班内部使用的管理工具，涵盖成员档案、训练考勤、升降旗考勤、动作教程四大模块。目前使用本地 Mock 数据存储，无需后端服务。
+面向中南大学国旗班内部使用的管理工具，覆盖成员档案、训练考勤、升降旗考勤、部门管理、动作教程、补训登记等场景。
 
----
+当前版本已经完成从“本地缓存 + Mock 数据”到“微信云开发 + 云数据库”的迁移：
 
-## 目录
-
-- [项目结构总览](#项目结构总览)
-- [根目录文件](#根目录文件)
-- [工具库 utils/](#工具库-utils)
-- [Mock 数据 mock/](#mock-数据-mock)
-- [页面模块 pages/](#页面模块-pages)
-  - [首页 index](#首页-index)
-  - [登录 login](#登录-login)
-  - [个人中心 mine](#个人中心-mine)
-  - [升降旗管理 flag](#升降旗管理-flag)
-  - [成员管理 member](#成员管理-member)
-  - [训练管理 training](#训练管理-training)
-  - [动作教程 tutorial](#动作教程-tutorial)
-- [数据模型](#数据模型)
-- [权限设计](#权限设计)
-- [样式规范](#样式规范)
-- [常见修改指引](#常见修改指引)
+- `mock/data.js` 只负责初始示例数据
+- 业务数据实际写入微信云数据库
+- 清除小程序缓存后，成员、任务、教程等业务数据不会丢失
+- 登录态仍保存在本地缓存，清缓存后需要重新登录
 
 ---
 
-## 项目结构总览
+## 当前版本概览
 
-```
+### 已上线模块
+
+- 成员档案管理
+  - 支持新增、编辑、删除、搜索、批量入队/离队
+  - 支持 Excel 批量导入成员
+  - 成员职务为多选
+- 训练考勤
+  - 训练类型为 `例训` / `补训`
+  - 创建训练时只显示在队成员
+  - 支持详情页直接改考勤状态
+- 升降旗考勤
+  - 升旗任务支持“队列成员 / 观礼成员”双分组
+  - 降旗任务只记录上岗成员，不显示观礼栏
+  - 创建任务时只显示在队成员
+- 部门系统
+  - 管理员可见“部门管理”
+  - 普通成员可见“部门工作”
+  - 特勤部已接入“补训记录”模块
+- 补训系统
+  - 个人中心可查看“我的补训”
+  - 训练考勤里本人为 `请假` 的记录会生成补训项
+  - 可为请假记录登记未来日期的补训日程
+  - 支持取消已选补训
+- 动作教程
+  - 支持分类查看、编辑、新增
+
+### 当前数据存储方式
+
+- 云数据库集合
+  - `members`
+  - `trainings`
+  - `flag_ceremonies`
+  - `tutorials`
+- 云函数
+  - `memberImport`
+  - `memberManage`
+
+---
+
+## 技术栈
+
+- 微信原生小程序
+- 微信云开发
+- 微信云数据库
+- 微信云函数
+- 本地 Mock 初始数据
+
+---
+
+## 目录结构
+
+```text
 csu-flag-guard-wx/
-├── app.js                    # 应用入口，初始化 Mock 数据
-├── app.json                  # 全局路由配置、导航栏样式
-├── app.wxss                  # 全局公共样式
-├── project.config.json       # 微信开发者工具项目配置
-├── project.private.config.json # 本地私有配置（不提交）
-├── sitemap.json              # 小程序搜索配置
-│
-├── utils/
-│   ├── storage.js            # 数据存储 CRUD 层（封装 wx.storage）
-│   └── util.js               # 通用工具函数（日期/ID/统计等）
-│
+├── app.js
+├── app.json
+├── app.wxss
+├── project.config.json
+├── CLOUD_DATABASE_SETUP.md
 ├── mock/
-│   └── data.js               # 模拟数据库（成员/训练/升降旗/教程）
-│
+│   └── data.js
+├── utils/
+│   ├── storage.js
+│   ├── util.js
+│   └── makeup.js
+├── cloudfunctions/
+│   ├── memberImport/
+│   └── memberManage/
 └── pages/
-    ├── index/                # 首页（导航中心）
-    ├── login/                # 登录页
-    ├── mine/                 # 个人中心
-    ├── flag/
-    │   ├── list/             # 升降旗任务列表
-    │   ├── detail/           # 升降旗任务详情 + 考勤管理
-    │   └── create/           # 创建升降旗任务
+    ├── index/
+    ├── login/
+    ├── mine/
     ├── member/
-    │   ├── list/             # 成员档案列表 + 搜索
-    │   ├── detail/           # 成员档案详情
-    │   └── edit/             # 新增 / 编辑成员档案
+    │   ├── list/
+    │   ├── detail/
+    │   ├── edit/
+    │   └── import/
     ├── training/
-    │   ├── list/             # 训练记录列表
-    │   ├── detail/           # 训练详情 + 考勤管理
-    │   └── create/           # 创建训练任务
+    │   ├── list/
+    │   ├── detail/
+    │   ├── create/
+    │   └── makeup/
+    │       ├── list/
+    │       └── select/
+    ├── flag/
+    │   ├── list/
+    │   ├── detail/
+    │   └── create/
+    ├── department/
+    │   ├── list/
+    │   ├── work/
+    │   └── security/
+    │       ├── list/
+    │       └── makeup/
+    │           ├── list/
+    │           └── detail/
     └── tutorial/
-        ├── list/             # 动作教程列表
-        ├── detail/           # 教程详情阅读
-        └── edit/             # 新增 / 编辑教程
+        ├── list/
+        ├── detail/
+        └── edit/
 ```
 
 ---
 
-## 根目录文件
+## 页面说明
 
-### `app.js` — 应用入口
+### 首页
 
-调用 `storage.initMockData()` 在首次启动时将 `mock/data.js` 中的示例数据写入本地存储。全局数据 `globalData` 保存 `userInfo` 和 `isAdmin` 字段，但实际读取权限时均通过 `storage.isAdmin()` 完成，不直接读 globalData。
+路径：`pages/index/index`
 
-> **如需接入真实后端**：在此文件的 `onLaunch` 中替换初始化逻辑，改为从网络拉取数据。
+- 未登录时显示登录提示
+- 已登录时显示用户身份
+- 功能入口包括：
+  - 训练考勤
+  - 升降旗考勤
+  - 成员档案
+  - 动作教程
+  - 部门管理（仅管理员）
+  - 部门工作（仅普通成员）
+- 管理员首页还提供快捷创建入口
 
----
+### 登录页
 
-### `app.json` — 全局配置
+路径：`pages/login/login`
 
-```json
-{
-  "pages": [ ... ],           // 所有页面路由（新增页面必须在此注册）
-  "window": {
-    "navigationBarBackgroundColor": "#8B0000",  // 导航栏深红色
-    "navigationBarTitleText": "中南大学国旗班", // 全局标题
-    "navigationBarTextStyle": "white"
-  }
-}
-```
+- 使用 `学号 + 密码` 登录
+- 登录逻辑基于云数据库成员表校验
+- 默认初始密码为 `123456`
 
-> **修改导航栏颜色/标题**：编辑 `window.navigationBarBackgroundColor` 和 `navigationBarTitleText`。\
-> **新增页面**：必须在 `pages` 数组中添加路径，否则无法跳转。
+### 个人中心
 
----
+路径：`pages/mine/mine`
 
-### `app.wxss` — 全局样式
+- 显示个人档案
+- 显示“我的训练记录”“我的补训”“我的升降旗记录”
+- “我的补训”会显示：
+  - `待补训`
+  - `待参加`
+  - `暂无补训`
+- 仍保留切换身份、重置数据、退出登录功能
 
-所有页面共享的基础样式，修改此文件会影响全局 UI。
+### 成员档案
 
-| 类名 | 作用 |
-|------|------|
-| `.container` | 页面根容器，底部 padding 40rpx |
-| `.card` | 白色圆角卡片，带阴影，用于信息分组 |
-| `.btn-primary` | 主操作按钮（深红 `#C41A1A`） |
-| `.btn-secondary` | 次级按钮（白底+红色边框） |
-| `.btn-danger` | 危险操作按钮（红色 `#EE4D4D`，用于删除） |
-| `.form-group` | 表单行容器 |
-| `.form-label` | 表单字段标签 |
-| `.form-input` | 文本输入框 |
-| `.status-badge` | 状态标签（行内色块） |
-| `.section-header` | 卡片内分区标题 |
-| `.fab-btn` | 右下角浮动操作按钮（"+"） |
+路径：`pages/member/*`
 
-> **修改全局主色**：搜索 `#C41A1A` 和 `#8B0000`，统一替换为新颜色。
+- 成员列表支持：
+  - 搜索姓名/学号
+  - 按在队/离队筛选
+  - 下拉刷新
+  - 批量调整状态
+- 成员排序规则：
+  - 全部视图中 `在队` 在前，`离队` 在后
+  - 同状态下按年级升序
+  - 同年级下按干部优先级排序
+- 成员编辑页支持：
+  - 多选职务
+  - 选择部门
+  - Excel 导入入口
 
----
+### 训练考勤
 
-### `project.config.json` — 开发者工具配置
+路径：`pages/training/*`
 
-包含 AppID、项目名称、编译选项（ES6 转译、PostCSS、代码压缩等）。通常不需要手动修改，由微信开发者工具自动维护。
+- 训练分类只有：
+  - `例训`
+  - `补训`
+- 创建训练时只显示在队成员
+- 训练详情支持管理员直接修改考勤状态
+- 补训系统与训练请假记录直接关联
 
----
+### 我的补训
 
-## 工具库 utils/
+路径：
 
-### `utils/storage.js` — 数据 CRUD 层
+- `pages/training/makeup/list/list`
+- `pages/training/makeup/select/select`
 
-封装所有 `wx.getStorageSync` / `wx.setStorageSync` 操作，是**唯一操作本地数据的入口**。
+规则如下：
 
-#### 存储键常量
+- 只统计当前登录成员在训练考勤中的 `请假` 记录
+- 未登记补训：显示 `待补训`
+- 已登记未来日期补训：显示 `待参加`
+- 已登记且补训日期已到：显示 `已登记补训`
+- 只能选择“今天之后”的补训日程
+- 只能选择训练类型为 `补训` 的训练
+- 支持取消已选补训
 
-```javascript
-storage.KEYS = {
-  MEMBERS:          'fg_members',           // 成员列表
-  TRAININGS:        'fg_trainings',         // 训练任务列表
-  FLAG_CEREMONIES:  'fg_flag_ceremonies',   // 升降旗任务列表
-  TUTORIALS:        'fg_tutorials',         // 动作教程列表
-  USER_INFO:        'fg_user_info'          // 当前登录用户
-}
-```
+### 升降旗考勤
 
-#### 核心方法
+路径：`pages/flag/*`
 
-| 方法 | 说明 |
-|------|------|
-| `initMockData()` | 首次运行时写入 mock 数据，已有数据则跳过 |
-| `getList(key)` | 返回指定 key 的完整数组 |
-| `getById(key, id)` | 根据 `id` 字段查找并返回单条记录 |
-| `add(key, item)` | 将 item 插入列表头部（unshift） |
-| `update(key, id, data)` | 找到对应 id 的记录，用 data 做浅合并 |
-| `remove(key, id)` | 过滤掉指定 id 的记录 |
-| `getUserInfo()` | 返回当前用户 `{name, role}` |
-| `setUserInfo(info)` | 保存用户信息到本地存储 |
-| `isAdmin()` | 返回 `boolean`，`role === 'admin'` 时为 true |
-| `clearUserInfo()` | 清除登录信息（退出登录） |
+- 升旗详情页可按“队列成员 / 观礼成员”展示
+- 升旗创建页中：
+  - 勾选上岗成员后，其余在队成员自动作为观礼成员
+- 降旗创建页中：
+  - 不显示观礼栏
+  - 只记录上岗成员
 
-> **如需接入后端 API**：仅需修改此文件，将各方法内部的 `wx.getStorageSync` 替换为网络请求，页面层代码无需改动。
+### 部门管理
 
----
+路径：`pages/department/*`
 
-### `utils/util.js` — 通用工具函数
+- 管理员入口：`部门管理`
+- 普通成员入口：`部门工作`
+- 普通成员若未分配部门，会显示等待提示
+- 当前真正接入功能的部门为：
+  - `特勤部`
 
-| 函数 | 说明 |
-|------|------|
-| `formatDate(date)` | Date 对象或字符串 → `YYYY-MM-DD` |
-| `formatTime(date)` | Date 对象或字符串 → `HH:mm` |
-| `generateId(prefix)` | 生成唯一 ID，格式 `prefix_时间戳_随机串` |
-| `showToast(title, icon)` | 封装 `wx.showToast`，icon 默认 none |
-| `getStatusColor(status)` | 考勤状态文字 → 对应十六进制颜色 |
-| `calcAttendanceStats(attendance)` | 统计考勤数组，返回 `{total, normal, late, absent, arrived, leave}` |
+#### 特勤部补训记录
 
-#### 考勤状态映射（calcAttendanceStats 内部）
+路径：
 
-| 原始状态值 | 返回键名 | 含义 |
-|-----------|---------|------|
-| `正常` | `normal` | 升降旗正常出勤 |
-| `迟到` | `late` | 迟到 |
-| `缺席` | `absent` | 升降旗缺席 |
-| `缺勤` | `absent` | 训练缺勤（与缺席共用 absent） |
-| `已到` | `arrived` | 训练已到 |
-| `请假` | `leave` | 请假 |
+- `pages/department/security/list/list`
+- `pages/department/security/makeup/list/list`
+- `pages/department/security/makeup/detail/detail`
 
-> **修改状态种类**：在 `calcAttendanceStats` 的 `keyMap` 对象中增减映射，同步修改对应 WXML 中的绑定字段名。
+管理员可在这里：
 
----
+- 查看全体在队成员的补训统计
+- 查看待补训 / 待参加 / 总次数
+- 进入单个成员详情查看全部补训相关内容
 
-## Mock 数据 mock/
+排序规则：
 
-### `mock/data.js` — 模拟数据库
+1. 补训总次数多的在前
+2. 若总次数相同，则老年级在前
+3. 若年级相同，则入队更早的在前
 
-项目默认数据，首次启动时由 `storage.initMockData()` 写入本地存储。**修改此文件不会立即生效**，需在个人中心点击「重置数据」或清除小程序本地缓存。
+### 动作教程
 
-#### 成员数据（6条）
+路径：`pages/tutorial/*`
 
-| 姓名 | 职务 | 状态 |
-|------|------|------|
-| 刘伟 | 队长 | 在队 |
-| 王芳 | 副队长 | 在队 |
-| 张强 | 旗手 | 在队 |
-| 李敏 | 护旗手 | 在队 |
-| 陈浩 | 队员 | 在队 |
-| 赵雪 | 队员 | 离队 |
-
-#### 训练数据（3条）：日常训练、专项训练（持旗）、彩排
-#### 升降旗数据（3条）：升旗2次、降旗1次
-#### 教程数据（6条）：基础动作2篇、行进动作2篇、仪式流程2篇
+- 支持分类筛选
+- 管理员可新增、编辑教程
 
 ---
 
-## 页面模块 pages/
+## 成员字段说明
 
-> 每个页面由 4 个文件组成：
-> - `.js` — 页面逻辑、数据、事件处理
-> - `.wxml` — 页面模板（HTML 结构）
-> - `.wxss` — 页面专属样式（CSS）
-> - `.json` — 页面配置（导航栏标题等）
+### 部门字段
 
----
+当前支持：
 
-### 首页 index
+- `办公室成员`
+- `财务部成员`
+- `特勤部成员`
+- `宣传部成员`
 
-**路径**: `pages/index/`\
-**导航栏标题**: 中南大学国旗班
+### 职务字段
 
-#### 功能
-应用的导航中心，展示当前登录用户信息，并提供各模块入口。
+当前 `position` 为数组，多选可用选项如下：
 
-#### `index.js` 关键逻辑
+- `班长`
+- `超级牛逼雷霆之人`
+- `副班长`
+- `办公室主任`
+- `特勤部部长`
+- `财务部部长`
+- `宣传部部长`
+- `擎旗手`
+- `撒旗手`
+- `升旗手`
+- `指挥员`
+- `队员`
 
-| 方法 | 说明 |
-|------|------|
-| `onShow()` | 每次显示时刷新用户信息和管理员状态 |
-| `goLogin()` | 跳转登录页 |
-| `goTraining/goFlag/goMember/goTutorial()` | 跳转各模块列表页 |
-| `goTrainingCreate/goFlagCreate/goMemberAdd/goTutorialAdd()` | 管理员快捷创建入口 |
+### 管理员职务
 
-#### `index.wxml` UI 结构
+以下职务自动拥有管理员权限：
 
-```
-首页
-├── 顶部横幅（标题 + 副标题）
-├── 用户信息栏（姓名 + 身份标签，未登录则显示"游客"）
-├── 功能模块网格（2×2）
-│   ├── 🏃 训练考勤
-│   ├── 🚩 升降旗考勤
-│   ├── 👥 成员档案
-│   └── 📖 动作教程
-├── 管理员快捷操作面板（仅管理员可见）
-│   ├── 新建训练、新建升降旗任务
-│   └── 新增成员、新增教程
-└── 底部版权信息
-```
+- `班长`
+- `超级牛逼雷霆之人`
+- `副班长`
+- `办公室主任`
+- `特勤部部长`
+- `财务部部长`
+- `宣传部部长`
 
 ---
 
-### 登录 login
+## 核心数据模型
 
-**路径**: `pages/login/`\
-**导航栏标题**: 登录
+### Member
 
-#### 功能
-模拟登录，选择用户名和角色后写入本地存储。**没有密码校验，仅为演示使用**。
-
-#### `login.js` 关键逻辑
-
-| 方法 | 说明 |
-|------|------|
-| `onNameInput(e)` | 实时更新 `name` 字段 |
-| `selectRole(e)` | 切换 `member`（普通成员）或 `admin`（管理员） |
-| `handleLogin()` | 验证姓名非空且已选角色，写入 storage，返回上一页 |
-
-#### `login.wxml` UI 结构
-
-```
-登录页
-├── 标题"队员登录"
-├── 姓名输入框
-├── 角色选择（两个选项卡）
-│   ├── 👤 普通成员
-│   └── 👑 管理员
-├── 登录按钮（深红色）
-└── 提示文字"当前为模拟登录"
-```
-
-> **修改登录逻辑**：编辑 `login.js` 的 `handleLogin()` 方法，可在此接入真实认证接口。
-
----
-
-### 个人中心 mine
-
-**路径**: `pages/mine/`\
-**导航栏标题**: 个人中心
-
-#### 功能
-展示当前用户信息，提供身份切换、数据重置、退出登录操作。
-
-#### `mine.js` 关键逻辑
-
-| 方法 | 说明 |
-|------|------|
-| `onShow()` | 刷新用户信息，按姓名匹配成员档案 |
-| `switchRole()` | 在 admin/member 之间切换，刷新页面 |
-| `resetData()` | 弹窗确认后清除所有存储并重新写入 mock 数据 |
-| `handleLogout()` | 清除用户信息，跳转登录页 |
-| `goTraining/goFlag()` | 跳转训练/升降旗列表 |
-
-#### `mine.wxml` UI 结构
-
-```
-个人中心
-├── 头部卡片（头像首字母 + 姓名 + 身份标签）
-├── 个人档案卡片（仅当姓名匹配成员数据时显示）
-│   ├── 学号、学院、专业
-│   └── 年级、班级、入队时间
-├── 我的记录
-│   ├── 我的训练记录
-│   └── 我的升降旗记录
-└── 账户管理
-    ├── 切换身份（admin↔member）
-    ├── 重置数据（恢复 mock 初始状态）
-    └── 退出登录（红色，危险操作）
-```
-
----
-
-### 升降旗管理 flag
-
-#### `pages/flag/list/` — 升降旗列表
-
-**导航栏标题**: 升降旗考勤
-
-| 数据字段 | 说明 |
-|---------|------|
-| `list` | 所有升降旗记录 |
-| `filteredList` | 当前筛选后显示的列表 |
-| `currentType` | 筛选类型：`all` / `升旗` / `降旗` |
-| `isAdmin` | 控制是否显示"+"创建按钮 |
-
-| 方法 | 说明 |
-|------|------|
-| `loadData()` | 读取所有记录，调用 `calcAttendanceStats` 附加统计数据 |
-| `filterType(e)` | 切换类型筛选并重新过滤 |
-| `goDetail(e)` | 跳转详情页，传递 `id` 参数 |
-| `goCreate()` | 跳转创建页 |
-
-```
-升降旗列表页
-├── 类型筛选栏（全部 / 升旗 / 降旗）
-├── 任务卡片列表
-│   ├── 标题 + 类型标签（升旗=蓝/降旗=橙）
-│   ├── 日期、时间、地点
-│   └── 考勤统计标签（正常/迟到/缺席/请假）
-├── 空状态提示
-└── FAB "+" 按钮（仅管理员）
-```
-
----
-
-#### `pages/flag/detail/` — 升降旗详情
-
-**导航栏标题**: 任务详情
-
-| 数据字段 | 说明 |
-|---------|------|
-| `id` | 当前任务 ID（从路由参数获取） |
-| `detail` | 完整任务数据 |
-| `stats` | 考勤统计 `{total, normal, late, absent, leave}` |
-| `isAdmin` | 控制是否可修改考勤状态 |
-| `statusColors` | 状态 → 颜色映射（用于普通用户的状态标签） |
-
-| 方法 | 说明 |
-|------|------|
-| `loadData()` | 根据 id 读取详情并计算统计 |
-| `changeStatus(e)` | 修改指定成员（`data-index`）的考勤状态（`data-status`），立即保存 |
-| `handleDelete()` | 弹窗二次确认后删除任务并返回列表 |
-
-```
-升降旗详情页
-├── 基本信息卡片（标题、类型、日期、时间、地点、描述）
-├── 考勤统计卡片（总人数/正常/迟到/缺席/请假）
-├── 考勤明细列表
-│   ├── 管理员视图：每人显示 4 个状态按钮（点击即改）
-│   └── 普通视图：每人显示状态色块标签
-└── 删除按钮（仅管理员，红色）
-```
-
----
-
-#### `pages/flag/create/` — 创建升降旗任务
-
-**导航栏标题**: 创建升降旗任务
-
-| 表单字段 | 必填 | 说明 |
-|---------|------|------|
-| `title` | ✅ | 任务标题 |
-| `type` | ✅ | 升旗 / 降旗 |
-| `date` | ✅ | 日期选择器 |
-| `time` | ❌ | 时间输入 |
-| `location` | ❌ | 地点 |
-| `description` | ❌ | 备注描述 |
-| 成员选择 | ✅（≥1人） | Switch 开关多选 |
-
-| 方法 | 说明 |
-|------|------|
-| `onLoad()` | 加载全部成员列表，默认全选 |
-| `toggleMember(e)` | 切换成员的 `checked` 状态 |
-| `handleSubmit()` | 验证后生成任务，初始化所有成员状态为"正常"，写入 storage |
-
----
-
-### 成员管理 member
-
-#### `pages/member/list/` — 成员列表
-
-**导航栏标题**: 成员档案
-
-| 方法 | 说明 |
-|------|------|
-| `loadData()` | 读取所有成员 |
-| `onSearch(e)` | 按**姓名**或**学号**模糊搜索 |
-| `filterStatus(e)` | 按在队/离队状态筛选 |
-| `applyFilter()` | 同时应用关键词 + 状态两个过滤条件 |
-
-```
-成员列表页
-├── 搜索栏（搜索姓名或学号）
-├── 状态筛选栏（全部 / 在队 / 离队）
-├── 成员卡片列表
-│   ├── 头像（姓名首字）
-│   ├── 姓名 + 职务标签
-│   ├── 学院 / 年级
-│   └── 状态标签（绿"在队" / 灰"离队"）
-└── FAB "+" 按钮（仅管理员）
-```
-
----
-
-#### `pages/member/detail/` — 成员详情
-
-**导航栏标题**: 成员详情
-
-展示完整成员档案，管理员可跳转编辑或删除。
-
-```
-成员详情页
-├── 头部（头像、姓名、职务）
-├── 基本信息卡片（姓名/性别/学号/学院/专业/年级/班级）
-├── 联系方式卡片（手机号/微信号）
-├── 队伍信息卡片（入队时间/职务/状态/备注）
-└── 管理员操作（编辑档案按钮 + 删除成员按钮）
-```
-
----
-
-#### `pages/member/edit/` — 新增/编辑成员
-
-**导航栏标题**: 新增成员 / 编辑档案（由 `isEdit` 控制）
-
-通过路由参数 `id` 区分新增（无 id）与编辑（有 id）模式。
-
-| 必填字段 | 说明 |
-|---------|------|
-| `name` | 姓名 |
-| `gender` | 性别（男/女） |
-| `studentId` | 学号 |
-
-**职务选项**: 队长 / 副队长 / 旗手 / 护旗手 / 队员\
-**状态选项**: 在队 / 离队
-
----
-
-### 训练管理 training
-
-#### `pages/training/list/` — 训练列表
-
-**导航栏标题**: 训练考勤
-
-与 flag/list 结构相同，筛选维度为训练类型（日常训练/专项训练/彩排等）。考勤统计显示 `已到/迟到/缺勤/请假`。
-
----
-
-#### `pages/training/detail/` — 训练详情
-
-**导航栏标题**: 训练详情
-
-与 flag/detail 结构相同，状态按钮改为：**已到 / 迟到 / 缺勤 / 请假**。
-
-| stats 字段 | 说明 |
-|-----------|------|
-| `arrived` | 已到 |
-| `late` | 迟到 |
-| `absent` | 缺勤 |
-| `leave` | 请假 |
-
----
-
-#### `pages/training/create/` — 创建训练任务
-
-**导航栏标题**: 创建训练任务
-
-与 flag/create 结构相同，类型选项改为训练类型（日常训练/专项训练/彩排等），成员初始状态为"已到"。
-
----
-
-### 动作教程 tutorial
-
-#### `pages/tutorial/list/` — 教程列表
-
-**导航栏标题**: 动作教程
-
-| 方法 | 说明 |
-|------|------|
-| `loadData()` | 读取所有教程 |
-| `filterCategory(e)` | 按分类筛选（基础动作/行进动作/仪式流程） |
-| `goDetail(e)` | 跳转教程详情 |
-| `goAdd()` | 跳转新增教程（仅管理员） |
-
-```
-教程列表页
-├── 分类筛选栏（全部/基础动作/行进动作/仪式流程）
-├── 教程卡片列表（标题 + 分类标签 + 摘要）
-└── FAB "+" 按钮（仅管理员）
-```
-
----
-
-#### `pages/tutorial/detail/` — 教程详情
-
-**导航栏标题**: 教程详情
-
-以富文本格式展示教程正文，管理员可跳转编辑。
-
-```
-教程详情页
-├── 标题 + 分类标签
-├── 正文内容（content）
-├── 注意要点（tips）
-├── 常见错误（commonMistakes）
-├── 小结（summary）
-└── 编辑按钮（仅管理员）
-```
-
----
-
-#### `pages/tutorial/edit/` — 新增/编辑教程
-
-**导航栏标题**: 新增教程 / 编辑教程
-
-| 字段 | 必填 | 说明 |
-|------|------|------|
-| `title` | ✅ | 教程标题 |
-| `category` | ✅ | 分类（基础动作/行进动作/仪式流程） |
-| `content` | ✅ | 正文内容（textarea） |
-| `tips` | ❌ | 注意要点 |
-| `commonMistakes` | ❌ | 常见错误 |
-| `summary` | ❌ | 小结 |
-
----
-
-## 数据模型
-
-### 成员 Member
-
-```javascript
-{
-  id: String,           // 唯一 ID（generateId('member')）
-  name: String,         // 姓名（必填）
-  gender: String,       // 性别：'男' | '女'
-  studentId: String,    // 学号
-  college: String,      // 学院
-  major: String,        // 专业
-  grade: String,        // 年级
-  className: String,    // 班级
-  phone: String,        // 手机号
-  wechat: String,       // 微信号
-  joinDate: String,     // 入队时间（YYYY-MM-DD）
-  position: String,     // 职务：队长|副队长|旗手|护旗手|队员
-  status: String,       // 状态：'在队' | '离队'
-  remark: String        // 备注
-}
-```
-
-### 训练任务 Training
-
-```javascript
+```js
 {
   id: String,
-  title: String,        // 任务名称
-  date: String,         // 日期（YYYY-MM-DD）
-  time: String,         // 时间（HH:mm）
-  location: String,     // 地点
-  type: String,         // 类型：日常训练|专项训练|彩排|...
-  createdBy: String,    // 创建人姓名
-  description: String,  // 备注
-  attendance: [         // 考勤数组
-    {
-      memberId: String,
-      name: String,
-      status: String    // '已到' | '迟到' | '缺勤' | '请假'
-    }
-  ]
+  name: String,
+  gender: String,
+  studentId: String,
+  password: String,
+  college: String,
+  major: String,
+  grade: String,
+  className: String,
+  department: String,
+  phone: String,
+  wechat: String,
+  joinDate: String,
+  position: String[],
+  status: '在队' | '离队',
+  remark: String,
+  createdAt: Number,
+  updatedAt: Number
 }
 ```
 
-### 升降旗任务 FlagCeremony
+### Training
 
-```javascript
+```js
 {
   id: String,
   title: String,
+  type: '例训' | '补训',
   date: String,
   time: String,
-  type: String,         // '升旗' | '降旗'
   location: String,
-  createdBy: String,
   description: String,
+  createdBy: String,
   attendance: [
     {
       memberId: String,
       name: String,
-      status: String    // '正常' | '迟到' | '缺席' | '请假'
+      status: '已到' | '迟到' | '缺勤' | '请假',
+      makeupTrainingId?: String,
+      makeupTrainingTitle?: String,
+      makeupTrainingDate?: String,
+      makeupTrainingTime?: String,
+      makeupTrainingLocation?: String,
+      makeupAssignedAt?: Number
     }
-  ]
+  ],
+  createdAt: Number,
+  updatedAt: Number
 }
 ```
 
-### 动作教程 Tutorial
+### FlagCeremony
 
-```javascript
+```js
 {
   id: String,
-  title: String,        // 教程标题
-  category: String,     // 分类：基础动作|行进动作|仪式流程
-  createdBy: String,    // 创建人
-  content: String,      // 正文内容
-  tips: String,         // 注意要点
-  commonMistakes: String, // 常见错误
-  summary: String       // 小结
+  title: String,
+  type: '升旗' | '降旗',
+  date: String,
+  time: String,
+  location: String,
+  description: String,
+  createdBy: String,
+  queueMemberIds: String[],
+  audienceMemberIds: String[],
+  attendance: [
+    {
+      memberId: String,
+      name: String,
+      status: '正常' | '迟到' | '缺席' | '请假'
+    }
+  ],
+  createdAt: Number,
+  updatedAt: Number
+}
+```
+
+### Tutorial
+
+```js
+{
+  id: String,
+  title: String,
+  category: String,
+  createdBy: String,
+  content: String,
+  tips: String,
+  commonMistakes: String,
+  summary: String,
+  createdAt: Number,
+  updatedAt: Number
 }
 ```
 
 ---
 
-## 权限设计
+## 云开发说明
 
-项目使用简单的两级权限控制，所有权限判断通过 `storage.isAdmin()` 完成。
+### 云数据库集合
 
-| 功能 | 普通成员 | 管理员 |
-|------|---------|--------|
-| 查看列表 | ✅ | ✅ |
-| 查看详情 | ✅ | ✅ |
-| 修改考勤状态 | ❌ | ✅ |
-| 创建任务 | ❌ | ✅ |
-| 新增/编辑成员 | ❌ | ✅ |
-| 新增/编辑教程 | ❌ | ✅ |
-| 删除任何内容 | ❌ | ✅ |
-| 切换他人身份 | ❌ | ✅ |
+需要创建以下集合：
+
+- `members`
+- `trainings`
+- `flag_ceremonies`
+- `tutorials`
+
+### 云函数
+
+#### `memberManage`
+
+用途：
+
+- 编辑成员
+- 批量修改成员状态（在队 / 离队）
+
+#### `memberImport`
+
+用途：
+
+- Excel 批量导入成员
+- 按批次导入，默认每批 5 行
+
+### 初始化机制
+
+- 应用启动时会执行 `storage.initMockData()`
+- 如果集合为空，则把 `mock/data.js` 中的初始数据灌入云数据库
+- 如果集合已有数据，则不会重复覆盖
+
+更详细的环境搭建说明见：
+
+- [CLOUD_DATABASE_SETUP.md](./CLOUD_DATABASE_SETUP.md)
 
 ---
 
-## 样式规范
+## Excel 导入说明
 
-### 主色系
+成员新增页右上角支持 `Excel导入`。
 
-| 用途 | 颜色值 |
-|------|--------|
-| 主色（导航栏、主按钮） | `#8B0000` / `#C41A1A` |
-| 成功/正常/在队 | `#07C160` |
-| 警告/迟到 | `#FFA500` |
-| 危险/缺席/缺勤 | `#EE0000` |
-| 请假 | `#576B95` |
-| 卡片背景 | `#FFFFFF` |
-| 页面背景 | `#F5F5F5` |
+模板列说明：
 
-### 考勤状态颜色
+- A 列：姓名
+- B 列：性别
+- C 列：学号
+- D 列：学院
+- E 列：专业
+- F 列：年级
+- G 列：班级
+- H 列：部门
+- I 列：手机号
 
-WXML 中直接通过 `style` 属性绑定颜色，修改颜色需同时修改：
-1. `utils/util.js` 的 `getStatusColor` 函数
-2. 各 detail.wxml 的 `statusColors` 对象（在 detail.js 的 `data` 中）
-3. 各 detail.wxml 中硬编码的 `style="color: xxx"` 属性
+导入规则：
+
+- 微信号默认等于手机号
+- 职务默认 `队员`
+- 状态默认 `在队`
+- 密码默认 `123456`
+- 入队时间在导入页统一选择
 
 ---
 
-## 常见修改指引
+## 权限说明
 
-### 修改初始 Mock 数据
-编辑 `mock/data.js`，然后在小程序个人中心点击「重置数据」即可生效。
+### 普通成员
 
-### 新增一种考勤状态
-1. `utils/util.js` → `calcAttendanceStats` 的 `keyMap` 增加映射
-2. `utils/util.js` → `getStatusColor` 增加颜色映射
-3. 对应页面的 `detail.js` → `statusColors` 增加映射
-4. 对应页面的 `detail.wxml` → 统计区块增加一个 `stat-box`，考勤明细增加一个状态按钮
+- 查看训练、升降旗、成员、教程
+- 查看部门工作
+- 使用“我的补训”
 
-### 新增一个模块页面
-1. 在 `pages/` 下创建新目录和 4 个文件
-2. 在 `app.json` 的 `pages` 数组中注册路由
-3. 在 `utils/storage.js` 的 `KEYS` 中添加新的存储键
-4. 在 `mock/data.js` 中添加对应初始数据
-5. 在首页 `pages/index/index.js` 和 `index.wxml` 中添加入口
+### 管理员
 
-### 修改应用主色
-全局搜索 `#C41A1A`、`#8B0000`，统一替换为新颜色。
+- 拥有普通成员全部权限
+- 创建训练任务
+- 创建升降旗任务
+- 新增/编辑/删除成员
+- 新增/编辑教程
+- 修改考勤状态
+- 批量调整成员在队状态
+- 进入部门管理
+- 查看特勤部补训记录总览
 
-### 接入真实后端
-仅需修改 `utils/storage.js`，将 `wx.getStorageSync/setStorageSync` 替换为 `wx.request` 网络请求，页面代码无需改动。
+---
+
+## 开发说明
+
+### 关键文件
+
+- `utils/storage.js`
+  - 数据访问入口
+  - 云数据库 CRUD
+  - 登录校验
+  - 权限判断
+- `utils/makeup.js`
+  - 补训状态计算
+  - 补训列表生成
+  - 管理员补训汇总统计
+- `mock/data.js`
+  - 初始示例数据
+
+### 运行前确认
+
+1. 在微信开发者工具中打开项目
+2. 确认已开通云开发并选择云环境
+3. 创建 4 个数据库集合
+4. 上传并部署：
+   - `cloudfunctions/memberImport`
+   - `cloudfunctions/memberManage`
+
+### 兼容逻辑
+
+项目内保留了部分旧数据兼容处理：
+
+- 旧训练类型会自动归并为 `例训 / 补训`
+- 旧职务会自动映射到新职务体系
+
+---
+
+## 当前已知说明
+
+- `mock/data.js` 修改后不会自动覆盖云数据库中的已有数据
+- 若想重新应用初始示例数据，可在个人中心执行“重置数据”
+- 训练详情里若把某成员状态从 `请假` 改成其他状态，会自动清除该条补训登记，避免脏数据
+- 补训登记当前是写回原训练记录的 `attendance` 项中，没有单独拆分独立集合
+
+---
+
+## 后续可继续扩展的方向
+
+- 补训完成确认与审核
+- 各部门独立任务菜单
+- 更细的数据库权限规则
+- 报表导出
+- 更完整的成员与任务统计看板

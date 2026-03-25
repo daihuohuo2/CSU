@@ -2,6 +2,15 @@ var storage = require('../../../../utils/storage');
 var util = require('../../../../utils/util');
 var makeupHelper = require('../../../../utils/makeup');
 
+var LEAVE_STATUS = '\u8bf7\u5047';
+
+async function updateTrainingAttendance(training, attendance) {
+  await storage.update(storage.KEYS.TRAININGS, training.id, {
+    _docId: training._docId,
+    attendance: attendance
+  });
+}
+
 Page({
   data: {
     leaveTrainingId: '',
@@ -39,7 +48,7 @@ Page({
       var memberInfo = storage.enrichMember(await storage.getCurrentMember());
       if (!memberInfo) {
         this.setData({ isLoading: false });
-        util.showToast('未找到当前成员档案');
+        util.showToast('\u672a\u627e\u5230\u5f53\u524d\u6210\u5458\u6863\u6848');
         return;
       }
 
@@ -59,7 +68,7 @@ Page({
 
       if (!leaveItem) {
         this.setData({ isLoading: false });
-        util.showToast('未找到对应请假记录');
+        util.showToast('\u672a\u627e\u5230\u5bf9\u5e94\u8bf7\u5047\u8bb0\u5f55');
         setTimeout(function() {
           wx.navigateBack();
         }, 1500);
@@ -83,7 +92,7 @@ Page({
     } catch (err) {
       console.error(err);
       this.setData({ isLoading: false });
-      util.showToast('加载补训日程失败');
+      util.showToast('\u52a0\u8f7d\u8865\u8bad\u65e5\u7a0b\u5931\u8d25');
     }
   },
 
@@ -102,55 +111,65 @@ Page({
     }
 
     if (!selectedTraining) {
-      util.showToast('补训日程不存在');
+      util.showToast('\u8865\u8bad\u65e5\u7a0b\u4e0d\u5b58\u5728');
       return;
     }
 
     if (!selectedTraining.date || selectedTraining.date <= this.data.today) {
-      util.showToast('只能选择今天之后的补训日程');
+      util.showToast('\u53ea\u80fd\u9009\u62e9\u4eca\u5929\u4e4b\u540e\u7684\u8865\u8bad\u65e5\u7a0b');
       return;
     }
 
     this.setData({ isSubmitting: true });
 
     try {
-      var trainingDetail = await storage.getById(storage.KEYS.TRAININGS, this.data.leaveTrainingId);
+      var trainings = await storage.getList(storage.KEYS.TRAININGS);
+      var trainingDetail = makeupHelper.findTrainingById(trainings, this.data.leaveTrainingId);
       if (!trainingDetail) {
-        throw new Error('原请假记录不存在');
+        throw new Error('\u539f\u8bf7\u5047\u8bb0\u5f55\u4e0d\u5b58\u5728');
       }
 
       var attendance = (trainingDetail.attendance || []).slice();
       var currentRecord = attendance[this.data.attendanceIndex];
-      if (!currentRecord || currentRecord.memberId !== this.data.memberInfo.id || currentRecord.status !== '请假') {
-        throw new Error('请假记录已变化，请返回刷新后重试');
+      if (!currentRecord || currentRecord.memberId !== this.data.memberInfo.id || currentRecord.status !== LEAVE_STATUS) {
+        throw new Error('\u8bf7\u5047\u8bb0\u5f55\u5df2\u53d8\u5316\uff0c\u8bf7\u8fd4\u56de\u5237\u65b0\u540e\u91cd\u8bd5');
       }
 
-      attendance[this.data.attendanceIndex] = Object.assign({}, currentRecord, {
-        makeupTrainingId: selectedTraining.id,
-        makeupTrainingTitle: selectedTraining.title,
-        makeupTrainingDate: selectedTraining.date,
-        makeupTrainingTime: selectedTraining.time || '',
-        makeupTrainingLocation: selectedTraining.location || '',
-        makeupAssignedAt: Date.now()
-      });
+      var previousMakeupTrainingId = currentRecord.makeupTrainingId || '';
+      attendance[this.data.attendanceIndex] = makeupHelper.assignMakeupTraining(currentRecord, selectedTraining);
 
-      await storage.update(storage.KEYS.TRAININGS, this.data.leaveTrainingId, {
-        _docId: trainingDetail._docId,
-        attendance: attendance
-      });
+      await updateTrainingAttendance(trainingDetail, attendance);
+
+      if (previousMakeupTrainingId && previousMakeupTrainingId !== selectedTraining.id && !makeupHelper.hasLinkedMakeupRecord(trainings, this.data.memberInfo.id, previousMakeupTrainingId, {
+        excludeLeaveTrainingId: trainingDetail.id,
+        excludeAttendanceIndex: this.data.attendanceIndex
+      })) {
+        var previousMakeupTraining = makeupHelper.findTrainingById(trainings, previousMakeupTrainingId);
+        if (previousMakeupTraining) {
+          var removed = makeupHelper.removeMakeupAttendanceMember(previousMakeupTraining.attendance, this.data.memberInfo.id);
+          if (removed.changed) {
+            await updateTrainingAttendance(previousMakeupTraining, removed.attendance);
+          }
+        }
+      }
+
+      var ensured = makeupHelper.ensureMakeupAttendanceMember(selectedTraining.attendance, this.data.memberInfo);
+      if (ensured.changed) {
+        await updateTrainingAttendance(selectedTraining, ensured.attendance);
+      }
 
       this.setData({
         currentSelectionId: selectedTraining.id,
         isSubmitting: false
       });
-      util.showToast('补训已登记', 'success');
+      util.showToast('\u8865\u8bad\u5df2\u767b\u8bb0', 'success');
       setTimeout(function() {
         wx.navigateBack();
       }, 1500);
     } catch (err) {
       console.error(err);
       this.setData({ isSubmitting: false });
-      util.showToast(err.message || '登记补训失败');
+      util.showToast(err.message || '\u767b\u8bb0\u8865\u8bad\u5931\u8d25');
     }
   },
 
@@ -162,33 +181,45 @@ Page({
     this.setData({ isSubmitting: true });
 
     try {
-      var trainingDetail = await storage.getById(storage.KEYS.TRAININGS, this.data.leaveTrainingId);
+      var trainings = await storage.getList(storage.KEYS.TRAININGS);
+      var trainingDetail = makeupHelper.findTrainingById(trainings, this.data.leaveTrainingId);
       if (!trainingDetail) {
-        throw new Error('原请假记录不存在');
+        throw new Error('\u539f\u8bf7\u5047\u8bb0\u5f55\u4e0d\u5b58\u5728');
       }
 
       var attendance = (trainingDetail.attendance || []).slice();
       var currentRecord = attendance[this.data.attendanceIndex];
-      if (!currentRecord || currentRecord.memberId !== this.data.memberInfo.id || currentRecord.status !== '请假') {
-        throw new Error('请假记录已变化，请返回刷新后重试');
+      if (!currentRecord || currentRecord.memberId !== this.data.memberInfo.id || currentRecord.status !== LEAVE_STATUS) {
+        throw new Error('\u8bf7\u5047\u8bb0\u5f55\u5df2\u53d8\u5316\uff0c\u8bf7\u8fd4\u56de\u5237\u65b0\u540e\u91cd\u8bd5');
       }
 
+      var previousMakeupTrainingId = currentRecord.makeupTrainingId || '';
       attendance[this.data.attendanceIndex] = makeupHelper.stripMakeupFields(currentRecord);
 
-      await storage.update(storage.KEYS.TRAININGS, this.data.leaveTrainingId, {
-        _docId: trainingDetail._docId,
-        attendance: attendance
-      });
+      await updateTrainingAttendance(trainingDetail, attendance);
+
+      if (previousMakeupTrainingId && !makeupHelper.hasLinkedMakeupRecord(trainings, this.data.memberInfo.id, previousMakeupTrainingId, {
+        excludeLeaveTrainingId: trainingDetail.id,
+        excludeAttendanceIndex: this.data.attendanceIndex
+      })) {
+        var previousMakeupTraining = makeupHelper.findTrainingById(trainings, previousMakeupTrainingId);
+        if (previousMakeupTraining) {
+          var removed = makeupHelper.removeMakeupAttendanceMember(previousMakeupTraining.attendance, this.data.memberInfo.id);
+          if (removed.changed) {
+            await updateTrainingAttendance(previousMakeupTraining, removed.attendance);
+          }
+        }
+      }
 
       this.setData({ isSubmitting: false });
-      util.showToast('已取消补训登记', 'success');
+      util.showToast('\u5df2\u53d6\u6d88\u8865\u8bad\u767b\u8bb0', 'success');
       setTimeout(function() {
         wx.navigateBack();
       }, 1500);
     } catch (err) {
       console.error(err);
       this.setData({ isSubmitting: false });
-      util.showToast(err.message || '取消补训失败');
+      util.showToast(err.message || '\u53d6\u6d88\u8865\u8bad\u5931\u8d25');
     }
   }
 });

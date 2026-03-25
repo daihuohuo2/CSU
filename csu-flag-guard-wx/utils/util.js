@@ -48,7 +48,7 @@ function calcAttendanceStats(attendance) {
     '请假': 'leave'
   };
   var stats = { total: attendance.length };
-  attendance.forEach(function (item) {
+  attendance.forEach(function(item) {
     var key = keyMap[item.status] || item.status;
     stats[key] = (stats[key] || 0) + 1;
   });

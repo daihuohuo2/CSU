@@ -9,7 +9,7 @@
       <view class="record-meta">{{leaveItem.leaveTrainingDate}} {{leaveItem.leaveTrainingTime || '时间待定'}}</view>
       <view class="record-meta" wx:if="{{leaveItem.leaveTrainingLocation}}">{{leaveItem.leaveTrainingLocation}}</view>
       <view class="record-tip" wx:if="{{leaveItem.makeupTrainingId}}">
-        当前已登记：{{leaveItem.makeupTrainingTitle}} · {{leaveItem.makeupTrainingDate}} {{leaveItem.makeupTrainingTime || '时间待定'}}
+        当前已登记：{{leaveItem.makeupTrainingTitle}} / {{leaveItem.makeupTrainingDate}} {{leaveItem.makeupTrainingTime || '时间待定'}}
       </view>
       <view class="action-row" wx:if="{{currentSelectionId}}">
         <button class="btn-secondary action-btn" bindtap="clearMakeupTraining" loading="{{isSubmitting}}">取消已选补训</button>
@@ -41,7 +41,7 @@
 </block>
 <block wx:else>
   <view class="empty-state" wx:if="{{!isLoading}}">
-    <view class="empty-icon">📝</view>
+    <view class="empty-icon">记</view>
     <view class="empty-text">未找到对应请假记录</view>
   </view>
 </block>
