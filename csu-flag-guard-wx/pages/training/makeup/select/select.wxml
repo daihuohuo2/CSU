@@ -1,0 +1,47 @@
+<block wx:if="{{leaveItem}}">
+  <view class="container">
+    <view class="card">
+      <view class="section-header">请假记录</view>
+      <view class="record-header">
+        <view class="record-title">{{leaveItem.leaveTrainingTitle}}</view>
+        <view class="record-status {{leaveItem.statusType}}">{{leaveItem.statusText}}</view>
+      </view>
+      <view class="record-meta">{{leaveItem.leaveTrainingDate}} {{leaveItem.leaveTrainingTime || '时间待定'}}</view>
+      <view class="record-meta" wx:if="{{leaveItem.leaveTrainingLocation}}">{{leaveItem.leaveTrainingLocation}}</view>
+      <view class="record-tip" wx:if="{{leaveItem.makeupTrainingId}}">
+        当前已登记：{{leaveItem.makeupTrainingTitle}} · {{leaveItem.makeupTrainingDate}} {{leaveItem.makeupTrainingTime || '时间待定'}}
+      </view>
+      <view class="action-row" wx:if="{{currentSelectionId}}">
+        <button class="btn-secondary action-btn" bindtap="clearMakeupTraining" loading="{{isSubmitting}}">取消已选补训</button>
+      </view>
+    </view>
+
+    <view class="card">
+      <view class="section-header">可选补训日程</view>
+      <view class="section-tip">只能选择 {{today}} 之后、按日期判断尚未开始的补训日程。</view>
+      <view wx:if="{{availableTrainings.length}}">
+        <view
+          class="schedule-item {{currentSelectionId === item.id ? 'selected' : ''}}"
+          wx:for="{{availableTrainings}}"
+          wx:key="id"
+          bindtap="selectMakeupTraining"
+          data-id="{{item.id}}"
+        >
+          <view class="schedule-header">
+            <view class="schedule-title">{{item.title}}</view>
+            <view class="schedule-action">{{currentSelectionId === item.id ? '当前已登记' : '登记为补训'}}</view>
+          </view>
+          <view class="schedule-meta">{{item.date}} {{item.time || '时间待定'}}</view>
+          <view class="schedule-meta" wx:if="{{item.location}}">{{item.location}}</view>
+        </view>
+      </view>
+      <view wx:else class="empty-inline">当前没有可选择的未来补训日程</view>
+    </view>
+  </view>
+</block>
+<block wx:else>
+  <view class="empty-state" wx:if="{{!isLoading}}">
+    <view class="empty-icon">📝</view>
+    <view class="empty-text">未找到对应请假记录</view>
+  </view>
+</block>

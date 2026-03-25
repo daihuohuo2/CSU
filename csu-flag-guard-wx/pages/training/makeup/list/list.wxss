@@ -1,0 +1,111 @@
+.summary-row {
+  display: flex;
+  gap: 20rpx;
+}
+
+.summary-box {
+  flex: 1;
+  background: #FAFAFA;
+  border-radius: 12rpx;
+  padding: 24rpx 20rpx;
+  text-align: center;
+}
+
+.summary-num {
+  font-size: 44rpx;
+  font-weight: bold;
+  color: #333333;
+}
+
+.summary-num.pending {
+  color: #C41A1A;
+}
+
+.summary-num.scheduled {
+  color: #E6A23C;
+}
+
+.summary-label {
+  font-size: 24rpx;
+  color: #999999;
+  margin-top: 8rpx;
+}
+
+.summary-tip {
+  margin-top: 20rpx;
+  font-size: 24rpx;
+  color: #999999;
+}
+
+.record-card {
+  position: relative;
+}
+
+.record-header {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.record-title {
+  flex: 1;
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #333333;
+}
+
+.record-status {
+  font-size: 22rpx;
+  padding: 6rpx 16rpx;
+  border-radius: 20rpx;
+}
+
+.record-status.pending {
+  background: #FFF0F0;
+  color: #C41A1A;
+}
+
+.record-status.assigned {
+  background: #F0F5FF;
+  color: #576B95;
+}
+
+.record-status.scheduled {
+  background: #FFF6E8;
+  color: #E6A23C;
+}
+
+.record-meta {
+  margin-top: 12rpx;
+  font-size: 24rpx;
+  color: #666666;
+}
+
+.record-block {
+  margin-top: 20rpx;
+  padding: 20rpx;
+  border-radius: 12rpx;
+  background: #FAFAFA;
+}
+
+.record-block-label {
+  font-size: 24rpx;
+  color: #999999;
+  margin-bottom: 8rpx;
+}
+
+.record-block-value {
+  font-size: 26rpx;
+  color: #333333;
+}
+
+.record-block-value.pending-text {
+  color: #C41A1A;
+}
+
+.record-action {
+  margin-top: 20rpx;
+  font-size: 24rpx;
+  color: #C41A1A;
+  text-align: right;
+}

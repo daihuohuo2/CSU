@@ -1,0 +1,40 @@
+<view class="container" wx:if="{{isAdmin}}">
+  <view class="card banner-card">
+    <view class="banner-icon">🛡️</view>
+    <view class="banner-body">
+      <view class="banner-title">特勤部</view>
+      <view class="banner-subtitle">补训记录已接入特勤部，可在此查看全员补训状态与明细。</view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="section-header">补训概览</view>
+    <view class="stats-row">
+      <view class="stat-box">
+        <view class="stat-num">{{stats.totalMembers}}</view>
+        <view class="stat-label">成员总数</view>
+      </view>
+      <view class="stat-box">
+        <view class="stat-num pending">{{stats.pendingCount}}</view>
+        <view class="stat-label">待补训</view>
+      </view>
+      <view class="stat-box">
+        <view class="stat-num scheduled">{{stats.upcomingCount}}</view>
+        <view class="stat-label">待参加</view>
+      </view>
+      <view class="stat-box">
+        <view class="stat-num">{{stats.totalCount}}</view>
+        <view class="stat-label">补训总次数</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="card module-card" bindtap="goMakeupModule">
+    <view class="module-header">
+      <view class="module-title">补训记录</view>
+      <view class="module-tag">已接入</view>
+    </view>
+    <view class="module-desc">按成员查看待补训、待参加和补训总次数，点进成员后可查看全部补训相关内容。</view>
+    <view class="module-action">进入模块 ›</view>
+  </view>
+</view>

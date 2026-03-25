@@ -67,3 +67,25 @@
   font-size: 28rpx;
   color: #333333;
 }
+
+.menu-badge {
+  font-size: 22rpx;
+  padding: 6rpx 16rpx;
+  border-radius: 20rpx;
+  margin-right: 12rpx;
+}
+
+.menu-badge.danger {
+  background: #FFF0F0;
+  color: #C41A1A;
+}
+
+.menu-badge.normal {
+  background: #F0F5FF;
+  color: #576B95;
+}
+
+.menu-badge.scheduled {
+  background: #FFF6E8;
+  color: #E6A23C;
+}

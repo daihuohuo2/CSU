@@ -6,6 +6,7 @@ Page({
     list: [],
     filteredList: [],
     currentType: '',
+    typeOptions: storage.TRAINING_TYPE_OPTIONS.slice(),
     isAdmin: false
   },
 

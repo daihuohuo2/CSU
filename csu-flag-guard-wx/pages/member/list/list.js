@@ -9,6 +9,7 @@ function getStatusRank(status) {
 
 var POSITION_RANK = {
   '班长': 0,
+  '超级牛逼雷霆之人': 0,
   '副班长': 1,
   '办公室主任': 2,
   '特勤部部长': 3,
@@ -80,7 +81,11 @@ Page({
     filteredList: [],
     keyword: '',
     currentStatus: '',
-    isAdmin: false
+    isAdmin: false,
+    isBatchMode: false,
+    selectedIds: [],
+    selectedMap: {},
+    isBatchSubmitting: false
   },
 
   onShow: async function() {
@@ -117,6 +122,110 @@ Page({
   filterStatus: function(e) {
     this.setData({ currentStatus: e.currentTarget.dataset.status });
     this.applyFilter();
+  },
+
+  enterBatchMode: function() {
+    this.setData({
+      isBatchMode: true,
+      selectedIds: [],
+      selectedMap: {}
+    });
+  },
+
+  exitBatchMode: function() {
+    this.setData({
+      isBatchMode: false,
+      selectedIds: [],
+      selectedMap: {},
+      isBatchSubmitting: false
+    });
+  },
+
+  toggleBatchMode: function() {
+    if (this.data.isBatchMode) {
+      this.exitBatchMode();
+      return;
+    }
+    this.enterBatchMode();
+  },
+
+  toggleSelectMember: function(e) {
+    if (!this.data.isBatchMode) {
+      return;
+    }
+
+    var id = e.currentTarget.dataset.id;
+    var selectedIds = this.data.selectedIds.slice();
+    var index = selectedIds.indexOf(id);
+
+    if (index === -1) {
+      selectedIds.push(id);
+    } else {
+      selectedIds.splice(index, 1);
+    }
+
+    this.updateSelectionState(selectedIds);
+  },
+
+  updateSelectionState: function(selectedIds) {
+    var selectedMap = {};
+    (selectedIds || []).forEach(function(id) {
+      selectedMap[id] = true;
+    });
+
+    this.setData({
+      selectedIds: selectedIds,
+      selectedMap: selectedMap
+    });
+  },
+
+  handleMemberTap: function(e) {
+    if (this.data.isBatchMode) {
+      this.toggleSelectMember(e);
+      return;
+    }
+
+    this.goDetail(e);
+  },
+
+  confirmBatchUpdateStatus: function(status) {
+    var that = this;
+    var selectedIds = this.data.selectedIds.slice();
+
+    if (!selectedIds.length) {
+      util.showToast('请先选择成员');
+      return;
+    }
+
+    wx.showModal({
+      title: '确认批量调整',
+      content: '确定将所选成员批量设为“' + status + '”吗？',
+      success: async function(res) {
+        if (!res.confirm) return;
+
+        that.setData({ isBatchSubmitting: true });
+
+        try {
+          await storage.batchUpdateMemberStatus(selectedIds, status);
+          util.showToast('批量调整成功', 'success');
+          that.exitBatchMode();
+          await that.loadData();
+        } catch (err) {
+          console.error(err);
+          util.showToast(err.message || '批量调整失败');
+        } finally {
+          that.setData({ isBatchSubmitting: false });
+        }
+      }
+    });
+  },
+
+  batchSetActive: function() {
+    this.confirmBatchUpdateStatus('在队');
+  },
+
+  batchSetInactive: function() {
+    this.confirmBatchUpdateStatus('离队');
   },
 
   applyFilter: function() {

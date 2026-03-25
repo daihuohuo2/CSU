@@ -1,11 +1,16 @@
 var storage = require('../../utils/storage');
 var util = require('../../utils/util');
+var makeupHelper = require('../../utils/makeup');
 
 Page({
   data: {
     userInfo: null,
     isAdmin: false,
-    memberInfo: null
+    memberInfo: null,
+    makeupPendingCount: 0,
+    makeupUpcomingCount: 0,
+    makeupBadgeText: '暂无补训',
+    makeupBadgeType: 'normal'
   },
 
   onShow: async function() {
@@ -15,24 +20,41 @@ Page({
       return;
     }
 
-    var memberInfo = null;
-    if (userInfo.memberId) {
-      memberInfo = storage.enrichMember(await storage.getById(storage.KEYS.MEMBERS, userInfo.memberId));
-    } else {
-      var members = await storage.getList(storage.KEYS.MEMBERS);
-      for (var i = 0; i < members.length; i++) {
-        if (members[i].name === userInfo.name) {
-          memberInfo = storage.enrichMember(members[i]);
-          break;
+    try {
+      var memberInfo = storage.enrichMember(await storage.getCurrentMember());
+      var makeupPendingCount = 0;
+      var makeupUpcomingCount = 0;
+      var makeupBadgeText = '暂无补训';
+      var makeupBadgeType = 'normal';
+
+      if (memberInfo) {
+        var trainings = await storage.getList(storage.KEYS.TRAININGS);
+        var makeupItems = makeupHelper.buildLeaveMakeupItems(trainings, memberInfo.id);
+        makeupPendingCount = makeupHelper.getPendingMakeupCount(makeupItems);
+        makeupUpcomingCount = makeupHelper.getUpcomingMakeupCount(makeupItems);
+
+        if (makeupPendingCount > 0) {
+          makeupBadgeText = makeupPendingCount + ' 条待补训';
+          makeupBadgeType = 'danger';
+        } else if (makeupUpcomingCount > 0) {
+          makeupBadgeText = makeupUpcomingCount + ' 条待参加';
+          makeupBadgeType = 'scheduled';
         }
       }
-    }
 
-    this.setData({
-      userInfo: userInfo,
-      isAdmin: userInfo.role === 'admin',
-      memberInfo: memberInfo
-    });
+      this.setData({
+        userInfo: userInfo,
+        isAdmin: userInfo.role === 'admin',
+        memberInfo: memberInfo,
+        makeupPendingCount: makeupPendingCount,
+        makeupUpcomingCount: makeupUpcomingCount,
+        makeupBadgeText: makeupBadgeText,
+        makeupBadgeType: makeupBadgeType
+      });
+    } catch (err) {
+      console.error(err);
+      util.showToast('加载个人信息失败');
+    }
   },
 
   goTraining: function() {
@@ -41,6 +63,10 @@ Page({
 
   goFlag: function() {
     wx.navigateTo({ url: '/pages/flag/list/list' });
+  },
+
+  goMakeupList: function() {
+    wx.navigateTo({ url: '/pages/training/makeup/list/list' });
   },
 
   switchRole: function() {

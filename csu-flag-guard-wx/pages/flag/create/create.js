@@ -1,34 +1,33 @@
 var storage = require('../../../utils/storage');
 var util = require('../../../utils/util');
 
-function isActiveMember(member) {
-  return !member.status || member.status === '在队' || member.status === '鍦ㄩ槦';
-}
-
 Page({
   data: {
     title: '',
     type: '',
+    isRaiseFlag: false,
     date: '',
     time: '',
     location: '',
     description: '',
     typeOptions: ['升旗', '降旗'],
     members: [],
-    audienceMembers: []
+    audienceMembers: [],
+    queueMemberCount: 0
   },
 
   onLoad: async function() {
     try {
       var members = storage.enrichMembers(await storage.getList(storage.KEYS.MEMBERS))
-        .filter(isActiveMember)
+        .filter(storage.isMemberActive)
         .map(function(member) {
           return Object.assign({}, member, { checked: false });
         });
 
       this.setData({
         members: members,
-        audienceMembers: this.getAudienceMembers(members)
+        audienceMembers: this.getAudienceMembers(members),
+        queueMemberCount: this.getQueueMemberCount(members)
       });
     } catch (err) {
       console.error(err);
@@ -42,6 +41,12 @@ Page({
     });
   },
 
+  getQueueMemberCount: function(members) {
+    return members.filter(function(member) {
+      return member.checked;
+    }).length;
+  },
+
   onInput: function(e) {
     var obj = {};
     obj[e.currentTarget.dataset.field] = e.detail.value;
@@ -49,7 +54,11 @@ Page({
   },
 
   onTypePick: function(e) {
-    this.setData({ type: this.data.typeOptions[e.detail.value] });
+    var type = this.data.typeOptions[e.detail.value];
+    this.setData({
+      type: type,
+      isRaiseFlag: type === '升旗'
+    });
   },
 
   onDatePick: function(e) {
@@ -65,7 +74,8 @@ Page({
 
     this.setData({
       members: members,
-      audienceMembers: this.getAudienceMembers(members)
+      audienceMembers: this.getAudienceMembers(members),
+      queueMemberCount: this.getQueueMemberCount(members)
     });
   },
 
@@ -91,8 +101,9 @@ Page({
       return;
     }
 
-    var audienceMembers = this.getAudienceMembers(this.data.members);
-    var attendanceMembers = queueMembers.concat(audienceMembers);
+    var isRaiseFlag = this.data.type === '升旗';
+    var audienceMembers = isRaiseFlag ? this.getAudienceMembers(this.data.members) : [];
+    var attendanceMembers = isRaiseFlag ? queueMembers.concat(audienceMembers) : queueMembers;
     var attendance = attendanceMembers.map(function(member) {
       return {
         memberId: member.id,
@@ -112,7 +123,7 @@ Page({
       description: this.data.description || '',
       createdBy: userInfo ? userInfo.name : 'admin',
       queueMemberIds: queueMembers.map(function(member) { return member.id; }),
-      audienceMemberIds: audienceMembers.map(function(member) { return member.id; }),
+      audienceMemberIds: isRaiseFlag ? audienceMembers.map(function(member) { return member.id; }) : [],
       attendance: attendance
     };
 

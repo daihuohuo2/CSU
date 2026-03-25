@@ -1,0 +1,126 @@
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.profile-name {
+  font-size: 34rpx;
+  font-weight: bold;
+  color: #333333;
+}
+
+.profile-tag {
+  font-size: 22rpx;
+  padding: 6rpx 16rpx;
+  border-radius: 20rpx;
+  background: #FFF3F0;
+  color: #C94B2C;
+}
+
+.profile-sub {
+  margin-top: 12rpx;
+  font-size: 24rpx;
+  color: #999999;
+}
+
+.stats-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+
+.stat-box {
+  flex: 1;
+  min-width: 130rpx;
+  background: #FAFAFA;
+  border-radius: 12rpx;
+  padding: 20rpx 16rpx;
+  text-align: center;
+}
+
+.stat-num {
+  font-size: 38rpx;
+  font-weight: bold;
+  color: #333333;
+}
+
+.stat-num.pending {
+  color: #C41A1A;
+}
+
+.stat-num.upcoming {
+  color: #E6A23C;
+}
+
+.stat-num.completed {
+  color: #576B95;
+}
+
+.stat-label {
+  font-size: 22rpx;
+  color: #999999;
+  margin-top: 8rpx;
+}
+
+.record-header {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.record-title {
+  flex: 1;
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #333333;
+}
+
+.record-status {
+  font-size: 22rpx;
+  padding: 6rpx 16rpx;
+  border-radius: 20rpx;
+}
+
+.record-status.pending {
+  background: #FFF0F0;
+  color: #C41A1A;
+}
+
+.record-status.scheduled {
+  background: #FFF6E8;
+  color: #E6A23C;
+}
+
+.record-status.assigned {
+  background: #F0F5FF;
+  color: #576B95;
+}
+
+.record-meta {
+  margin-top: 12rpx;
+  font-size: 24rpx;
+  color: #666666;
+}
+
+.record-block {
+  margin-top: 20rpx;
+  padding: 20rpx;
+  border-radius: 12rpx;
+  background: #FAFAFA;
+}
+
+.record-block-label {
+  font-size: 24rpx;
+  color: #999999;
+  margin-bottom: 8rpx;
+}
+
+.record-block-value {
+  font-size: 26rpx;
+  color: #333333;
+}
+
+.record-block-value.pending-text {
+  color: #C41A1A;
+}

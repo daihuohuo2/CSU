@@ -9,17 +9,22 @@ Page({
     time: '',
     location: '',
     description: '',
-    typeOptions: ['日常训练', '专项训练', '彩排'],
-    members: []
+    typeOptions: storage.TRAINING_TYPE_OPTIONS.slice(),
+    members: [],
+    selectedCount: 0
   },
 
   onLoad: async function() {
     try {
-      var members = storage.enrichMembers(await storage.getList(storage.KEYS.MEMBERS));
+      var members = storage.enrichMembers(await storage.getList(storage.KEYS.MEMBERS))
+        .filter(storage.isMemberActive);
       members.forEach(function(m) {
         m.checked = true;
       });
-      this.setData({ members: members });
+      this.setData({
+        members: members,
+        selectedCount: members.length
+      });
     } catch (err) {
       console.error(err);
       util.showToast('加载成员失败');
@@ -43,10 +48,21 @@ Page({
 
   toggleMember: function(e) {
     var index = e.currentTarget.dataset.index;
-    var key = 'members[' + index + '].checked';
-    var obj = {};
-    obj[key] = e.detail.value;
-    this.setData(obj);
+    var members = this.data.members.slice();
+    members[index] = Object.assign({}, members[index], {
+      checked: e.detail.value
+    });
+
+    this.setData({
+      members: members,
+      selectedCount: this.getSelectedCount(members)
+    });
+  },
+
+  getSelectedCount: function(members) {
+    return members.filter(function(member) {
+      return member.checked;
+    }).length;
   },
 
   handleSubmit: async function() {

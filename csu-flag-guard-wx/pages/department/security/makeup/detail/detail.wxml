@@ -1,0 +1,52 @@
+<view class="container" wx:if="{{isAdmin && memberInfo}}">
+  <view class="card profile-card">
+    <view class="profile-header">
+      <view class="profile-name">{{memberInfo.name}}</view>
+      <view class="profile-tag">{{memberInfo.positionText || '未设职务'}}</view>
+    </view>
+    <view class="profile-sub">{{memberInfo.department || '未分配部门'}}{{memberInfo.grade ? ' · ' + memberInfo.grade + '级' : ''}}</view>
+  </view>
+
+  <view class="card">
+    <view class="section-header">补训统计</view>
+    <view class="stats-row">
+      <view class="stat-box">
+        <view class="stat-num">{{summary.totalCount}}</view>
+        <view class="stat-label">总次数</view>
+      </view>
+      <view class="stat-box">
+        <view class="stat-num pending">{{summary.pendingCount}}</view>
+        <view class="stat-label">待补训</view>
+      </view>
+      <view class="stat-box">
+        <view class="stat-num upcoming">{{summary.upcomingCount}}</view>
+        <view class="stat-label">待参加</view>
+      </view>
+      <view class="stat-box">
+        <view class="stat-num completed">{{summary.completedCount}}</view>
+        <view class="stat-label">已登记</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="empty-state" wx:if="{{!isLoading && items.length === 0}}">
+    <view class="empty-icon">📝</view>
+    <view class="empty-text">该成员当前没有补训相关记录</view>
+  </view>
+
+  <view class="card record-card" wx:for="{{items}}" wx:key="id">
+    <view class="record-header">
+      <view class="record-title">{{item.leaveTrainingTitle}}</view>
+      <view class="record-status {{item.statusType}}">{{item.statusText}}</view>
+    </view>
+    <view class="record-meta">{{item.leaveTrainingDate}} {{item.leaveTrainingTime || '时间待定'}}</view>
+    <view class="record-meta" wx:if="{{item.leaveTrainingLocation}}">{{item.leaveTrainingLocation}}</view>
+    <view class="record-block">
+      <view class="record-block-label">补训安排</view>
+      <view class="record-block-value" wx:if="{{item.makeupTrainingId}}">
+        {{item.makeupTrainingTitle}} · {{item.makeupTrainingDate}} {{item.makeupTrainingTime || '时间待定'}}
+      </view>
+      <view class="record-block-value pending-text" wx:else>当前尚未登记补训</view>
+    </view>
+  </view>
+</view>

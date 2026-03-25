@@ -10,6 +10,7 @@ Page({
     stats: {},
     isAdmin: false,
     isRaiseFlag: false,
+    hasAudienceAttendance: false,
     queueAttendance: [],
     audienceAttendance: [],
     statusColors: {
@@ -66,6 +67,7 @@ Page({
       detail: detail,
       stats: util.calcAttendanceStats((detail && detail.attendance) || []),
       isRaiseFlag: groups.isRaiseFlag,
+      hasAudienceAttendance: groups.audienceAttendance.length > 0,
       queueAttendance: groups.queueAttendance,
       audienceAttendance: groups.audienceAttendance
     });

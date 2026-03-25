@@ -68,7 +68,7 @@
         </view>
       </view>
 
-      <view class="att-group">
+      <view class="att-group" wx:if="{{hasAudienceAttendance}}">
         <view class="att-group-title">观礼成员</view>
         <view class="att-item" wx:for="{{audienceAttendance}}" wx:key="memberId">
           <view class="att-name">{{item.name}}</view>

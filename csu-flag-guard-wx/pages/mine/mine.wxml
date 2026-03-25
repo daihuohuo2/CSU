@@ -52,6 +52,12 @@
       <text class="mine-menu-text">我的训练记录</text>
       <text class="arrow-right">›</text>
     </view>
+    <view class="mine-menu-item" bindtap="goMakeupList">
+      <text class="mine-menu-icon">🗓️</text>
+      <text class="mine-menu-text">我的补训</text>
+      <text class="menu-badge {{makeupBadgeType}}">{{makeupBadgeText}}</text>
+      <text class="arrow-right">›</text>
+    </view>
     <view class="mine-menu-item" bindtap="goFlag">
       <text class="mine-menu-icon">🚩</text>
       <text class="mine-menu-text">我的升降旗记录</text>

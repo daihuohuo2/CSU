@@ -2,6 +2,7 @@ var mockData = require('../mock/data');
 
 var POSITION_OPTIONS = [
   '班长',
+  '超级牛逼雷霆之人',
   '副班长',
   '办公室主任',
   '特勤部部长',
@@ -14,6 +15,11 @@ var POSITION_OPTIONS = [
   '队员'
 ];
 
+var TRAINING_TYPE_OPTIONS = [
+  '例训',
+  '补训'
+];
+
 var DEPARTMENT_OPTIONS = [
   '办公室成员',
   '财务部成员',
@@ -23,6 +29,7 @@ var DEPARTMENT_OPTIONS = [
 
 var ADMIN_POSITIONS = [
   '班长',
+  '超级牛逼雷霆之人',
   '副班长',
   '办公室主任',
   '特勤部部长',
@@ -37,6 +44,12 @@ var LEGACY_POSITION_MAP = {
   '副队长': '副班长',
   '旗手': '擎旗手',
   '护旗手': '升旗手'
+};
+
+var LEGACY_TRAINING_TYPE_MAP = {
+  '日常训练': '例训',
+  '专项训练': '补训',
+  '彩排': '补训'
 };
 
 var KEYS = {
@@ -98,6 +111,18 @@ function hasAdminPosition(position) {
   });
 }
 
+function isMemberActive(member) {
+  if (!member) {
+    return false;
+  }
+
+  return !member.status || member.status === '在队' || member.status === '鍦ㄩ槦';
+}
+
+function normalizeTrainingType(type) {
+  return LEGACY_TRAINING_TYPE_MAP[type] || type || '';
+}
+
 function enrichMember(member) {
   if (!member) return null;
   var positions = normalizePositions(member.position);
@@ -108,8 +133,45 @@ function enrichMember(member) {
   });
 }
 
+function enrichTraining(training) {
+  if (!training) return null;
+  return Object.assign({}, training, {
+    type: normalizeTrainingType(training.type)
+  });
+}
+
 function enrichMembers(members) {
   return (members || []).map(enrichMember);
+}
+
+function enrichItem(key, item) {
+  if (key === KEYS.MEMBERS) {
+    return enrichMember(item);
+  }
+  if (key === KEYS.TRAININGS) {
+    return enrichTraining(item);
+  }
+  return item;
+}
+
+function normalizeItemForStorage(key, item) {
+  if (!item) {
+    return item;
+  }
+
+  if (key === KEYS.MEMBERS) {
+    return Object.assign({}, item, {
+      password: item.password || DEFAULT_MEMBER_PASSWORD
+    });
+  }
+
+  if (key === KEYS.TRAININGS) {
+    return Object.assign({}, item, {
+      type: normalizeTrainingType(item.type)
+    });
+  }
+
+  return item;
 }
 
 function sortByUpdatedAt(list) {
@@ -205,6 +267,25 @@ async function backfillMemberDefaults() {
   }
 }
 
+async function backfillTrainingTypes() {
+  var collection = getCollection(KEYS.TRAININGS);
+  var trainings = await fetchAll(collection);
+
+  for (var i = 0; i < trainings.length; i++) {
+    var normalizedType = normalizeTrainingType(trainings[i].type);
+    if (!normalizedType || normalizedType === trainings[i].type) {
+      continue;
+    }
+
+    await collection.doc(trainings[i]._id).update({
+      data: {
+        type: normalizedType,
+        updatedAt: Date.now()
+      }
+    });
+  }
+}
+
 async function ensureReady() {
   if (readyPromise) return readyPromise;
 
@@ -212,6 +293,7 @@ async function ensureReady() {
     await ensureCloud();
     await seedMockData();
     await backfillMemberDefaults();
+    await backfillTrainingTypes();
     return db;
   })();
 
@@ -229,7 +311,7 @@ async function getList(key) {
     var plain = Object.assign({}, item);
     plain._docId = plain._id;
     delete plain._id;
-    return key === KEYS.MEMBERS ? enrichMember(plain) : plain;
+    return enrichItem(key, plain);
   });
 }
 
@@ -240,17 +322,15 @@ async function getById(key, id) {
   var plain = Object.assign({}, res.data[0]);
   plain._docId = plain._id;
   delete plain._id;
-  return key === KEYS.MEMBERS ? enrichMember(plain) : plain;
+  return enrichItem(key, plain);
 }
 
 async function add(key, item) {
   await ensureReady();
-  var normalizedItem = key === KEYS.MEMBERS
-    ? Object.assign({}, item, { password: item.password || DEFAULT_MEMBER_PASSWORD })
-    : item;
+  var normalizedItem = normalizeItemForStorage(key, item);
   var data = withTimestamps(normalizedItem);
   await getCollection(key).add({ data: data });
-  return data;
+  return enrichItem(key, data);
 }
 
 async function updateMemberInCloud(id, data) {
@@ -271,6 +351,22 @@ async function updateMemberInCloud(id, data) {
   return result.member ? enrichMember(result.member) : null;
 }
 
+async function batchUpdateMemberStatusInCloud(ids, status) {
+  var res = await wx.cloud.callFunction({
+    name: 'memberManage',
+    data: {
+      action: 'batchUpdateStatus',
+      ids: ids,
+      status: status
+    }
+  });
+  var result = res.result || {};
+  if (!result.success) {
+    throw new Error(result.message || '批量调整成员状态失败');
+  }
+  return result.updatedCount || 0;
+}
+
 async function update(key, id, data) {
   await ensureReady();
 
@@ -283,7 +379,7 @@ async function update(key, id, data) {
   }
 
   var collection = getCollection(key);
-  var payload = clone(data);
+  var payload = clone(normalizeItemForStorage(key, data));
   var docId = payload._docId;
   delete payload._docId;
 
@@ -337,6 +433,11 @@ async function resetData() {
   await seedMockData();
 }
 
+async function batchUpdateMemberStatus(ids, status) {
+  await ensureReady();
+  return batchUpdateMemberStatusInCloud(ids, status);
+}
+
 function getUserInfo() {
   return wx.getStorageSync(KEYS.USER_INFO) || null;
 }
@@ -347,6 +448,30 @@ function setUserInfo(info) {
 
 function clearUserInfo() {
   wx.removeStorageSync(KEYS.USER_INFO);
+}
+
+async function getCurrentMember() {
+  await ensureReady();
+  var user = getUserInfo();
+  if (!user) {
+    return null;
+  }
+
+  if (user.memberId) {
+    return getById(KEYS.MEMBERS, user.memberId);
+  }
+
+  var members = await getList(KEYS.MEMBERS);
+  for (var i = 0; i < members.length; i++) {
+    if (user.studentId && members[i].studentId === user.studentId) {
+      return members[i];
+    }
+    if (members[i].name === user.name) {
+      return members[i];
+    }
+  }
+
+  return null;
 }
 
 function buildUserInfoFromMember(member) {
@@ -401,6 +526,7 @@ async function loginByCredentials(studentId, password) {
 module.exports = {
   KEYS: KEYS,
   POSITION_OPTIONS: POSITION_OPTIONS,
+  TRAINING_TYPE_OPTIONS: TRAINING_TYPE_OPTIONS,
   DEPARTMENT_OPTIONS: DEPARTMENT_OPTIONS,
   ADMIN_POSITIONS: ADMIN_POSITIONS,
   DEFAULT_MEMBER_PASSWORD: DEFAULT_MEMBER_PASSWORD,
@@ -411,14 +537,18 @@ module.exports = {
   add: add,
   update: update,
   remove: remove,
+  batchUpdateMemberStatus: batchUpdateMemberStatus,
   normalizePositions: normalizePositions,
   getPositionText: getPositionText,
   hasAdminPosition: hasAdminPosition,
+  isMemberActive: isMemberActive,
+  normalizeTrainingType: normalizeTrainingType,
   enrichMember: enrichMember,
   enrichMembers: enrichMembers,
   getUserInfo: getUserInfo,
   setUserInfo: setUserInfo,
   clearUserInfo: clearUserInfo,
+  getCurrentMember: getCurrentMember,
   buildUserInfoFromMember: buildUserInfoFromMember,
   isAdmin: isAdmin,
   loginByCredentials: loginByCredentials

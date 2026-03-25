@@ -1,5 +1,6 @@
 var storage = require('../../../utils/storage');
 var util = require('../../../utils/util');
+var makeupHelper = require('../../../utils/makeup');
 
 Page({
   data: {
@@ -43,7 +44,15 @@ Page({
     var index = e.currentTarget.dataset.index;
     var status = e.currentTarget.dataset.status;
     var detail = this.data.detail;
-    detail.attendance[index].status = status;
+    var currentRecord = Object.assign({}, detail.attendance[index], {
+      status: status
+    });
+
+    if (status !== '请假') {
+      currentRecord = makeupHelper.stripMakeupFields(currentRecord);
+    }
+
+    detail.attendance[index] = currentRecord;
 
     try {
       await storage.update(storage.KEYS.TRAININGS, this.data.id, { attendance: detail.attendance });

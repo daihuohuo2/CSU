@@ -2,6 +2,27 @@
   color: #333333;
 }
 
+.section-tip {
+  font-size: 22rpx;
+  color: #999999;
+  margin-bottom: 12rpx;
+}
+
+.section-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin-bottom: 8rpx;
+}
+
+.meta-tag {
+  font-size: 22rpx;
+  color: #576B95;
+  background: #F0F5FF;
+  padding: 6rpx 16rpx;
+  border-radius: 20rpx;
+}
+
 .member-check-item {
   display: flex;
   align-items: center;
@@ -32,6 +53,12 @@
   background: #F5F5F5;
   padding: 2rpx 10rpx;
   border-radius: 4rpx;
+}
+
+.member-empty {
+  font-size: 24rpx;
+  color: #999999;
+  padding: 12rpx 0;
 }
 
 .submit-area {

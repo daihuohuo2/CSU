@@ -39,19 +39,29 @@
 
   <view class="card">
     <view class="section-header">上岗成员</view>
-    <view class="section-tip">勾选后将自动从观礼成员中移出</view>
-    <view class="member-check-item" wx:for="{{members}}" wx:key="id">
-      <view class="check-info">
-        <text class="check-name">{{item.name}}</text>
-        <text class="check-pos">{{item.positionText}}</text>
-      </view>
-      <switch checked="{{item.checked}}" bindchange="toggleMember" data-index="{{index}}" color="#C41A1A" />
+    <view class="section-tip">{{isRaiseFlag ? '仅显示在队成员，勾选后将自动从观礼成员中移出' : '仅显示在队成员，降旗任务只记录上岗成员考勤'}}</view>
+    <view class="section-meta">
+      <text class="meta-tag">可选成员 {{members.length}} 人</text>
+      <text class="meta-tag">已上岗 {{queueMemberCount}} 人</text>
     </view>
+    <view wx:if="{{members.length}}">
+      <view class="member-check-item" wx:for="{{members}}" wx:key="id">
+        <view class="check-info">
+          <text class="check-name">{{item.name}}</text>
+          <text class="check-pos">{{item.positionText}}</text>
+        </view>
+        <switch checked="{{item.checked}}" bindchange="toggleMember" data-index="{{index}}" color="#C41A1A" />
+      </view>
+    </view>
+    <view wx:else class="member-empty">当前没有在队成员可供选择</view>
   </view>
 
-  <view class="card">
+  <view class="card" wx:if="{{isRaiseFlag}}">
     <view class="section-header">观礼成员</view>
-    <view class="section-tip">默认包含全部在队成员，勾选上岗成员后会自动更新</view>
+    <view class="section-tip">默认包含其余全部在队成员，会随上岗勾选结果自动更新</view>
+    <view class="section-meta">
+      <text class="meta-tag">观礼成员 {{audienceMembers.length}} 人</text>
+    </view>
     <view wx:if="{{audienceMembers.length}}">
       <view class="member-check-item" wx:for="{{audienceMembers}}" wx:key="id">
         <view class="check-info">

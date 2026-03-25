@@ -2,11 +2,13 @@
   <!-- 筛选栏 -->
   <view class="filter-bar">
     <view class="filter-tag {{currentType === '' ? 'active' : ''}}" bindtap="filterType" data-type="">全部</view>
-    <view class="filter-tag {{currentType === '日常训练' ? 'active' : ''}}" bindtap="filterType" data-type="日常训练">日常训练
-    </view>
-    <view class="filter-tag {{currentType === '专项训练' ? 'active' : ''}}" bindtap="filterType" data-type="专项训练">专项训练
-    </view>
-    <view class="filter-tag {{currentType === '彩排' ? 'active' : ''}}" bindtap="filterType" data-type="彩排">彩排</view>
+    <view
+      class="filter-tag {{currentType === item ? 'active' : ''}}"
+      wx:for="{{typeOptions}}"
+      wx:key="*this"
+      bindtap="filterType"
+      data-type="{{item}}"
+    >{{item}}</view>
   </view>
 
   <!-- 列表 -->

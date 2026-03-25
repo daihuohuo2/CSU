@@ -40,7 +40,7 @@ var members = [
 var trainings = [
   {
     id: 't001', title: '基础队列训练', date: '2024-03-15', time: '07:00-08:00',
-    location: '校本部田径场', type: '日常训练', createdBy: 'admin',
+    location: '校本部田径场', type: '例训', createdBy: 'admin',
     description: '练习立正、稍息、向左转、向右转等基础队列动作',
     attendance: [
       { memberId: 'm001', name: '刘伟', status: '已到' },
@@ -53,7 +53,7 @@ var trainings = [
   },
   {
     id: 't002', title: '正步训练', date: '2024-03-17', time: '07:00-08:30',
-    location: '校本部田径场', type: '专项训练', createdBy: 'admin',
+    location: '校本部田径场', type: '补训', createdBy: 'admin',
     description: '正步走、齐步换正步等动作的强化训练',
     attendance: [
       { memberId: 'm001', name: '刘伟', status: '已到' },
@@ -66,7 +66,7 @@ var trainings = [
   },
   {
     id: 't003', title: '升旗仪式彩排', date: '2024-03-20', time: '06:30-08:00',
-    location: '国旗广场', type: '彩排', createdBy: 'admin',
+    location: '国旗广场', type: '补训', createdBy: 'admin',
     description: '完整升旗流程彩排，包括出旗、升旗、收旗',
     attendance: [
       { memberId: 'm001', name: '刘伟', status: '已到' },
