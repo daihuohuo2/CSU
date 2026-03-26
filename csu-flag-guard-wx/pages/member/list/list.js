@@ -1,79 +1,8 @@
 var storage = require('../../../utils/storage');
 var util = require('../../../utils/util');
 
-function getStatusRank(status) {
-  if (status === '在队') return 0;
-  if (status === '离队') return 1;
-  return 2;
-}
-
-var POSITION_RANK = {
-  '班长': 0,
-  '超级牛逼雷霆之人': 0,
-  '副班长': 1,
-  '办公室主任': 2,
-  '特勤部部长': 3,
-  '宣传部部长': 4,
-  '财务部部长': 5
-};
-
-function parseGradeValue(grade) {
-  var text = String(grade || '').trim();
-  var match = text.match(/\d+/);
-  if (!match) {
-    return Number.MAX_SAFE_INTEGER;
-  }
-
-  var value = parseInt(match[0], 10);
-  if (value < 100) {
-    value += 2000;
-  }
-  return value;
-}
-
-function getPositionRank(position) {
-  var positions = storage.normalizePositions(position);
-  var bestRank = Number.MAX_SAFE_INTEGER;
-
-  positions.forEach(function(item) {
-    if (Object.prototype.hasOwnProperty.call(POSITION_RANK, item)) {
-      bestRank = Math.min(bestRank, POSITION_RANK[item]);
-    }
-  });
-
-  return bestRank;
-}
-
-function compareMembers(a, b, groupByStatus) {
-  if (groupByStatus) {
-    var statusDiff = getStatusRank(a.status) - getStatusRank(b.status);
-    if (statusDiff !== 0) {
-      return statusDiff;
-    }
-  }
-
-  var gradeDiff = parseGradeValue(a.grade) - parseGradeValue(b.grade);
-  if (gradeDiff !== 0) {
-    return gradeDiff;
-  }
-
-  var positionDiff = getPositionRank(a.position) - getPositionRank(b.position);
-  if (positionDiff !== 0) {
-    return positionDiff;
-  }
-
-  var joinDateDiff = String(a.joinDate || '').localeCompare(String(b.joinDate || ''));
-  if (joinDateDiff !== 0) {
-    return joinDateDiff;
-  }
-
-  var studentIdDiff = String(a.studentId || '').localeCompare(String(b.studentId || ''));
-  if (studentIdDiff !== 0) {
-    return studentIdDiff;
-  }
-
-  return String(a.name || '').localeCompare(String(b.name || ''));
-}
+var SEARCH_DEBOUNCE_MS = 250;
+var PAGE_SIZE = 30;
 
 Page({
   data: {
@@ -85,43 +14,122 @@ Page({
     isBatchMode: false,
     selectedIds: [],
     selectedMap: {},
-    isBatchSubmitting: false
+    isBatchSubmitting: false,
+    isLoading: false,
+    isLoadingMore: false,
+    page: 0,
+    hasMore: false,
+    total: 0
   },
 
   onShow: async function() {
+    this.pendingReload = false;
     this.setData({ isAdmin: storage.isAdmin() });
-    await this.loadData();
+    await this.reloadList();
+  },
+
+  onUnload: function() {
+    if (this.searchTimer) {
+      clearTimeout(this.searchTimer);
+      this.searchTimer = null;
+    }
   },
 
   onPullDownRefresh: async function() {
     this.setData({ isAdmin: storage.isAdmin() });
 
     try {
-      await this.loadData();
+      await this.reloadList();
     } finally {
       wx.stopPullDownRefresh();
     }
   },
 
-  loadData: async function() {
+  onReachBottom: async function() {
+    if (!this.data.hasMore || this.data.isLoading || this.data.isLoadingMore) {
+      return;
+    }
+
+    await this.loadData({ reset: false });
+  },
+
+  reloadList: async function() {
+    await this.loadData({ reset: true });
+  },
+
+  loadData: async function(options) {
+    var reset = !options || options.reset !== false;
+
+    if (this.data.isLoading || this.data.isLoadingMore) {
+      if (reset) {
+        this.pendingReload = true;
+      }
+      return;
+    }
+
+    this.setData(reset ? {
+      isLoading: true
+    } : {
+      isLoadingMore: true
+    });
+
+    var nextPage = reset ? 1 : this.data.page + 1;
+
     try {
-      var list = storage.enrichMembers(await storage.getList(storage.KEYS.MEMBERS));
-      this.setData({ list: list });
-      this.applyFilter();
+      var result = await storage.queryMembersPage({
+        page: nextPage,
+        pageSize: PAGE_SIZE,
+        status: this.data.currentStatus,
+        keyword: this.data.keyword
+      });
+
+      var mergedList = reset
+        ? (result.list || [])
+        : this.data.list.concat(result.list || []);
+
+      this.setData({
+        list: mergedList,
+        filteredList: mergedList,
+        page: result.page || nextPage,
+        hasMore: !!result.hasMore,
+        total: Number(result.total || 0),
+        isLoading: false,
+        isLoadingMore: false,
+        selectedIds: reset ? [] : this.data.selectedIds,
+        selectedMap: reset ? {} : this.data.selectedMap
+      });
     } catch (err) {
       console.error(err);
-      util.showToast('加载成员失败');
+      this.setData({
+        isLoading: false,
+        isLoadingMore: false
+      });
+      util.showToast(err.message || '加载成员失败');
+    }
+
+    if (this.pendingReload) {
+      this.pendingReload = false;
+      setTimeout(function() {
+        this.reloadList();
+      }.bind(this), 0);
     }
   },
 
   onSearch: function(e) {
     this.setData({ keyword: e.detail.value });
-    this.applyFilter();
+
+    if (this.searchTimer) {
+      clearTimeout(this.searchTimer);
+    }
+
+    this.searchTimer = setTimeout(function() {
+      this.reloadList();
+    }.bind(this), SEARCH_DEBOUNCE_MS);
   },
 
   filterStatus: function(e) {
     this.setData({ currentStatus: e.currentTarget.dataset.status });
-    this.applyFilter();
+    this.reloadList();
   },
 
   enterBatchMode: function() {
@@ -209,7 +217,7 @@ Page({
           await storage.batchUpdateMemberStatus(selectedIds, status);
           util.showToast('批量调整成功', 'success');
           that.exitBatchMode();
-          await that.loadData();
+          await that.reloadList();
         } catch (err) {
           console.error(err);
           util.showToast(err.message || '批量调整失败');
@@ -226,24 +234,6 @@ Page({
 
   batchSetInactive: function() {
     this.confirmBatchUpdateStatus('离队');
-  },
-
-  applyFilter: function() {
-    var keyword = this.data.keyword.toLowerCase();
-    var status = this.data.currentStatus;
-    var filtered = this.data.list.filter(function(item) {
-      var name = String(item.name || '').toLowerCase();
-      var studentId = String(item.studentId || '');
-      var matchKeyword = !keyword || name.indexOf(keyword) > -1 || studentId.indexOf(keyword) > -1;
-      var matchStatus = !status || item.status === status;
-      return matchKeyword && matchStatus;
-    });
-
-    filtered = filtered.slice().sort(function(a, b) {
-      return compareMembers(a, b, !status);
-    });
-
-    this.setData({ filteredList: filtered });
   },
 
   goDetail: function(e) {

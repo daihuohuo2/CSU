@@ -3,6 +3,7 @@ var util = require('../../../../utils/util');
 var meetingRecordHelper = require('../../../../utils/meeting-record');
 
 var DEPARTMENT_KEY = 'office';
+var PAGE_SIZE = 20;
 
 function choosePdfFile() {
   return new Promise(function(resolve, reject) {
@@ -16,12 +17,26 @@ function choosePdfFile() {
   });
 }
 
+function formatRecords(records) {
+  return (records || []).map(function(item) {
+    var date = new Date(Number(item.createdAt || 0));
+    return Object.assign({}, item, {
+      displayCreatedAt: isNaN(date.getTime())
+        ? '时间未知'
+        : util.formatDate(date) + ' ' + util.formatTime(date)
+    });
+  });
+}
+
 Page({
   data: {
     isAdmin: false,
     isLoading: true,
     isSubmitting: false,
+    isLoadingMore: false,
     records: [],
+    page: 1,
+    hasMore: false,
     showUploadPanel: false,
     draftName: '',
     selectedFile: null
@@ -41,36 +56,68 @@ Page({
     }
 
     this.setData({ isAdmin: true });
-    await this.loadData();
+    await this.loadData(true);
   },
 
   onPullDownRefresh: async function() {
     try {
-      await this.loadData();
+      await this.loadData(true);
     } finally {
       wx.stopPullDownRefresh();
     }
   },
 
-  loadData: async function() {
-    this.setData({ isLoading: true });
+  onReachBottom: async function() {
+    if (this.data.hasMore && !this.data.isLoadingMore && !this.data.isLoading) {
+      await this.loadData(false);
+    }
+  },
+
+  loadData: async function(reset) {
+    var isReset = reset !== false;
+    var targetPage = isReset ? 1 : (this.data.page + 1);
+
+    this.setData(isReset ? {
+      isLoading: true
+    } : {
+      isLoadingMore: true
+    });
 
     try {
-      var records = (await meetingRecordHelper.getListByDepartment(DEPARTMENT_KEY)).map(function(item) {
-        var date = new Date(Number(item.createdAt || 0));
-        return Object.assign({}, item, {
-          displayCreatedAt: isNaN(date.getTime())
-            ? '时间未知'
-            : util.formatDate(date) + ' ' + util.formatTime(date)
+      var result = null;
+      try {
+        result = await storage.queryMeetingRecordsPage({
+          departmentKey: DEPARTMENT_KEY,
+          page: targetPage,
+          pageSize: PAGE_SIZE
         });
-      });
+      } catch (queryErr) {
+        console.warn('listQuery meetingRecords unavailable, fallback to local query', queryErr);
+        var allRecords = await meetingRecordHelper.getListByDepartment(DEPARTMENT_KEY);
+        var start = (targetPage - 1) * PAGE_SIZE;
+        var list = allRecords.slice(start, start + PAGE_SIZE);
+        result = {
+          list: list,
+          page: targetPage,
+          total: allRecords.length,
+          hasMore: start + PAGE_SIZE < allRecords.length
+        };
+      }
+
+      var nextRecords = formatRecords(result.list || []);
       this.setData({
-        records: records,
-        isLoading: false
+        records: isReset ? nextRecords : this.data.records.concat(nextRecords),
+        page: Number(result.page || targetPage),
+        hasMore: !!result.hasMore,
+        isLoading: false,
+        isLoadingMore: false
       });
     } catch (err) {
       console.error(err);
-      this.setData({ isLoading: false });
+      this.setData({
+        isLoading: false,
+        isLoadingMore: false
+      });
       util.showToast('加载会议记录失败');
     }
   },
@@ -178,7 +225,7 @@ Page({
         selectedFile: null
       });
 
-      await this.loadData();
+      await this.loadData(true);
       util.showToast('会议记录上传成功', 'success');
     } catch (err) {
       console.error(err);

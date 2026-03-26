@@ -1,52 +1,7 @@
 var storage = require('../../../utils/storage');
 var util = require('../../../utils/util');
 
-function parseDateTimeValue(date, time) {
-  var dateText = date ? String(date).trim() : '';
-  if (!dateText) {
-    return 0;
-  }
-
-  var timeText = time ? String(time).trim() : '00:00';
-  var normalized = (dateText + ' ' + timeText).replace(/\./g, '-').replace('T', ' ');
-  var timestamp = new Date(normalized).getTime();
-
-  if (!isNaN(timestamp)) {
-    return timestamp;
-  }
-
-  var dateMatch = dateText.match(/(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
-  if (!dateMatch) {
-    return 0;
-  }
-
-  var timeMatch = timeText.match(/(\d{1,2}):(\d{1,2})/);
-  var hour = timeMatch ? Number(timeMatch[1]) : 0;
-  var minute = timeMatch ? Number(timeMatch[2]) : 0;
-
-  return new Date(
-    Number(dateMatch[1]),
-    Number(dateMatch[2]) - 1,
-    Number(dateMatch[3]),
-    hour,
-    minute
-  ).getTime();
-}
-
-function sortFlagsBySchedule(list) {
-  return (list || []).slice().sort(function(a, b) {
-    var aTime = parseDateTimeValue(a.date, a.time);
-    var bTime = parseDateTimeValue(b.date, b.time);
-
-    if (aTime !== bTime) {
-      return bTime - aTime;
-    }
-
-    var aUpdatedAt = Number(a.updatedAt || a.createdAt || 0);
-    var bUpdatedAt = Number(b.updatedAt || b.createdAt || 0);
-    return bUpdatedAt - aUpdatedAt;
-  });
-}
+var PAGE_SIZE = 20;
 
 Page({
   data: {
@@ -55,10 +10,15 @@ Page({
     currentType: '',
     isAdmin: false,
     isMineMode: false,
-    currentMemberId: ''
+    currentMemberId: '',
+    isLoading: false,
+    isLoadingMore: false,
+    page: 0,
+    hasMore: false,
+    total: 0
   },
 
-  onLoad: async function(options) {
+  onLoad: function(options) {
     var isMineMode = !!(options && options.mode === 'mine');
     this.setData({ isMineMode: isMineMode });
 
@@ -70,61 +30,101 @@ Page({
   },
 
   onShow: async function() {
+    this.pendingReload = false;
+
     try {
       var currentMember = await storage.getCurrentMember();
       this.setData({
         isAdmin: storage.isAdmin(),
         currentMemberId: currentMember ? currentMember.id : ''
       });
-      await this.loadData();
+      await this.reloadList();
     } catch (err) {
       console.error(err);
       util.showToast('加载任务失败');
     }
   },
 
-  loadData: async function() {
+  onPullDownRefresh: async function() {
     try {
-      var list = await storage.getList(storage.KEYS.FLAG_CEREMONIES);
-      if (this.data.isMineMode) {
-        var currentMemberId = this.data.currentMemberId;
-        if (!currentMemberId) {
-          list = [];
-        } else {
-          list = list.filter(function(item) {
-            var attendance = item.attendance || [];
-            var queueMemberIds = item.queueMemberIds || [];
-            var audienceMemberIds = item.audienceMemberIds || [];
+      await this.reloadList();
+    } finally {
+      wx.stopPullDownRefresh();
+    }
+  },
 
-            return attendance.some(function(record) {
-              return record.memberId === currentMemberId;
-            }) || queueMemberIds.indexOf(currentMemberId) !== -1 || audienceMemberIds.indexOf(currentMemberId) !== -1;
-          });
-        }
+  onReachBottom: async function() {
+    if (!this.data.hasMore || this.data.isLoading || this.data.isLoadingMore) {
+      return;
+    }
+
+    await this.loadData({ reset: false });
+  },
+
+  reloadList: async function() {
+    await this.loadData({ reset: true });
+  },
+
+  loadData: async function(options) {
+    var reset = !options || options.reset !== false;
+
+    if (this.data.isLoading || this.data.isLoadingMore) {
+      if (reset) {
+        this.pendingReload = true;
       }
-      list.forEach(function(item) {
-        item.stats = util.calcAttendanceStats(item.attendance || []);
+      return;
+    }
+
+    this.setData(reset ? {
+      isLoading: true
+    } : {
+      isLoadingMore: true
+    });
+
+    var nextPage = reset ? 1 : this.data.page + 1;
+
+    try {
+      var result = await storage.queryFlagsPage({
+        page: nextPage,
+        pageSize: PAGE_SIZE,
+        type: this.data.currentType,
+        isMineMode: this.data.isMineMode,
+        memberId: this.data.currentMemberId
       });
-      this.setData({ list: list });
-      this.applyFilter();
+
+      var mergedList = reset
+        ? (result.list || [])
+        : this.data.list.concat(result.list || []);
+
+      this.setData({
+        list: mergedList,
+        filteredList: mergedList,
+        page: result.page || nextPage,
+        hasMore: !!result.hasMore,
+        total: Number(result.total || 0),
+        isLoading: false,
+        isLoadingMore: false
+      });
     } catch (err) {
       console.error(err);
-      util.showToast('加载任务失败');
+      this.setData({
+        isLoading: false,
+        isLoadingMore: false
+      });
+      util.showToast(err.message || '加载任务失败');
+    }
+
+    if (this.pendingReload) {
+      this.pendingReload = false;
+      setTimeout(function() {
+        this.reloadList();
+      }.bind(this), 0);
     }
   },
 
   filterType: function(e) {
     this.setData({ currentType: e.currentTarget.dataset.type });
-    this.applyFilter();
-  },
-
-  applyFilter: function() {
-    var type = this.data.currentType;
-    var filtered = this.data.list;
-    if (type) {
-      filtered = filtered.filter(function(item) { return item.type === type; });
-    }
-    this.setData({ filteredList: sortFlagsBySchedule(filtered) });
+    this.reloadList();
   },
 
   goDetail: function(e) {

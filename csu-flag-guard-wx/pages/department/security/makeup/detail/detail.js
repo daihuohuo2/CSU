@@ -51,20 +51,35 @@ Page({
         return;
       }
 
-      var trainings = await storage.getList(storage.KEYS.TRAININGS);
-      var items = makeupHelper.buildLeaveMakeupItems(trainings, memberInfo.id);
-      var summary = {
-        totalCount: items.length,
-        pendingCount: makeupHelper.getPendingMakeupCount(items),
-        upcomingCount: makeupHelper.getUpcomingMakeupCount(items),
-        completedCount: 0
-      };
-      summary.completedCount = summary.totalCount - summary.pendingCount - summary.upcomingCount;
+      var result = null;
+      try {
+        result = await storage.getMemberMakeupRecords(memberInfo.id);
+      } catch (queryErr) {
+        console.warn('listQuery memberMakeupRecords unavailable in admin detail, fallback to local query', queryErr);
+        var trainings = await storage.getList(storage.KEYS.TRAININGS);
+        var items = makeupHelper.buildLeaveMakeupItems(trainings, memberInfo.id);
+        var pendingCount = makeupHelper.getPendingMakeupCount(items);
+        var upcomingCount = makeupHelper.getUpcomingMakeupCount(items);
+        result = {
+          items: items,
+          summary: {
+            totalCount: items.length,
+            pendingCount: pendingCount,
+            upcomingCount: upcomingCount,
+            completedCount: items.length - pendingCount - upcomingCount
+          }
+        };
+      }
 
       this.setData({
         memberInfo: memberInfo,
-        items: items,
-        summary: summary,
+        items: result.items || [],
+        summary: Object.assign({
+          totalCount: 0,
+          pendingCount: 0,
+          upcomingCount: 0,
+          completedCount: 0
+        }, result.summary || {}),
         isLoading: false
       });
     } catch (err) {

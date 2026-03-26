@@ -38,14 +38,29 @@ Page({
         return;
       }
 
-      var trainings = await storage.getList(storage.KEYS.TRAININGS);
-      var items = makeupHelper.buildLeaveMakeupItems(trainings, memberInfo.id);
+      var result = null;
+      try {
+        result = await storage.getMemberMakeupRecords(memberInfo.id);
+      } catch (queryErr) {
+        console.warn('listQuery memberMakeupRecords unavailable, fallback to local query', queryErr);
+        var trainings = await storage.getList(storage.KEYS.TRAININGS);
+        var fallbackItems = makeupHelper.buildLeaveMakeupItems(trainings, memberInfo.id);
+        result = {
+          items: fallbackItems,
+          summary: {
+            pendingCount: makeupHelper.getPendingMakeupCount(fallbackItems),
+            upcomingCount: makeupHelper.getUpcomingMakeupCount(fallbackItems)
+          }
+        };
+      }
+      var items = result.items || [];
+      var summary = result.summary || {};
 
       this.setData({
         memberInfo: memberInfo,
         items: items,
-        pendingCount: makeupHelper.getPendingMakeupCount(items),
-        upcomingCount: makeupHelper.getUpcomingMakeupCount(items),
+        pendingCount: Number(summary.pendingCount || 0),
+        upcomingCount: Number(summary.upcomingCount || 0),
         isLoading: false
       });
     } catch (err) {

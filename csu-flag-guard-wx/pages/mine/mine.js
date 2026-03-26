@@ -1,6 +1,5 @@
 var storage = require('../../utils/storage');
 var util = require('../../utils/util');
-var makeupHelper = require('../../utils/makeup');
 
 Page({
   data: {
@@ -29,10 +28,9 @@ Page({
       var makeupBadgeType = 'normal';
 
       if (memberInfo) {
-        var trainings = await storage.getList(storage.KEYS.TRAININGS);
-        var makeupItems = makeupHelper.buildLeaveMakeupItems(trainings, memberInfo.id);
-        makeupPendingCount = makeupHelper.getPendingMakeupCount(makeupItems);
-        makeupUpcomingCount = makeupHelper.getUpcomingMakeupCount(makeupItems);
+        var makeupSummary = await storage.getMemberMakeupSummary(memberInfo.id);
+        makeupPendingCount = Number(makeupSummary.pendingCount || 0);
+        makeupUpcomingCount = Number(makeupSummary.upcomingCount || 0);
 
         if (makeupPendingCount > 0) {
           makeupBadgeText = makeupPendingCount + ' 条待补训';

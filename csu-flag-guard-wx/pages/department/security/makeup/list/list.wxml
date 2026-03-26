@@ -1,7 +1,10 @@
 <view class="container" wx:if="{{isAdmin}}">
   <view class="card intro-card">
-    <view class="section-header">补训记录总览</view>
-    <view class="intro-text">按成员展示待补训、待参加与补训总次数，默认按补训总次数从高到低排列。</view>
+    <view class="intro-head">
+      <view class="section-header">补训记录总览</view>
+      <button class="btn-secondary export-btn" bindtap="handleExport" loading="{{isExporting}}" disabled="{{isExporting}}">导出Excel</button>
+    </view>
+    <view class="intro-text">按成员展示待补训、待参加与补训总次数，默认按待补训优先级排序。</view>
   </view>
 
   <view class="card table-card" wx:if="{{summaries.length}}">
@@ -29,7 +32,6 @@
   </view>
 
   <view class="empty-state" wx:elif="{{!isLoading}}">
-    <view class="empty-icon">📋</view>
     <view class="empty-text">当前没有补训统计数据</view>
   </view>
 </view>

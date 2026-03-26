@@ -65,6 +65,7 @@
   - `memberImport`
   - `memberManage`
   - `chronicleImport`
+  - `listQuery`
 
 ---
 

@@ -60,13 +60,15 @@ Page({
       showRecordMakeupPanel: false,
       recordMakeupMembers: [],
       recordMakeupItems: [],
+      recordMakeupTrainings: [],
+      recordMakeupToday: '',
       selectedRecordMemberId: '',
       selectedRecordMemberName: '',
       selectedRecordMemberPendingCount: 0
     });
   },
 
-  selectRecordMakeupMemberById: function(memberId) {
+  selectRecordMakeupMemberById: async function(memberId) {
     var selectedMember = null;
     for (var i = 0; i < this.data.recordMakeupMembers.length; i++) {
       if (this.data.recordMakeupMembers[i].id === memberId) {
@@ -79,15 +81,28 @@ Page({
       return;
     }
 
+    var recordMakeupItems = [];
+    try {
+      var result = await storage.getMemberMakeupRecords(selectedMember.id, {
+        pendingOnly: true
+      });
+      recordMakeupItems = (result.items || []).filter(function(item) {
+        return item.isPending && !item.makeupTrainingId;
+      });
+    } catch (queryErr) {
+      console.warn('listQuery memberMakeupRecords unavailable for record makeup panel, fallback to local query', queryErr);
+      recordMakeupItems = this.getPendingLeaveItemsForMember(
+        this.data.recordMakeupTrainings || [],
+        selectedMember.id,
+        this.data.recordMakeupToday || makeupHelper.getToday()
+      );
+    }
+
     this.setData({
       selectedRecordMemberId: selectedMember.id,
       selectedRecordMemberName: selectedMember.name,
       selectedRecordMemberPendingCount: selectedMember.makeupPendingCount || 0,
-      recordMakeupItems: this.getPendingLeaveItemsForMember(
-        this.data.recordMakeupTrainings || [],
-        selectedMember.id,
-        this.data.recordMakeupToday || makeupHelper.getToday()
-      )
+      recordMakeupItems: recordMakeupItems
     });
   },
 
@@ -293,12 +308,23 @@ Page({
         return;
       }
 
-      var trainings = await storage.getList(storage.KEYS.TRAININGS);
-      var pendingItems = makeupHelper.buildLeaveMakeupItems(trainings, memberInfo.id, {
-        today: today
-      }).filter(function(item) {
-        return item.isPending;
-      });
+      var pendingResult = null;
+      try {
+        pendingResult = await storage.getMemberMakeupRecords(memberInfo.id, {
+          pendingOnly: true
+        });
+      } catch (queryErr) {
+        console.warn('listQuery memberMakeupRecords unavailable in detail page, fallback to local query', queryErr);
+        var trainings = await storage.getList(storage.KEYS.TRAININGS);
+        pendingResult = {
+          items: makeupHelper.buildLeaveMakeupItems(trainings, memberInfo.id, {
+            today: today
+          }).filter(function(item) {
+            return item.isPending;
+          })
+        };
+      }
+      var pendingItems = pendingResult.items || [];
 
       if (!pendingItems.length) {
         util.showToast('\u65e0\u9700\u8865\u8bad');
@@ -333,13 +359,26 @@ Page({
 
     try {
       var today = makeupHelper.getToday();
-      var members = storage.enrichMembers(await storage.getList(storage.KEYS.MEMBERS));
-      var trainings = await storage.getList(storage.KEYS.TRAININGS);
-      var pendingMembers = makeupHelper.buildMemberMakeupSummaries(members, trainings, {
-        today: today
-      }).filter(function(member) {
-        return member.makeupPendingCount > 0;
-      });
+      var pendingMembers = [];
+      var fallbackTrainings = [];
+      try {
+        var result = await storage.getActiveMemberMakeupSummaries({
+          pendingOnly: true
+        });
+        pendingMembers = result.summaries || [];
+        if (result.today) {
+          today = result.today;
+        }
+      } catch (queryErr) {
+        console.warn('listQuery activeMemberMakeupSummaries unavailable, fallback to local query', queryErr);
+        var members = storage.enrichMembers(await storage.getList(storage.KEYS.MEMBERS));
+        fallbackTrainings = await storage.getList(storage.KEYS.TRAININGS);
+        pendingMembers = makeupHelper.buildMemberMakeupSummaries(members, fallbackTrainings, {
+          today: today
+        }).filter(function(member) {
+          return member.makeupPendingCount > 0;
+        });
+      }
 
       if (!pendingMembers.length) {
         util.showToast('\u5f53\u524d\u6ca1\u6709\u5f85\u8865\u8bad\u6210\u5458');
@@ -349,23 +388,23 @@ Page({
       this.setData({
         showRecordMakeupPanel: true,
         recordMakeupMembers: pendingMembers,
-        recordMakeupTrainings: trainings,
+        recordMakeupTrainings: fallbackTrainings,
         recordMakeupToday: today
       });
-      this.selectRecordMakeupMemberById(pendingMembers[0].id);
+      await this.selectRecordMakeupMemberById(pendingMembers[0].id);
     } catch (err) {
       console.error(err);
       util.showToast('\u52a0\u8f7d\u8865\u767b\u4fe1\u606f\u5931\u8d25');
     }
   },
 
-  selectRecordMakeupMember: function(e) {
+  selectRecordMakeupMember: async function(e) {
     var memberId = e.currentTarget.dataset.memberId;
     if (!memberId || memberId === this.data.selectedRecordMemberId) {
       return;
     }
 
-    this.selectRecordMakeupMemberById(memberId);
+    await this.selectRecordMakeupMemberById(memberId);
   },
 
   submitRecordMakeup: async function(e) {

@@ -1,0 +1,10 @@
+{
+  "name": "makeup-export",
+  "version": "1.0.0",
+  "description": "Export security department makeup records to excel",
+  "main": "index.js",
+  "dependencies": {
+    "exceljs": "^4.4.0",
+    "wx-server-sdk": "latest"
+  }
+}

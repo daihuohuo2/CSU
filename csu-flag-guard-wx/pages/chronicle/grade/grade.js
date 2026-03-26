@@ -21,7 +21,6 @@ Page({
   data: {
     gradeYear: '',
     gradeLabel: '',
-    allEntries: [],
     pageEntries: [],
     currentPage: 1,
     totalPages: 1,
@@ -58,35 +57,28 @@ Page({
       return;
     }
 
-    await this.loadData();
+    await this.loadData(this.data.currentPage);
   },
 
   onPullDownRefresh: async function() {
-    await this.loadData();
+    await this.loadData(this.data.currentPage);
     wx.stopPullDownRefresh();
   },
 
-  buildDisplayEntries: async function(entries) {
+  buildDisplayEntries: async function(entries, page) {
     var resolvedEntries = await chronicleHelper.resolveChronicleEntries(entries || [], {
       resolveImages: false
     });
+    var startIndex = (Math.max(Number(page) || 1, 1) - 1) * GRID_PAGE_SIZE;
+
     return resolvedEntries.map(function(item, index) {
       return Object.assign({}, item, {
-        displayIndex: index + 1
+        displayIndex: startIndex + index + 1
       });
     });
   },
 
-  applyPagination: function(page) {
-    var paged = chronicleHelper.buildPagedEntries(this.data.allEntries, page, GRID_PAGE_SIZE);
-    this.setData({
-      currentPage: paged.currentPage,
-      totalPages: paged.totalPages,
-      pageEntries: paged.pageEntries
-    });
-  },
-
-  loadData: async function() {
+  loadData: async function(page) {
     if (!this.data.gradeYear) {
       util.showToast('缺少年级参数');
       return;
@@ -95,25 +87,47 @@ Page({
     this.setData({ isLoading: true });
 
     try {
-      var entries = await chronicleHelper.fetchChroniclesByGrade(this.data.gradeYear);
-      var displayEntries = await this.buildDisplayEntries(entries);
+      var targetPage = Math.max(Number(page || this.data.currentPage || 1), 1);
+      var result = null;
+
+      try {
+        result = await storage.queryChroniclesPage({
+          gradeYear: this.data.gradeYear,
+          page: targetPage,
+          pageSize: GRID_PAGE_SIZE
+        });
+      } catch (queryErr) {
+        console.warn('listQuery chroniclesByGrade unavailable, fallback to local query', queryErr);
+        var entries = await chronicleHelper.fetchChroniclesByGrade(this.data.gradeYear);
+        var paged = chronicleHelper.buildPagedEntries(entries, targetPage, GRID_PAGE_SIZE);
+        result = {
+          list: paged.pageEntries,
+          page: paged.currentPage,
+          total: entries.length
+        };
+      }
+
+      var safePage = Number(result.page || targetPage);
+      var totalCount = Number(result.total || 0);
+      var displayEntries = await this.buildDisplayEntries(result.list || [], safePage);
+
       this.setData({
-        allEntries: displayEntries,
-        totalCount: displayEntries.length,
+        pageEntries: displayEntries,
+        currentPage: safePage,
+        totalPages: Math.max(Math.ceil(totalCount / GRID_PAGE_SIZE), 1),
+        totalCount: totalCount,
         isLoading: false
       });
-      this.applyPagination(this.data.currentPage);
     } catch (err) {
       console.error(err);
       this.setData({
-        allEntries: [],
         pageEntries: [],
         totalCount: 0,
         currentPage: 1,
         totalPages: 1,
         isLoading: false
       });
-      util.showToast('加载人物志失败');
+      util.showToast(err.message || '加载人物志失败');
     }
   },
 
@@ -121,14 +135,14 @@ Page({
     if (this.data.currentPage <= 1) {
       return;
     }
-    this.applyPagination(this.data.currentPage - 1);
+    this.loadData(this.data.currentPage - 1);
   },
 
   nextPage: function() {
     if (this.data.currentPage >= this.data.totalPages) {
       return;
     }
-    this.applyPagination(this.data.currentPage + 1);
+    this.loadData(this.data.currentPage + 1);
   },
 
   goAdd: function() {
@@ -246,7 +260,7 @@ Page({
         progressText: ''
       });
 
-      await this.loadData();
+      await this.loadData(1);
 
       wx.showModal({
         title: '导入完成',

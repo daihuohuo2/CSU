@@ -13,7 +13,7 @@ Page({
       commonMistakes: '',
       summary: ''
     },
-    categoryOptions: ['基础动作', '行进动作', '仪式流程', '其他']
+    categoryOptions: storage.TUTORIAL_CATEGORY_OPTIONS || []
   },
 
   onLoad: async function(options) {

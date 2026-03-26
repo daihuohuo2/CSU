@@ -19,6 +19,7 @@
 - `memberImport`
 - `memberManage`
 - `chronicleImport`
+- `listQuery`
 
 应用启动时会自动检查这些集合：
 
@@ -41,7 +42,8 @@
 5. 在开发者工具中上传并部署 `cloudfunctions/memberImport`
 6. 在开发者工具中上传并部署 `cloudfunctions/memberManage`
 7. 在开发者工具中上传并部署 `cloudfunctions/chronicleImport`
-8. 为云函数安装依赖后再部署一次，依赖包括：
+8. 在开发者工具中上传并部署 `cloudfunctions/listQuery`
+9. 为云函数安装依赖后再部署一次，依赖包括：
    - `wx-server-sdk`
    - `xlsx`（`memberImport` 与 `chronicleImport` 需要）
 

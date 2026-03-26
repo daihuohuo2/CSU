@@ -4,6 +4,22 @@
   line-height: 1.8;
 }
 
+.intro-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20rpx;
+  margin-bottom: 12rpx;
+}
+
+.export-btn {
+  margin: 0;
+  padding: 12rpx 24rpx;
+  font-size: 24rpx;
+  line-height: 1.2;
+  flex-shrink: 0;
+}
+
 .table-card {
   padding: 0 24rpx;
 }

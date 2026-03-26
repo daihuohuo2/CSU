@@ -2,15 +2,6 @@ var storage = require('../../../../utils/storage');
 var util = require('../../../../utils/util');
 var makeupHelper = require('../../../../utils/makeup');
 
-var LEAVE_STATUS = '\u8bf7\u5047';
-
-async function updateTrainingAttendance(training, attendance) {
-  await storage.update(storage.KEYS.TRAININGS, training.id, {
-    _docId: training._docId,
-    attendance: attendance
-  });
-}
-
 Page({
   data: {
     leaveTrainingId: '',
@@ -52,19 +43,40 @@ Page({
         return;
       }
 
-      var trainings = await storage.getList(storage.KEYS.TRAININGS);
-      var leaveItems = makeupHelper.buildLeaveMakeupItems(trainings, memberInfo.id);
-      var leaveItem = null;
+      var selectionData = null;
+      try {
+        selectionData = await storage.getMakeupSelectionData(
+          memberInfo.id,
+          this.data.leaveTrainingId,
+          this.data.attendanceIndex
+        );
+      } catch (queryErr) {
+        console.warn('listQuery makeupSelectionData unavailable, fallback to local query', queryErr);
+        var trainings = await storage.getList(storage.KEYS.TRAININGS);
+        var leaveItems = makeupHelper.buildLeaveMakeupItems(trainings, memberInfo.id);
+        var leaveItem = null;
 
-      for (var i = 0; i < leaveItems.length; i++) {
-        if (
-          leaveItems[i].leaveTrainingId === this.data.leaveTrainingId &&
-          leaveItems[i].attendanceIndex === this.data.attendanceIndex
-        ) {
-          leaveItem = leaveItems[i];
-          break;
+        for (var i = 0; i < leaveItems.length; i++) {
+          if (
+            leaveItems[i].leaveTrainingId === this.data.leaveTrainingId &&
+            leaveItems[i].attendanceIndex === this.data.attendanceIndex
+          ) {
+            leaveItem = leaveItems[i];
+            break;
+          }
         }
+
+        selectionData = {
+          leaveItem: leaveItem,
+          availableTrainings: leaveItem ? makeupHelper.getAvailableMakeupTrainings(trainings, {
+            today: makeupHelper.getToday(),
+            excludeTrainingId: leaveItem.leaveTrainingId
+          }) : [],
+          currentSelectionId: leaveItem && leaveItem.makeupTrainingId ? leaveItem.makeupTrainingId : '',
+          today: makeupHelper.getToday()
+        };
       }
+      var leaveItem = selectionData.leaveItem;
 
       if (!leaveItem) {
         this.setData({ isLoading: false });
@@ -75,18 +87,12 @@ Page({
         return;
       }
 
-      var today = makeupHelper.getToday();
-      var availableTrainings = makeupHelper.getAvailableMakeupTrainings(trainings, {
-        today: today,
-        excludeTrainingId: leaveItem.leaveTrainingId
-      });
-
       this.setData({
         memberInfo: memberInfo,
         leaveItem: leaveItem,
-        availableTrainings: availableTrainings,
-        currentSelectionId: leaveItem.makeupTrainingId || '',
-        today: today,
+        availableTrainings: selectionData.availableTrainings || [],
+        currentSelectionId: selectionData.currentSelectionId || leaveItem.makeupTrainingId || '',
+        today: selectionData.today || '',
         isLoading: false
       });
     } catch (err) {
@@ -123,40 +129,15 @@ Page({
     this.setData({ isSubmitting: true });
 
     try {
-      var trainings = await storage.getList(storage.KEYS.TRAININGS);
-      var trainingDetail = makeupHelper.findTrainingById(trainings, this.data.leaveTrainingId);
-      if (!trainingDetail) {
-        throw new Error('\u539f\u8bf7\u5047\u8bb0\u5f55\u4e0d\u5b58\u5728');
-      }
-
-      var attendance = (trainingDetail.attendance || []).slice();
-      var currentRecord = attendance[this.data.attendanceIndex];
-      if (!currentRecord || currentRecord.memberId !== this.data.memberInfo.id || currentRecord.status !== LEAVE_STATUS) {
-        throw new Error('\u8bf7\u5047\u8bb0\u5f55\u5df2\u53d8\u5316\uff0c\u8bf7\u8fd4\u56de\u5237\u65b0\u540e\u91cd\u8bd5');
-      }
-
-      var previousMakeupTrainingId = currentRecord.makeupTrainingId || '';
-      attendance[this.data.attendanceIndex] = makeupHelper.assignMakeupTraining(currentRecord, selectedTraining);
-
-      await updateTrainingAttendance(trainingDetail, attendance);
-
-      if (previousMakeupTrainingId && previousMakeupTrainingId !== selectedTraining.id && !makeupHelper.hasLinkedMakeupRecord(trainings, this.data.memberInfo.id, previousMakeupTrainingId, {
-        excludeLeaveTrainingId: trainingDetail.id,
-        excludeAttendanceIndex: this.data.attendanceIndex
-      })) {
-        var previousMakeupTraining = makeupHelper.findTrainingById(trainings, previousMakeupTrainingId);
-        if (previousMakeupTraining) {
-          var removed = makeupHelper.removeMakeupAttendanceMember(previousMakeupTraining.attendance, this.data.memberInfo.id);
-          if (removed.changed) {
-            await updateTrainingAttendance(previousMakeupTraining, removed.attendance);
-          }
-        }
-      }
-
-      var ensured = makeupHelper.ensureMakeupAttendanceMember(selectedTraining.attendance, this.data.memberInfo);
-      if (ensured.changed) {
-        await updateTrainingAttendance(selectedTraining, ensured.attendance);
-      }
+      await storage.assignMakeupTraining({
+        memberId: this.data.memberInfo.id,
+        memberName: this.data.memberInfo.name,
+        leaveTrainingId: this.data.leaveTrainingId,
+        attendanceIndex: this.data.attendanceIndex,
+        selectedTrainingId: selectedTraining.id,
+        requireFuture: true,
+        markArrived: false
+      });
 
       this.setData({
         currentSelectionId: selectedTraining.id,
@@ -181,35 +162,11 @@ Page({
     this.setData({ isSubmitting: true });
 
     try {
-      var trainings = await storage.getList(storage.KEYS.TRAININGS);
-      var trainingDetail = makeupHelper.findTrainingById(trainings, this.data.leaveTrainingId);
-      if (!trainingDetail) {
-        throw new Error('\u539f\u8bf7\u5047\u8bb0\u5f55\u4e0d\u5b58\u5728');
-      }
-
-      var attendance = (trainingDetail.attendance || []).slice();
-      var currentRecord = attendance[this.data.attendanceIndex];
-      if (!currentRecord || currentRecord.memberId !== this.data.memberInfo.id || currentRecord.status !== LEAVE_STATUS) {
-        throw new Error('\u8bf7\u5047\u8bb0\u5f55\u5df2\u53d8\u5316\uff0c\u8bf7\u8fd4\u56de\u5237\u65b0\u540e\u91cd\u8bd5');
-      }
-
-      var previousMakeupTrainingId = currentRecord.makeupTrainingId || '';
-      attendance[this.data.attendanceIndex] = makeupHelper.stripMakeupFields(currentRecord);
-
-      await updateTrainingAttendance(trainingDetail, attendance);
-
-      if (previousMakeupTrainingId && !makeupHelper.hasLinkedMakeupRecord(trainings, this.data.memberInfo.id, previousMakeupTrainingId, {
-        excludeLeaveTrainingId: trainingDetail.id,
-        excludeAttendanceIndex: this.data.attendanceIndex
-      })) {
-        var previousMakeupTraining = makeupHelper.findTrainingById(trainings, previousMakeupTrainingId);
-        if (previousMakeupTraining) {
-          var removed = makeupHelper.removeMakeupAttendanceMember(previousMakeupTraining.attendance, this.data.memberInfo.id);
-          if (removed.changed) {
-            await updateTrainingAttendance(previousMakeupTraining, removed.attendance);
-          }
-        }
-      }
+      await storage.clearMakeupTraining({
+        memberId: this.data.memberInfo.id,
+        leaveTrainingId: this.data.leaveTrainingId,
+        attendanceIndex: this.data.attendanceIndex
+      });
 
       this.setData({ isSubmitting: false });
       util.showToast('\u5df2\u53d6\u6d88\u8865\u8bad\u767b\u8bb0', 'success');

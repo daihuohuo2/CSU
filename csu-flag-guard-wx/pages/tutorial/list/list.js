@@ -5,7 +5,7 @@ Page({
   data: {
     list: [],
     filteredList: [],
-    categories: [],
+    categories: storage.TUTORIAL_CATEGORY_OPTIONS || [],
     currentCategory: '',
     isAdmin: false
   },
@@ -18,17 +18,10 @@ Page({
   loadData: async function() {
     try {
       var list = await storage.getList(storage.KEYS.TUTORIALS);
-      var catMap = {};
-
-      list.forEach(function(item) {
-        if (item.category) {
-          catMap[item.category] = true;
-        }
-      });
 
       this.setData({
         list: list,
-        categories: Object.keys(catMap)
+        categories: storage.TUTORIAL_CATEGORY_OPTIONS || []
       });
       this.applyFilter();
     } catch (err) {

@@ -20,6 +20,12 @@ var TRAINING_TYPE_OPTIONS = [
   '补训'
 ];
 
+var TUTORIAL_CATEGORY_OPTIONS = [
+  '基础动作重点',
+  '特殊岗动作',
+  '升旗队列流程'
+];
+
 var DEPARTMENT_OPTIONS = [
   '办公室成员',
   '财务部成员',
@@ -50,6 +56,13 @@ var LEGACY_TRAINING_TYPE_MAP = {
   '日常训练': '例训',
   '专项训练': '补训',
   '彩排': '补训'
+};
+
+var LEGACY_TUTORIAL_CATEGORY_MAP = {
+  '基础动作': '基础动作重点',
+  '行进动作': '基础动作重点',
+  '仪式流程': '基础动作重点',
+  '其他': '基础动作重点'
 };
 
 var KEYS = {
@@ -144,6 +157,24 @@ function normalizeTrainingType(type, title) {
   return rawType;
 }
 
+function normalizeTutorialCategory(category) {
+  var rawCategory = category ? String(category).trim() : '';
+
+  if (!rawCategory) {
+    return '';
+  }
+
+  if (TUTORIAL_CATEGORY_OPTIONS.indexOf(rawCategory) !== -1) {
+    return rawCategory;
+  }
+
+  if (LEGACY_TUTORIAL_CATEGORY_MAP[rawCategory]) {
+    return LEGACY_TUTORIAL_CATEGORY_MAP[rawCategory];
+  }
+
+  return '基础动作重点';
+}
+
 function enrichMember(member) {
   if (!member) return null;
   var positions = normalizePositions(member.position);
@@ -161,6 +192,13 @@ function enrichTraining(training) {
   });
 }
 
+function enrichTutorial(tutorial) {
+  if (!tutorial) return null;
+  return Object.assign({}, tutorial, {
+    category: normalizeTutorialCategory(tutorial.category)
+  });
+}
+
 function enrichMembers(members) {
   return (members || []).map(enrichMember);
 }
@@ -171,6 +209,9 @@ function enrichItem(key, item) {
   }
   if (key === KEYS.TRAININGS) {
     return enrichTraining(item);
+  }
+  if (key === KEYS.TUTORIALS) {
+    return enrichTutorial(item);
   }
   return item;
 }
@@ -189,6 +230,12 @@ function normalizeItemForStorage(key, item) {
   if (key === KEYS.TRAININGS) {
     return Object.assign({}, item, {
       type: normalizeTrainingType(item.type, item.title)
+    });
+  }
+
+  if (key === KEYS.TUTORIALS) {
+    return Object.assign({}, item, {
+      category: normalizeTutorialCategory(item.category)
     });
   }
 
@@ -307,6 +354,25 @@ async function backfillTrainingTypes() {
   }
 }
 
+async function backfillTutorialCategories() {
+  var collection = getCollection(KEYS.TUTORIALS);
+  var tutorials = await fetchAll(collection);
+
+  for (var i = 0; i < tutorials.length; i++) {
+    var normalizedCategory = normalizeTutorialCategory(tutorials[i].category);
+    if (!normalizedCategory || normalizedCategory === tutorials[i].category) {
+      continue;
+    }
+
+    await collection.doc(tutorials[i]._id).update({
+      data: {
+        category: normalizedCategory,
+        updatedAt: Date.now()
+      }
+    });
+  }
+}
+
 async function ensureReady() {
   if (readyPromise) return readyPromise;
 
@@ -315,6 +381,7 @@ async function ensureReady() {
     await seedMockData();
     await backfillMemberDefaults();
     await backfillTrainingTypes();
+    await backfillTutorialCategories();
     return db;
   })();
 
@@ -340,6 +407,23 @@ async function getById(key, id) {
   await ensureReady();
   var res = await getCollection(key).where({ id: id }).limit(1).get();
   if (!res.data || !res.data.length) return null;
+  var plain = Object.assign({}, res.data[0]);
+  plain._docId = plain._id;
+  delete plain._id;
+  return enrichItem(key, plain);
+}
+
+async function getFirstByQuery(key, query) {
+  await ensureReady();
+  if (!query || !Object.keys(query).length) {
+    return null;
+  }
+
+  var res = await getCollection(key).where(query).limit(1).get();
+  if (!res.data || !res.data.length) {
+    return null;
+  }
+
   var plain = Object.assign({}, res.data[0]);
   plain._docId = plain._id;
   delete plain._id;
@@ -386,6 +470,216 @@ async function batchUpdateMemberStatusInCloud(ids, status) {
     throw new Error(result.message || '批量调整成员状态失败');
   }
   return result.updatedCount || 0;
+}
+
+async function queryListPageInCloud(action, options) {
+  await ensureReady();
+  var res = await wx.cloud.callFunction({
+    name: 'listQuery',
+    data: Object.assign({
+      action: action
+    }, options || {})
+  });
+  var result = res.result || {};
+
+  if (!result.success) {
+    throw new Error(result.message || 'List query failed');
+  }
+
+  return result;
+}
+
+async function queryMembersPage(options) {
+  var result = await queryListPageInCloud('members', options);
+  return {
+    list: (result.list || []).map(enrichMember),
+    page: Number(result.page || 1),
+    pageSize: Number(result.pageSize || 0),
+    total: Number(result.total || 0),
+    hasMore: !!result.hasMore
+  };
+}
+
+async function queryTrainingsPage(options) {
+  var result = await queryListPageInCloud('trainings', options);
+  return {
+    list: (result.list || []).map(enrichTraining),
+    page: Number(result.page || 1),
+    pageSize: Number(result.pageSize || 0),
+    total: Number(result.total || 0),
+    hasMore: !!result.hasMore
+  };
+}
+
+async function queryFlagsPage(options) {
+  var result = await queryListPageInCloud('flags', options);
+  return {
+    list: (result.list || []),
+    page: Number(result.page || 1),
+    pageSize: Number(result.pageSize || 0),
+    total: Number(result.total || 0),
+    hasMore: !!result.hasMore
+  };
+}
+
+async function queryChroniclesPage(options) {
+  var result = await queryListPageInCloud('chroniclesByGrade', options);
+  return {
+    list: result.list || [],
+    page: Number(result.page || 1),
+    pageSize: Number(result.pageSize || 0),
+    total: Number(result.total || 0),
+    hasMore: !!result.hasMore
+  };
+}
+
+async function queryMeetingRecordsPage(options) {
+  var result = await queryListPageInCloud('meetingRecords', options);
+  return {
+    list: result.list || [],
+    page: Number(result.page || 1),
+    pageSize: Number(result.pageSize || 0),
+    total: Number(result.total || 0),
+    hasMore: !!result.hasMore
+  };
+}
+
+async function queryOfficeMaterialsPage(options) {
+  var result = await queryListPageInCloud('officeMaterials', options);
+  return {
+    list: result.list || [],
+    page: Number(result.page || 1),
+    pageSize: Number(result.pageSize || 0),
+    total: Number(result.total || 0),
+    hasMore: !!result.hasMore
+  };
+}
+
+async function getMemberMakeupSummary(memberId) {
+  if (!memberId) {
+    return {
+      pendingCount: 0,
+      upcomingCount: 0,
+      totalCount: 0
+    };
+  }
+
+  var result = await queryListPageInCloud('memberMakeupSummary', {
+    memberId: memberId
+  });
+
+  return {
+    pendingCount: Number(result.pendingCount || 0),
+    upcomingCount: Number(result.upcomingCount || 0),
+    totalCount: Number(result.totalCount || 0)
+  };
+}
+
+async function getMemberMakeupRecords(memberId, options) {
+  if (!memberId) {
+    return {
+      items: [],
+      summary: {
+        totalCount: 0,
+        pendingCount: 0,
+        upcomingCount: 0,
+        completedCount: 0
+      }
+    };
+  }
+
+  var settings = Object.assign({
+    pendingOnly: false
+  }, options || {});
+  var result = await queryListPageInCloud('memberMakeupRecords', {
+    memberId: memberId,
+    pendingOnly: !!settings.pendingOnly
+  });
+
+  return {
+    items: result.items || [],
+    summary: Object.assign({
+      totalCount: 0,
+      pendingCount: 0,
+      upcomingCount: 0,
+      completedCount: 0
+    }, result.summary || {})
+  };
+}
+
+async function getActiveMemberMakeupSummaries(options) {
+  var settings = Object.assign({
+    pendingOnly: false
+  }, options || {});
+
+  var result = await queryListPageInCloud('activeMemberMakeupSummaries', {
+    pendingOnly: !!settings.pendingOnly
+  });
+
+  return {
+    summaries: (result.summaries || []).map(enrichMember),
+    today: result.today || ''
+  };
+}
+
+async function getMakeupSelectionData(memberId, leaveTrainingId, attendanceIndex) {
+  if (!memberId || !leaveTrainingId || typeof attendanceIndex !== 'number' || attendanceIndex < 0) {
+    return {
+      leaveItem: null,
+      availableTrainings: [],
+      currentSelectionId: '',
+      today: ''
+    };
+  }
+
+  var result = await queryListPageInCloud('makeupSelectionData', {
+    memberId: memberId,
+    leaveTrainingId: leaveTrainingId,
+    attendanceIndex: attendanceIndex
+  });
+
+  return {
+    leaveItem: result.leaveItem || null,
+    availableTrainings: (result.availableTrainings || []).map(enrichTraining),
+    currentSelectionId: result.currentSelectionId || '',
+    today: result.today || ''
+  };
+}
+
+async function assignMakeupTraining(options) {
+  var settings = Object.assign({
+    memberId: '',
+    memberName: '',
+    leaveTrainingId: '',
+    attendanceIndex: -1,
+    selectedTrainingId: '',
+    requireFuture: false,
+    markArrived: false
+  }, options || {});
+
+  return queryListPageInCloud('assignMakeupTraining', {
+    memberId: settings.memberId,
+    memberName: settings.memberName,
+    leaveTrainingId: settings.leaveTrainingId,
+    attendanceIndex: Number(settings.attendanceIndex),
+    selectedTrainingId: settings.selectedTrainingId,
+    requireFuture: !!settings.requireFuture,
+    markArrived: !!settings.markArrived
+  });
+}
+
+async function clearMakeupTraining(options) {
+  var settings = Object.assign({
+    memberId: '',
+    leaveTrainingId: '',
+    attendanceIndex: -1
+  }, options || {});
+
+  return queryListPageInCloud('clearMakeupTraining', {
+    memberId: settings.memberId,
+    leaveTrainingId: settings.leaveTrainingId,
+    attendanceIndex: Number(settings.attendanceIndex)
+  });
 }
 
 async function update(key, id, data) {
@@ -487,14 +781,19 @@ async function getCurrentMember() {
     return getById(KEYS.MEMBERS, user.memberId);
   }
 
-  var members = await getList(KEYS.MEMBERS);
-  for (var i = 0; i < members.length; i++) {
-    if (user.studentId && members[i].studentId === user.studentId) {
-      return members[i];
+  if (user.studentId) {
+    var memberByStudentId = await getFirstByQuery(KEYS.MEMBERS, {
+      studentId: user.studentId
+    });
+    if (memberByStudentId) {
+      return memberByStudentId;
     }
-    if (members[i].name === user.name) {
-      return members[i];
-    }
+  }
+
+  if (user.name) {
+    return getFirstByQuery(KEYS.MEMBERS, {
+      name: user.name
+    });
   }
 
   return null;
@@ -534,18 +833,20 @@ function isAdmin() {
 }
 
 async function loginByCredentials(studentId, password) {
-  var members = await getList(KEYS.MEMBERS);
-  for (var i = 0; i < members.length; i++) {
-    if (members[i].studentId === studentId && members[i].password === password) {
-      var role = hasAdminPosition(members[i].position) ? 'admin' : 'member';
-      return {
-        name: members[i].name,
-        role: role,
-        studentId: members[i].studentId,
-        memberId: members[i].id
-      };
-    }
+  var member = await getFirstByQuery(KEYS.MEMBERS, {
+    studentId: studentId
+  });
+
+  if (member && member.password === password) {
+    var role = hasAdminPosition(member.position) ? 'admin' : 'member';
+    return {
+      name: member.name,
+      role: role,
+      studentId: member.studentId,
+      memberId: member.id
+    };
   }
+
   return null;
 }
 
@@ -648,6 +949,7 @@ module.exports = {
   KEYS: KEYS,
   POSITION_OPTIONS: POSITION_OPTIONS,
   TRAINING_TYPE_OPTIONS: TRAINING_TYPE_OPTIONS,
+  TUTORIAL_CATEGORY_OPTIONS: TUTORIAL_CATEGORY_OPTIONS,
   DEPARTMENT_OPTIONS: DEPARTMENT_OPTIONS,
   ADMIN_POSITIONS: ADMIN_POSITIONS,
   DEFAULT_MEMBER_PASSWORD: DEFAULT_MEMBER_PASSWORD,
@@ -656,15 +958,29 @@ module.exports = {
   clearLocalData: clearLocalData,
   getList: getList,
   getById: getById,
+  getFirstByQuery: getFirstByQuery,
   add: add,
   update: update,
   remove: remove,
   batchUpdateMemberStatus: batchUpdateMemberStatus,
+  queryMembersPage: queryMembersPage,
+  queryTrainingsPage: queryTrainingsPage,
+  queryFlagsPage: queryFlagsPage,
+  queryChroniclesPage: queryChroniclesPage,
+  queryMeetingRecordsPage: queryMeetingRecordsPage,
+  queryOfficeMaterialsPage: queryOfficeMaterialsPage,
+  getMemberMakeupSummary: getMemberMakeupSummary,
+  getMemberMakeupRecords: getMemberMakeupRecords,
+  getActiveMemberMakeupSummaries: getActiveMemberMakeupSummaries,
+  getMakeupSelectionData: getMakeupSelectionData,
+  assignMakeupTraining: assignMakeupTraining,
+  clearMakeupTraining: clearMakeupTraining,
   normalizePositions: normalizePositions,
   getPositionText: getPositionText,
   hasAdminPosition: hasAdminPosition,
   isMemberActive: isMemberActive,
   normalizeTrainingType: normalizeTrainingType,
+  normalizeTutorialCategory: normalizeTutorialCategory,
   enrichMember: enrichMember,
   enrichMembers: enrichMembers,
   getUserInfo: getUserInfo,
