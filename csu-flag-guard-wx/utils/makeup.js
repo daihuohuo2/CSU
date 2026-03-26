@@ -103,9 +103,13 @@ function assignMakeupTraining(record, training) {
   });
 }
 
-function ensureMakeupAttendanceMember(attendance, member) {
+function ensureMakeupAttendanceMemberByOptions(attendance, member, options) {
   var list = (attendance || []).slice();
   var index = -1;
+  var settings = Object.assign({
+    status: ATTENDANCE_STATUS_UNRECORDED,
+    overwriteStatus: false
+  }, options || {});
 
   for (var i = 0; i < list.length; i++) {
     if (list[i].memberId === member.id) {
@@ -118,7 +122,7 @@ function ensureMakeupAttendanceMember(attendance, member) {
     list.push({
       memberId: member.id,
       name: member.name,
-      status: ATTENDANCE_STATUS_UNRECORDED
+      status: settings.status
     });
     return {
       attendance: list,
@@ -127,21 +131,50 @@ function ensureMakeupAttendanceMember(attendance, member) {
   }
 
   var current = list[index] || {};
-  if (current.name === member.name) {
+  var nextRecord = current;
+  var changed = false;
+
+  if (current.name !== member.name) {
+    nextRecord = Object.assign({}, nextRecord, {
+      name: member.name
+    });
+    changed = true;
+  }
+
+  if (settings.overwriteStatus && current.status !== settings.status) {
+    nextRecord = Object.assign({}, nextRecord, {
+      status: settings.status
+    });
+    changed = true;
+  }
+
+  if (!changed) {
     return {
       attendance: list,
       changed: false
     };
   }
 
-  list[index] = Object.assign({}, current, {
-    name: member.name
-  });
+  list[index] = nextRecord;
 
   return {
     attendance: list,
     changed: true
   };
+}
+
+function ensureMakeupAttendanceMember(attendance, member) {
+  return ensureMakeupAttendanceMemberByOptions(attendance, member, {
+    status: ATTENDANCE_STATUS_UNRECORDED,
+    overwriteStatus: false
+  });
+}
+
+function ensureMakeupAttendanceMemberStatus(attendance, member, status) {
+  return ensureMakeupAttendanceMemberByOptions(attendance, member, {
+    status: status || ATTENDANCE_STATUS_UNRECORDED,
+    overwriteStatus: true
+  });
 }
 
 function removeMakeupAttendanceMember(attendance, memberId) {
@@ -307,6 +340,16 @@ function buildMemberMakeupSummaries(members, trainings, options) {
       makeupTotalCount: totalCount
     });
   }).sort(function(a, b) {
+    var pendingCompare = b.makeupPendingCount - a.makeupPendingCount;
+    if (pendingCompare !== 0) {
+      return pendingCompare;
+    }
+
+    var upcomingCompare = b.makeupUpcomingCount - a.makeupUpcomingCount;
+    if (upcomingCompare !== 0) {
+      return upcomingCompare;
+    }
+
     if (a.makeupTotalCount !== b.makeupTotalCount) {
       return b.makeupTotalCount - a.makeupTotalCount;
     }
@@ -319,16 +362,6 @@ function buildMemberMakeupSummaries(members, trainings, options) {
     var joinDateCompare = compareAsc(a.joinDate || '', b.joinDate || '');
     if (joinDateCompare !== 0) {
       return joinDateCompare;
-    }
-
-    var pendingCompare = b.makeupPendingCount - a.makeupPendingCount;
-    if (pendingCompare !== 0) {
-      return pendingCompare;
-    }
-
-    var upcomingCompare = b.makeupUpcomingCount - a.makeupUpcomingCount;
-    if (upcomingCompare !== 0) {
-      return upcomingCompare;
     }
 
     var studentIdCompare = compareAsc(a.studentId || '', b.studentId || '');
@@ -346,6 +379,7 @@ module.exports = {
   buildMemberMakeupSummaries: buildMemberMakeupSummaries,
   countLinkedMakeupRecords: countLinkedMakeupRecords,
   ensureMakeupAttendanceMember: ensureMakeupAttendanceMember,
+  ensureMakeupAttendanceMemberStatus: ensureMakeupAttendanceMemberStatus,
   findTrainingById: findTrainingById,
   getAvailableMakeupTrainings: getAvailableMakeupTrainings,
   getMakeupStatus: getMakeupStatus,

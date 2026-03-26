@@ -61,7 +61,11 @@ Page({
 
   onLoad: function(options) {
     var isMineMode = !!(options && options.mode === 'mine');
-    this.setData({ isMineMode: isMineMode });
+    var presetType = options && options.type ? String(options.type) : '';
+    this.setData({
+      isMineMode: isMineMode,
+      currentType: presetType
+    });
 
     if (isMineMode) {
       wx.setNavigationBarTitle({

@@ -58,5 +58,9 @@ Page({
 
   goMakeupModule: function() {
     wx.navigateTo({ url: '/pages/department/security/makeup/list/list' });
+  },
+
+  goMakeupScheduleManage: function() {
+    wx.navigateTo({ url: '/pages/training/list/list?type=补训' });
   }
 });

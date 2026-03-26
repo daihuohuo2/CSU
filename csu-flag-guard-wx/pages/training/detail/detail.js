@@ -2,6 +2,7 @@ var storage = require('../../../utils/storage');
 var util = require('../../../utils/util');
 var makeupHelper = require('../../../utils/makeup');
 
+var ARRIVED_STATUS = '\u5df2\u5230';
 var LEAVE_STATUS = '\u8bf7\u5047';
 var MAKEUP_TYPE = '\u8865\u8bad';
 
@@ -24,6 +25,13 @@ Page({
     isAdmin: false,
     isMakeupTraining: false,
     isJoiningMakeup: false,
+    isRecordingMakeup: false,
+    showRecordMakeupPanel: false,
+    recordMakeupMembers: [],
+    recordMakeupItems: [],
+    selectedRecordMemberId: '',
+    selectedRecordMemberName: '',
+    selectedRecordMemberPendingCount: 0,
     statusKeys: {
       arrived: '\u5df2\u5230',
       late: '\u8fdf\u5230',
@@ -39,6 +47,50 @@ Page({
     }
   },
 
+  getPendingLeaveItemsForMember: function(trainings, memberId, today) {
+    return makeupHelper.buildLeaveMakeupItems(trainings, memberId, {
+      today: today
+    }).filter(function(item) {
+      return item.isPending && !item.makeupTrainingId;
+    });
+  },
+
+  closeRecordMakeupPanel: function() {
+    this.setData({
+      showRecordMakeupPanel: false,
+      recordMakeupMembers: [],
+      recordMakeupItems: [],
+      selectedRecordMemberId: '',
+      selectedRecordMemberName: '',
+      selectedRecordMemberPendingCount: 0
+    });
+  },
+
+  selectRecordMakeupMemberById: function(memberId) {
+    var selectedMember = null;
+    for (var i = 0; i < this.data.recordMakeupMembers.length; i++) {
+      if (this.data.recordMakeupMembers[i].id === memberId) {
+        selectedMember = this.data.recordMakeupMembers[i];
+        break;
+      }
+    }
+
+    if (!selectedMember) {
+      return;
+    }
+
+    this.setData({
+      selectedRecordMemberId: selectedMember.id,
+      selectedRecordMemberName: selectedMember.name,
+      selectedRecordMemberPendingCount: selectedMember.makeupPendingCount || 0,
+      recordMakeupItems: this.getPendingLeaveItemsForMember(
+        this.data.recordMakeupTrainings || [],
+        selectedMember.id,
+        this.data.recordMakeupToday || makeupHelper.getToday()
+      )
+    });
+  },
+
   onLoad: function(options) {
     this.setData({
       id: options.id,
@@ -49,6 +101,8 @@ Page({
   onShow: async function() {
     await this.loadData();
   },
+
+  noop: function() {},
 
   loadData: async function() {
     try {
@@ -141,8 +195,16 @@ Page({
     }
   },
 
-  bindPendingLeaveRecord: async function(leaveItem, memberInfo) {
-    this.setData({ isJoiningMakeup: true });
+  bindLeaveRecordToCurrentMakeupTraining: async function(leaveItem, memberInfo, options) {
+    var settings = Object.assign({
+      requireFuture: false,
+      markArrived: false,
+      successText: '\u5df2\u767b\u8bb0\u8865\u8bad',
+      loadingKey: 'isJoiningMakeup'
+    }, options || {});
+    var loadingState = {};
+    loadingState[settings.loadingKey] = true;
+    this.setData(loadingState);
 
     try {
       var trainings = await storage.getList(storage.KEYS.TRAININGS);
@@ -152,7 +214,7 @@ Page({
       if (!currentTraining) {
         throw new Error('\u672a\u627e\u5230\u5f53\u524d\u8865\u8bad\u65e5\u7a0b');
       }
-      if (!makeupHelper.isEligibleMakeupTraining(currentTraining, { today: makeupHelper.getToday() })) {
+      if (settings.requireFuture && !makeupHelper.isEligibleMakeupTraining(currentTraining, { today: makeupHelper.getToday() })) {
         throw new Error('\u53ea\u80fd\u9009\u62e9\u4eca\u5929\u4e4b\u540e\u7684\u8865\u8bad\u65e5\u7a0b');
       }
       if (!leaveTraining) {
@@ -164,6 +226,9 @@ Page({
 
       if (!currentRecord || currentRecord.memberId !== memberInfo.id || currentRecord.status !== LEAVE_STATUS) {
         throw new Error('\u8bf7\u5047\u8bb0\u5f55\u5df2\u53d8\u5316\uff0c\u8bf7\u8fd4\u56de\u5237\u65b0\u540e\u91cd\u8bd5');
+      }
+      if (currentRecord.makeupTrainingId && currentRecord.makeupTrainingId !== currentTraining.id) {
+        throw new Error('\u8be5\u8bf7\u5047\u8bb0\u5f55\u5df2\u5173\u8054\u5176\u4ed6\u8865\u8bad');
       }
 
       var previousMakeupTrainingId = currentRecord.makeupTrainingId || '';
@@ -181,18 +246,27 @@ Page({
         );
       }
 
-      var ensured = makeupHelper.ensureMakeupAttendanceMember(currentTraining.attendance, memberInfo);
+      var currentTrainingAttendance = leaveTraining.id === currentTraining.id
+        ? attendance
+        : currentTraining.attendance;
+      var ensured = settings.markArrived
+        ? makeupHelper.ensureMakeupAttendanceMemberStatus(currentTrainingAttendance, memberInfo, ARRIVED_STATUS)
+        : makeupHelper.ensureMakeupAttendanceMember(currentTrainingAttendance, memberInfo);
       if (ensured.changed) {
         await this.updateTrainingAttendance(currentTraining, ensured.attendance);
       }
 
       await this.loadData();
-      this.setData({ isJoiningMakeup: false });
-      util.showToast('\u5df2\u767b\u8bb0\u8865\u8bad', 'success');
+      loadingState[settings.loadingKey] = false;
+      this.setData(loadingState);
+      util.showToast(settings.successText, 'success');
+      return true;
     } catch (err) {
       console.error(err);
-      this.setData({ isJoiningMakeup: false });
+      loadingState[settings.loadingKey] = false;
+      this.setData(loadingState);
       util.showToast(err.message || '\u767b\u8bb0\u8865\u8bad\u5931\u8d25');
+      return false;
     }
   },
 
@@ -238,12 +312,97 @@ Page({
           if (typeof res.tapIndex !== 'number' || !pendingItems[res.tapIndex]) {
             return;
           }
-          that.bindPendingLeaveRecord(pendingItems[res.tapIndex], memberInfo);
+          that.bindLeaveRecordToCurrentMakeupTraining(pendingItems[res.tapIndex], memberInfo, {
+            requireFuture: true,
+            markArrived: false,
+            successText: '\u5df2\u767b\u8bb0\u8865\u8bad',
+            loadingKey: 'isJoiningMakeup'
+          });
         }
       });
     } catch (err) {
       console.error(err);
       util.showToast('\u52a0\u8f7d\u8865\u8bad\u8bb0\u5f55\u5931\u8d25');
+    }
+  },
+
+  handleRecordMakeup: async function() {
+    if (this.data.isRecordingMakeup || !this.data.isAdmin || !this.data.isMakeupTraining) {
+      return;
+    }
+
+    try {
+      var today = makeupHelper.getToday();
+      var members = storage.enrichMembers(await storage.getList(storage.KEYS.MEMBERS));
+      var trainings = await storage.getList(storage.KEYS.TRAININGS);
+      var pendingMembers = makeupHelper.buildMemberMakeupSummaries(members, trainings, {
+        today: today
+      }).filter(function(member) {
+        return member.makeupPendingCount > 0;
+      });
+
+      if (!pendingMembers.length) {
+        util.showToast('\u5f53\u524d\u6ca1\u6709\u5f85\u8865\u8bad\u6210\u5458');
+        return;
+      }
+
+      this.setData({
+        showRecordMakeupPanel: true,
+        recordMakeupMembers: pendingMembers,
+        recordMakeupTrainings: trainings,
+        recordMakeupToday: today
+      });
+      this.selectRecordMakeupMemberById(pendingMembers[0].id);
+    } catch (err) {
+      console.error(err);
+      util.showToast('\u52a0\u8f7d\u8865\u767b\u4fe1\u606f\u5931\u8d25');
+    }
+  },
+
+  selectRecordMakeupMember: function(e) {
+    var memberId = e.currentTarget.dataset.memberId;
+    if (!memberId || memberId === this.data.selectedRecordMemberId) {
+      return;
+    }
+
+    this.selectRecordMakeupMemberById(memberId);
+  },
+
+  submitRecordMakeup: async function(e) {
+    if (this.data.isRecordingMakeup) {
+      return;
+    }
+
+    var memberId = this.data.selectedRecordMemberId;
+    var selectedMember = null;
+    for (var i = 0; i < this.data.recordMakeupMembers.length; i++) {
+      if (this.data.recordMakeupMembers[i].id === memberId) {
+        selectedMember = this.data.recordMakeupMembers[i];
+        break;
+      }
+    }
+
+    if (!selectedMember) {
+      util.showToast('\u8bf7\u5148\u9009\u62e9\u6210\u5458');
+      return;
+    }
+
+    var index = Number(e.currentTarget.dataset.index);
+    var leaveItem = this.data.recordMakeupItems[index];
+    if (!leaveItem) {
+      util.showToast('\u672a\u627e\u5230\u5f85\u8865\u767b\u8bb0\u5f55');
+      return;
+    }
+
+    var success = await this.bindLeaveRecordToCurrentMakeupTraining(leaveItem, selectedMember, {
+      requireFuture: false,
+      markArrived: true,
+      successText: '\u5df2\u8865\u767b\u8865\u8bad',
+      loadingKey: 'isRecordingMakeup'
+    });
+
+    if (success && this.data.showRecordMakeupPanel) {
+      this.closeRecordMakeupPanel();
     }
   },
 

@@ -37,4 +37,13 @@
     <view class="module-desc">按成员查看待补训、待参加和补训总次数，点进成员后可查看全部补训相关内容。</view>
     <view class="module-action">进入模块 ›</view>
   </view>
+
+  <view class="card module-card" bindtap="goMakeupScheduleManage">
+    <view class="module-header">
+      <view class="module-title">补训日程管理</view>
+      <view class="module-tag">已接入</view>
+    </view>
+    <view class="module-desc">直接进入训练考勤中的补训界面，集中查看和管理全部补训日程。</view>
+    <view class="module-action">进入模块 ›</view>
+  </view>
 </view>

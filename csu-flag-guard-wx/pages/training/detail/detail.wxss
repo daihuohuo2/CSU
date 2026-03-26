@@ -108,3 +108,102 @@
   color: #999999;
   padding: 16rpx 0 4rpx;
 }
+
+.record-panel-mask {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 300;
+  display: flex;
+  align-items: flex-end;
+}
+
+.record-panel {
+  width: 100%;
+  max-height: 78vh;
+  background: #FFFFFF;
+  border-radius: 28rpx 28rpx 0 0;
+  padding: 28rpx 24rpx 36rpx;
+  box-sizing: border-box;
+}
+
+.record-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.record-panel-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333333;
+}
+
+.record-panel-close {
+  font-size: 24rpx;
+  color: #999999;
+}
+
+.record-panel-tip {
+  margin-top: 16rpx;
+  font-size: 24rpx;
+  color: #666666;
+}
+
+.record-panel-section {
+  margin-top: 26rpx;
+}
+
+.record-panel-label {
+  font-size: 26rpx;
+  font-weight: bold;
+  color: #333333;
+  margin-bottom: 14rpx;
+}
+
+.record-member-list {
+  max-height: 280rpx;
+}
+
+.record-leave-list {
+  max-height: 420rpx;
+}
+
+.record-member-item,
+.record-leave-item {
+  padding: 22rpx 20rpx;
+  border-radius: 14rpx;
+  background: #F8F8F8;
+  margin-bottom: 14rpx;
+}
+
+.record-member-item.active {
+  background: #FFF1F1;
+  border: 2rpx solid #F3B2B2;
+}
+
+.record-member-name,
+.record-leave-title {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #333333;
+}
+
+.record-member-meta,
+.record-leave-meta {
+  margin-top: 8rpx;
+  font-size: 24rpx;
+  color: #777777;
+}
+
+.record-leave-action {
+  margin-top: 14rpx;
+  font-size: 24rpx;
+  color: #C41A1A;
+}
+
+.record-panel-empty {
+  font-size: 24rpx;
+  color: #999999;
+  padding: 18rpx 0;
+}
