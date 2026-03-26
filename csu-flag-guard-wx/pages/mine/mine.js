@@ -82,20 +82,19 @@ Page({
 
   resetData: function() {
     wx.showModal({
-      title: '确认重置',
-      content: '将清除云端数据并恢复为初始 Mock 数据，确定吗？',
+      title: '确认清除',
+      content: '将清除本地缓存与登录状态，不会影响云数据库中的业务数据，确定吗？',
       success: async function(res) {
         if (res.confirm) {
           try {
             await storage.resetData();
-            storage.clearUserInfo();
-            util.showToast('数据已重置', 'success');
+            util.showToast('本地缓存已清除', 'success');
             setTimeout(function() {
               wx.reLaunch({ url: '/pages/login/login' });
             }, 1500);
           } catch (err) {
             console.error(err);
-            util.showToast('重置失败，请检查云开发配置');
+            util.showToast('清除本地缓存失败');
           }
         }
       }

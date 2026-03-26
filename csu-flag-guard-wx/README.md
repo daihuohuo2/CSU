@@ -4,12 +4,12 @@
 > AppID: `wxa9de6e6a3fbfc0bc`  
 > 基础库版本: `3.15.0`
 
-面向中南大学国旗班内部使用的管理工具，覆盖成员档案、训练考勤、升降旗考勤、部门管理、动作教程、补训登记等场景。
+面向中南大学国旗班内部使用的管理工具，覆盖成员档案、训练考勤、升降旗考勤、部门管理、人物志、动作教程、补训登记等场景。
 
 当前版本已经完成从“本地缓存 + Mock 数据”到“微信云开发 + 云数据库”的迁移：
 
 - `mock/data.js` 只负责初始示例数据
-- 业务数据实际写入微信云数据库
+- 业务数据实际写入微信云数据库，人物志图片写入 CloudBase 云存储
 - 清除小程序缓存后，成员、任务、教程等业务数据不会丢失
 - 登录态仍保存在本地缓存，清缓存后需要重新登录
 
@@ -35,6 +35,11 @@
   - 管理员可见“部门管理”
   - 普通成员可见“部门工作”
   - 特勤部已接入“补训记录”模块
+- 人物志
+  - 管理员可按年级维护人物志
+  - 支持手动新增、编辑、Excel 导入文本
+  - 支持为每则人物志上传最多 9 张图片
+  - 图片本体存入 CloudBase 云存储，数据库只存图片元数据
 - 补训系统
   - 个人中心可查看“我的补训”
   - 训练考勤里本人为 `请假` 的记录会生成补训项
@@ -49,10 +54,14 @@
   - `members`
   - `trainings`
   - `flag_ceremonies`
+  - `chronicles`
   - `tutorials`
+- 云存储目录
+  - `chronicles/{gradeYear}/{chronicleId}/...`
 - 云函数
   - `memberImport`
   - `memberManage`
+  - `chronicleImport`
 
 ---
 
@@ -83,7 +92,8 @@ csu-flag-guard-wx/
 │   └── makeup.js
 ├── cloudfunctions/
 │   ├── memberImport/
-│   └── memberManage/
+│   ├── memberManage/
+│   └── chronicleImport/
 └── pages/
     ├── index/
     ├── login/
@@ -112,6 +122,10 @@ csu-flag-guard-wx/
     │       └── makeup/
     │           ├── list/
     │           └── detail/
+    ├── chronicle/
+    │   ├── list/
+    │   ├── grade/
+    │   └── edit/
     └── tutorial/
         ├── list/
         ├── detail/
@@ -132,6 +146,7 @@ csu-flag-guard-wx/
   - 训练考勤
   - 升降旗考勤
   - 成员档案
+  - 人物志（仅管理员）
   - 动作教程
   - 部门管理（仅管理员）
   - 部门工作（仅普通成员）
@@ -155,7 +170,7 @@ csu-flag-guard-wx/
   - `待补训`
   - `待参加`
   - `暂无补训`
-- 仍保留切换身份、重置数据、退出登录功能
+- 仍保留切换身份、清除本地缓存、退出登录功能
 
 ### 成员档案
 
@@ -243,6 +258,20 @@ csu-flag-guard-wx/
 1. 补训总次数多的在前
 2. 若总次数相同，则老年级在前
 3. 若年级相同，则入队更早的在前
+
+### 人物志
+
+路径：`pages/chronicle/*`
+
+- 首页仅管理员可见“人物志”入口
+- 年级菜单从 `2023级` 到 `2012级`
+- 年级页每页展示 5 则人物志
+- 右下角 `+` 可新增人物志
+- 每则人物志右上角提供“编辑”入口
+- 正文按长文本展示并保留换行
+- 每则人物志最多可上传 9 张图片
+- 图片显示在正文下方，可点击预览
+- Excel 导入仍然只读取 A 列文本，不导入图片
 
 ### 动作教程
 
@@ -395,6 +424,31 @@ csu-flag-guard-wx/
 }
 ```
 
+### Chronicle
+
+```js
+{
+  id: String,
+  gradeYear: String,
+  gradeLabel: String,
+  content: String,
+  coverFileId: String,
+  images: [
+    {
+      imageId: String,
+      fileID: String,
+      sortOrder: Number,
+      caption: String,
+      fileName: String,
+      uploadedAt: Number
+    }
+  ],
+  createdAt: Number,
+  updatedAt: Number,
+  sortOrder: Number
+}
+```
+
 ---
 
 ## 云开发说明
@@ -406,6 +460,7 @@ csu-flag-guard-wx/
 - `members`
 - `trainings`
 - `flag_ceremonies`
+- `chronicles`
 - `tutorials`
 
 ### 云函数
@@ -423,6 +478,92 @@ csu-flag-guard-wx/
 
 - Excel 批量导入成员
 - 按批次导入，默认每批 5 行
+
+#### `chronicleImport`
+
+用途：
+
+- Excel 批量导入人物志文本
+- 只读取首个工作表的 A 列
+- 每个非空单元格生成一则人物志
+- 不导入图片
+
+### 云存储
+
+人物志图片使用 CloudBase 云存储，不单独建图片表。
+
+- 图片本体：存入云存储
+- 图片元数据：存入 `chronicles.images`
+- 推荐目录：`chronicles/{gradeYear}/{chronicleId}/...`
+- 人物志图片属于长期文件
+- Excel 导入时产生的临时文件会在导入完成后自动删除
+
+### 如何进行云开发对接
+
+#### 1. 创建并绑定云环境
+
+1. 在微信开发者工具中打开项目
+2. 点击顶部 `云开发`
+3. 创建或选择一个云环境
+4. 确认当前项目绑定到了该环境
+
+#### 2. 创建云数据库集合
+
+在云数据库中创建：
+
+- `members`
+- `trainings`
+- `flag_ceremonies`
+- `chronicles`
+- `tutorials`
+
+说明：
+
+- `chronicles` 不需要手动建字段
+- 人物志图片不存数据库二进制，只在文档里保存 `fileID`
+
+#### 3. 部署云函数
+
+在 `cloudfunctions` 目录中右键上传并部署：
+
+- `memberImport`
+- `memberManage`
+- `chronicleImport`
+
+建议统一选择“上传并部署：云端安装依赖”。
+
+#### 4. 人物志图片上传的工作方式
+
+当前人物志图片不依赖额外云函数，页面直接使用：
+
+- `wx.cloud.uploadFile` 上传图片
+- `wx.cloud.getTempFileURL` 获取展示用临时链接
+- `wx.cloud.deleteFile` 删除被移除图片
+
+#### 5. 云存储目录规则
+
+当前代码使用的持久化目录规则为：
+
+- `chronicles/{gradeYear}/{chronicleId}/{timestamp}_{index}.jpg`
+
+说明：
+
+- 不需要手动先创建文件夹
+- 上传时云存储会自动生成逻辑目录
+- 数据库里只保存 `fileID`、排序和文件名等元数据
+
+#### 6. 权限建议
+
+开发调试阶段可以先设置为：
+
+- 云数据库：测试成员可读写
+- 云存储：允许小程序端上传、读取、删除
+
+如果后续准备正式上线，建议再收紧为：
+
+- 普通成员只读
+- 管理员可写
+- 或改成通过云函数统一处理人物志写入与删图
 
 ### 初始化机制
 
@@ -459,6 +600,18 @@ csu-flag-guard-wx/
 - 状态默认 `在队`
 - 密码默认 `123456`
 - 入队时间在导入页统一选择
+
+### 人物志 Excel 导入
+
+人物志年级页支持 `Excel导入`。
+
+规则如下：
+
+- 只读取首个工作表
+- 只识别 A 列
+- 每个非空单元格生成一则人物志正文
+- 不会导入图片
+- 导入后的人物志图片可再通过编辑页单独上传
 
 ---
 
@@ -504,10 +657,11 @@ csu-flag-guard-wx/
 
 1. 在微信开发者工具中打开项目
 2. 确认已开通云开发并选择云环境
-3. 创建 4 个数据库集合
+3. 创建 5 个数据库集合
 4. 上传并部署：
    - `cloudfunctions/memberImport`
    - `cloudfunctions/memberManage`
+   - `cloudfunctions/chronicleImport`
 
 ### 兼容逻辑
 
@@ -521,9 +675,10 @@ csu-flag-guard-wx/
 ## 当前已知说明
 
 - `mock/data.js` 修改后不会自动覆盖云数据库中的已有数据
-- 若想重新应用初始示例数据，可在个人中心执行“重置数据”
+- 个人中心的“清除本地缓存”只会清除本地登录态和历史缓存，不会影响云数据库
 - 训练详情里若把某成员状态从 `请假` 改成其他状态，会自动清除该条补训登记，避免脏数据
 - 补训登记当前是写回原训练记录的 `attendance` 项中，没有单独拆分独立集合
+- 若需要删除云数据库或云存储中的人物志内容，需要单独手动操作；“清除本地缓存”不会触碰云端数据
 
 ---
 

@@ -1,7 +1,12 @@
 <view class="container" wx:if="{{isAdmin}}">
-  <view class="card">
+  <view class="card loading-card" wx:if="{{isLoading}}">
+    <loading color="#6D3FC1"></loading>
+    <view class="loading-text">正在加载人物志...</view>
+  </view>
+
+  <view class="card" wx:else>
     <view class="section-header">{{gradeLabel}}人物志</view>
-    <view class="intro-text">每次提交保存为一则独立人物志。正文支持多段输入，展示时会按换行分段。</view>
+    <view class="intro-text">{{isEdit ? '可直接修改正文与图片，保存后会同步更新当前人物志。' : '每次提交保存为一则独立人物志，支持同时上传最多 9 张图片。'}}</view>
 
     <view class="form-group">
       <text class="form-label">年级</text>
@@ -12,9 +17,26 @@
       <text class="form-label">人物志内容 *</text>
       <textarea class="form-textarea content-textarea" maxlength="-1" placeholder="请输入一则完整的人物志内容" value="{{content}}" bindinput="onInput" />
     </view>
+
+    <view class="form-group">
+      <text class="form-label">人物志图片（{{images.length}} / {{maxImageCount}}）</text>
+      <view class="image-tip">最多上传 9 张图片。Excel 导入仍只导入文本，不会导入图片。</view>
+      <view class="image-grid">
+        <view class="image-item" wx:for="{{images}}" wx:key="imageId">
+          <image class="image-thumb" src="{{item.tempFileURL}}" mode="aspectFill" bindtap="previewImage" data-index="{{index}}" />
+          <view class="image-order">{{index + 1}}</view>
+          <view class="image-delete" catchtap="removeImage" data-index="{{index}}">×</view>
+        </view>
+        <view class="image-upload" wx:if="{{images.length < maxImageCount}}" bindtap="chooseImages">
+          <view class="upload-plus">+</view>
+          <view class="upload-text">上传图片</view>
+        </view>
+      </view>
+      <view class="uploading-text" wx:if="{{isUploading}}">正在上传图片，请稍候...</view>
+    </view>
   </view>
 
   <view class="submit-area">
-    <button class="btn-primary" bindtap="handleSubmit" loading="{{isSubmitting}}" disabled="{{isSubmitting}}">保存人物志</button>
+    <button class="btn-primary" bindtap="handleSubmit" loading="{{isSubmitting}}" disabled="{{isSubmitting || isUploading}}">{{isEdit ? '保存修改' : '保存人物志'}}</button>
   </view>
 </view>

@@ -56,6 +56,7 @@ var KEYS = {
   MEMBERS: 'fg_members',
   TRAININGS: 'fg_trainings',
   FLAG_CEREMONIES: 'fg_flag_ceremonies',
+  CHRONICLES: 'fg_chronicles',
   TUTORIALS: 'fg_tutorials',
   USER_INFO: 'fg_user_info'
 };
@@ -64,6 +65,7 @@ var COLLECTIONS = {};
 COLLECTIONS[KEYS.MEMBERS] = 'members';
 COLLECTIONS[KEYS.TRAININGS] = 'trainings';
 COLLECTIONS[KEYS.FLAG_CEREMONIES] = 'flag_ceremonies';
+COLLECTIONS[KEYS.CHRONICLES] = 'chronicles';
 COLLECTIONS[KEYS.TUTORIALS] = 'tutorials';
 
 var cloudInitPromise = null;
@@ -443,13 +445,18 @@ async function clearCollection(key) {
   }
 }
 
+function clearLocalData() {
+  var keys = Object.keys(KEYS).map(function(key) {
+    return KEYS[key];
+  });
+
+  for (var i = 0; i < keys.length; i++) {
+    wx.removeStorageSync(keys[i]);
+  }
+}
+
 async function resetData() {
-  await ensureCloud();
-  await clearCollection(KEYS.MEMBERS);
-  await clearCollection(KEYS.TRAININGS);
-  await clearCollection(KEYS.FLAG_CEREMONIES);
-  await clearCollection(KEYS.TUTORIALS);
-  await seedMockData();
+  clearLocalData();
 }
 
 async function batchUpdateMemberStatus(ids, status) {
@@ -646,6 +653,7 @@ module.exports = {
   DEFAULT_MEMBER_PASSWORD: DEFAULT_MEMBER_PASSWORD,
   initMockData: initMockData,
   resetData: resetData,
+  clearLocalData: clearLocalData,
   getList: getList,
   getById: getById,
   add: add,

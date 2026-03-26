@@ -16,20 +16,6 @@ function chooseMessageFile() {
   });
 }
 
-function formatDateTime(timestamp) {
-  if (!timestamp) {
-    return '';
-  }
-
-  var date = new Date(timestamp);
-  var year = date.getFullYear();
-  var month = String(date.getMonth() + 1).padStart(2, '0');
-  var day = String(date.getDate()).padStart(2, '0');
-  var hour = String(date.getHours()).padStart(2, '0');
-  var minute = String(date.getMinutes()).padStart(2, '0');
-  return year + '-' + month + '-' + day + ' ' + hour + ':' + minute;
-}
-
 Page({
   data: {
     gradeYear: '',
@@ -79,11 +65,11 @@ Page({
     wx.stopPullDownRefresh();
   },
 
-  buildDisplayEntries: function(entries) {
-    return (entries || []).map(function(item, index) {
-      return Object.assign({}, chronicleHelper.enrichChronicle(item), {
-        displayIndex: index + 1,
-        createdAtText: formatDateTime(item.createdAt || item.updatedAt || 0)
+  buildDisplayEntries: async function(entries) {
+    var resolvedEntries = await chronicleHelper.resolveChronicleEntries(entries || []);
+    return resolvedEntries.map(function(item, index) {
+      return Object.assign({}, item, {
+        displayIndex: index + 1
       });
     });
   },
@@ -107,7 +93,7 @@ Page({
 
     try {
       var entries = await chronicleHelper.fetchChroniclesByGrade(this.data.gradeYear);
-      var displayEntries = this.buildDisplayEntries(entries);
+      var displayEntries = await this.buildDisplayEntries(entries);
       this.setData({
         allEntries: displayEntries,
         totalCount: displayEntries.length,
@@ -145,6 +131,34 @@ Page({
   goAdd: function() {
     wx.navigateTo({
       url: '/pages/chronicle/edit/edit?year=' + this.data.gradeYear
+    });
+  },
+
+  goEdit: function(e) {
+    var id = e.currentTarget.dataset.id;
+    if (!id) {
+      return;
+    }
+
+    wx.navigateTo({
+      url: '/pages/chronicle/edit/edit?id=' + id + '&year=' + this.data.gradeYear
+    });
+  },
+
+  previewImage: function(e) {
+    var entryIndex = Number(e.currentTarget.dataset.entryIndex);
+    var imageIndex = Number(e.currentTarget.dataset.imageIndex);
+    var entry = this.data.pageEntries[entryIndex];
+    var currentImage = entry && entry.images && entry.images[imageIndex];
+    var urls = entry && entry.previewUrls ? entry.previewUrls : [];
+
+    if (!currentImage || !currentImage.tempFileURL || !urls.length) {
+      return;
+    }
+
+    wx.previewImage({
+      current: currentImage.tempFileURL,
+      urls: urls
     });
   },
 

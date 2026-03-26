@@ -73,7 +73,7 @@
     </view>
     <view class="mine-menu-item" bindtap="resetData">
       <text class="mine-menu-icon">🔃</text>
-      <text class="mine-menu-text">重置数据</text>
+      <text class="mine-menu-text">清除本地缓存</text>
       <text class="arrow-right">›</text>
     </view>
     <view class="mine-menu-item logout" bindtap="handleLogout">

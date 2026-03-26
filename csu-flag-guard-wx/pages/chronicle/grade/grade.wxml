@@ -15,7 +15,7 @@
         <view class="summary-label">总页数</view>
       </view>
     </view>
-    <view class="summary-tip">每页展示 5 则人物志内容，正文会保留换行并按整段长文本展示。</view>
+    <view class="summary-tip">每页展示 5 则人物志内容，正文按整段长文本展示，图片会跟随每则人物志一并显示。</view>
     <view class="action-row">
       <button class="btn-secondary import-btn" bindtap="handleImport" loading="{{isImporting}}" disabled="{{isImporting}}">Excel导入</button>
     </view>
@@ -23,13 +23,27 @@
   </view>
 
   <view wx:if="{{pageEntries.length}}">
-    <view class="card entry-card" wx:for="{{pageEntries}}" wx:key="id">
+    <view class="card entry-card" wx:for="{{pageEntries}}" wx:key="id" wx:for-item="entry" wx:for-index="entryIndex">
       <view class="entry-header">
-        <view class="entry-index">第 {{item.displayIndex}} 则</view>
-        <view class="entry-time">{{item.createdAtText || '刚刚创建'}}</view>
+        <view class="entry-index">第 {{entry.displayIndex}} 则</view>
+        <view class="entry-edit" bindtap="goEdit" data-id="{{entry.id}}">编辑</view>
       </view>
-      <view class="entry-content" wx:if="{{item.content}}">{{item.content}}</view>
+      <view class="entry-content" wx:if="{{entry.content}}">{{entry.content}}</view>
       <view class="entry-empty" wx:else>暂无正文内容</view>
+      <view class="entry-image-grid" wx:if="{{entry.images.length}}">
+        <image
+          class="entry-image"
+          wx:for="{{entry.images}}"
+          wx:key="imageId"
+          wx:for-item="image"
+          wx:for-index="imageIndex"
+          src="{{image.tempFileURL}}"
+          mode="aspectFill"
+          bindtap="previewImage"
+          data-entry-index="{{entryIndex}}"
+          data-image-index="{{imageIndex}}"
+        />
+      </view>
     </view>
   </view>
 
