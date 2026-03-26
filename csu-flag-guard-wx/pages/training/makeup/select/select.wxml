@@ -41,7 +41,6 @@
 </block>
 <block wx:else>
   <view class="empty-state" wx:if="{{!isLoading}}">
-    <view class="empty-icon">记</view>
-    <view class="empty-text">未找到对应请假记录</view>
+    <view class="empty-title">未找到对应请假记录</view>
   </view>
 </block>

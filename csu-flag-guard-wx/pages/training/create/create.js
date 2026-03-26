@@ -1,5 +1,6 @@
 var storage = require('../../../utils/storage');
 var util = require('../../../utils/util');
+var memberSorter = require('../../../utils/member-sort');
 
 var MAKEUP_TYPE = '\u8865\u8bad';
 var ARRIVED_STATUS = '\u5df2\u5230';
@@ -22,8 +23,10 @@ Page({
 
   onLoad: async function() {
     try {
-      var members = storage.enrichMembers(await storage.getList(storage.KEYS.MEMBERS))
-        .filter(storage.isMemberActive);
+      var members = memberSorter.sortMembersForAssignment(
+        storage.enrichMembers(await storage.getList(storage.KEYS.MEMBERS))
+          .filter(storage.isMemberActive)
+      );
       members.forEach(function(member) {
         member.checked = true;
       });

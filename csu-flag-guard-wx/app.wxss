@@ -152,6 +152,13 @@ view.form-input {
   font-size: 28rpx;
 }
 
+.empty-title {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #666666;
+  line-height: 1.6;
+}
+
 /* ========== 信息行 ========== */
 .info-row {
   display: flex;

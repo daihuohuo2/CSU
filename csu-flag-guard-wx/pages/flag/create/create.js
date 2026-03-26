@@ -1,5 +1,6 @@
 var storage = require('../../../utils/storage');
 var util = require('../../../utils/util');
+var memberSorter = require('../../../utils/member-sort');
 
 Page({
   data: {
@@ -18,11 +19,12 @@ Page({
 
   onLoad: async function() {
     try {
-      var members = storage.enrichMembers(await storage.getList(storage.KEYS.MEMBERS))
-        .filter(storage.isMemberActive)
-        .map(function(member) {
-          return Object.assign({}, member, { checked: false });
-        });
+      var members = memberSorter.sortMembersForAssignment(
+        storage.enrichMembers(await storage.getList(storage.KEYS.MEMBERS))
+          .filter(storage.isMemberActive)
+      ).map(function(member) {
+        return Object.assign({}, member, { checked: false });
+      });
 
       this.setData({
         members: members,

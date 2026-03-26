@@ -1,6 +1,53 @@
 var storage = require('../../../utils/storage');
 var util = require('../../../utils/util');
 
+function parseDateTimeValue(date, time) {
+  var dateText = date ? String(date).trim() : '';
+  if (!dateText) {
+    return 0;
+  }
+
+  var timeText = time ? String(time).trim() : '00:00';
+  var normalized = (dateText + ' ' + timeText).replace(/\./g, '-').replace('T', ' ');
+  var timestamp = new Date(normalized).getTime();
+
+  if (!isNaN(timestamp)) {
+    return timestamp;
+  }
+
+  var dateMatch = dateText.match(/(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+  if (!dateMatch) {
+    return 0;
+  }
+
+  var timeMatch = timeText.match(/(\d{1,2}):(\d{1,2})/);
+  var hour = timeMatch ? Number(timeMatch[1]) : 0;
+  var minute = timeMatch ? Number(timeMatch[2]) : 0;
+
+  return new Date(
+    Number(dateMatch[1]),
+    Number(dateMatch[2]) - 1,
+    Number(dateMatch[3]),
+    hour,
+    minute
+  ).getTime();
+}
+
+function sortFlagsBySchedule(list) {
+  return (list || []).slice().sort(function(a, b) {
+    var aTime = parseDateTimeValue(a.date, a.time);
+    var bTime = parseDateTimeValue(b.date, b.time);
+
+    if (aTime !== bTime) {
+      return bTime - aTime;
+    }
+
+    var aUpdatedAt = Number(a.updatedAt || a.createdAt || 0);
+    var bUpdatedAt = Number(b.updatedAt || b.createdAt || 0);
+    return bUpdatedAt - aUpdatedAt;
+  });
+}
+
 Page({
   data: {
     list: [],
@@ -77,7 +124,7 @@ Page({
     if (type) {
       filtered = filtered.filter(function(item) { return item.type === type; });
     }
-    this.setData({ filteredList: filtered });
+    this.setData({ filteredList: sortFlagsBySchedule(filtered) });
   },
 
   goDetail: function(e) {
