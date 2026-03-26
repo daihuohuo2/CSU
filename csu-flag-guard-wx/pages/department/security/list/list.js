@@ -1,10 +1,12 @@
 var storage = require('../../../../utils/storage');
 var util = require('../../../../utils/util');
 var makeupHelper = require('../../../../utils/makeup');
+var memberSorter = require('../../../../utils/member-sort');
 
 Page({
   data: {
     isAdmin: false,
+    departmentMembers: [],
     stats: {
       totalMembers: 0,
       pendingCount: 0,
@@ -34,6 +36,11 @@ Page({
     try {
       var members = storage.enrichMembers(await storage.getList(storage.KEYS.MEMBERS))
         .filter(storage.isMemberActive);
+      var departmentMembers = memberSorter.sortMembersForAssignment(
+        members.filter(function(member) {
+          return member.department === '特勤部成员';
+        })
+      );
       var trainings = await storage.getList(storage.KEYS.TRAININGS);
       var summaries = makeupHelper.buildMemberMakeupSummaries(members, trainings);
       var stats = {
@@ -49,7 +56,10 @@ Page({
         stats.totalCount += item.makeupTotalCount;
       });
 
-      this.setData({ stats: stats });
+      this.setData({
+        stats: stats,
+        departmentMembers: departmentMembers
+      });
     } catch (err) {
       console.error(err);
       util.showToast('加载特勤部数据失败');

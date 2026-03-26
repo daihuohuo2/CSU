@@ -29,6 +29,21 @@
     </view>
   </view>
 
+  <view class="card">
+    <view class="section-header">部门成员概览</view>
+    <view class="member-summary">当前在队成员 {{departmentMembers.length}} 人</view>
+    <view wx:if="{{departmentMembers.length}}">
+      <view class="member-item" wx:for="{{departmentMembers}}" wx:key="id">
+        <view class="member-main">
+          <view class="member-name">{{item.name}}</view>
+          <view class="member-meta">{{item.grade}} {{item.className || ''}}</view>
+        </view>
+        <view class="member-position">{{item.positionText || '队员'}}</view>
+      </view>
+    </view>
+    <view wx:else class="member-empty">当前暂无在队特勤部成员</view>
+  </view>
+
   <view class="card module-card" bindtap="goMakeupModule">
     <view class="module-header">
       <view class="module-title">补训记录</view>

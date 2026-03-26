@@ -66,12 +66,12 @@
   </view>
 
   <view class="card menu-card">
-    <view class="mine-menu-item" bindtap="switchRole">
+    <view class="mine-menu-item" wx:if="{{isCadre}}" bindtap="switchRole">
       <text class="mine-menu-icon">🔄</text>
       <text class="mine-menu-text">切换身份</text>
       <text class="arrow-right">›</text>
     </view>
-    <view class="mine-menu-item" bindtap="resetData">
+    <view class="mine-menu-item" wx:if="{{isAdmin}}" bindtap="resetData">
       <text class="mine-menu-icon">🔃</text>
       <text class="mine-menu-text">清除本地缓存</text>
       <text class="arrow-right">›</text>

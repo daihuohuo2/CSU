@@ -35,6 +35,7 @@
   - 管理员可见“部门管理”
   - 普通成员可见“部门工作”
   - 特勤部已接入“补训记录”模块
+  - 办公室已接入“会议记录”模块，支持上传和查看 PDF 会议记录
 - 人物志
   - 管理员可按年级维护人物志
   - 支持手动新增、编辑、Excel 导入文本
@@ -55,6 +56,8 @@
   - `trainings`
   - `flag_ceremonies`
   - `chronicles`
+  - `meeting_records`
+  - `office_materials`
   - `tutorials`
 - 云存储目录
   - `chronicles/{gradeYear}/{chronicleId}/...`
@@ -116,6 +119,9 @@ csu-flag-guard-wx/
     │   └── create/
     ├── department/
     │   ├── list/
+    │   ├── detail/
+    │   ├── meeting/
+    │   │   └── list/
     │   ├── work/
     │   └── security/
     │       ├── list/
@@ -239,6 +245,21 @@ csu-flag-guard-wx/
 - 普通成员若未分配部门，会显示等待提示
 - 当前真正接入功能的部门为：
   - `特勤部`
+  - `办公室`
+
+#### 办公室会议记录
+
+路径：
+
+- `pages/department/detail/detail`
+- `pages/department/meeting/list/list`
+
+当前能力：
+
+- 在办公室页面中进入“会议记录”模块
+- 上传 PDF 格式会议记录到 CloudBase 云存储
+- 上传前可输入自定义文件命名
+- 在列表中查看并打开已上传的会议记录
 
 #### 特勤部补训记录
 
@@ -473,6 +494,8 @@ csu-flag-guard-wx/
 - `trainings`
 - `flag_ceremonies`
 - `chronicles`
+- `meeting_records`
+- `office_materials`
 - `tutorials`
 
 ### 云函数
@@ -510,6 +533,21 @@ csu-flag-guard-wx/
 - 推荐目录：`chronicles/{gradeYear}/{chronicleId}/...`
 - 人物志图片属于长期文件
 - Excel 导入时产生的临时文件会在导入完成后自动删除
+
+办公室会议记录也使用 CloudBase 云存储：
+
+- PDF 文件本体：存入云存储
+- 元数据：存入 `meeting_records`
+- 推荐目录：`meeting-records/office/...`
+
+#### 办公室基础资料
+
+办公室页面新增了“基础资料”模块，使用 CloudBase 云存储保存办公室常用文件，并在云数据库中记录文件元数据。
+
+- 支持上传并查看 PDF、Word、Excel、PPT、CSV 等常见格式
+- 上传时无需手动重命名，显示名称即为原始文件名
+- 元数据：存入 `office_materials`
+- 推荐目录：`office-materials/office/...`
 
 ### 如何进行云开发对接
 

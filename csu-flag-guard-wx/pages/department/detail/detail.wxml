@@ -1,0 +1,42 @@
+<view class="container" wx:if="{{isAdmin}}">
+  <view class="card banner-card">
+    <view class="banner-icon" style="background: {{bgColor}}; color: {{color}};">{{icon}}</view>
+    <view class="banner-body">
+      <view class="banner-title">{{departmentName}}</view>
+      <view class="banner-subtitle">{{desc}}</view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="section-header">部门成员概览</view>
+    <view class="member-summary">当前在队成员 {{members.length}} 人</view>
+    <view wx:if="{{members.length}}">
+      <view class="member-item" wx:for="{{members}}" wx:key="id">
+        <view class="member-main">
+          <view class="member-name">{{item.name}}</view>
+          <view class="member-meta">{{item.grade}} {{item.className || ''}}</view>
+        </view>
+        <view class="member-position">{{item.positionText || '队员'}}</view>
+      </view>
+    </view>
+    <view wx:else class="member-empty">当前暂无在队{{departmentName}}成员</view>
+  </view>
+
+  <view class="card module-card" wx:if="{{showMeetingModule}}" bindtap="goMeetingRecords">
+    <view class="module-header">
+      <view class="module-title">会议记录</view>
+      <view class="module-tag">PDF</view>
+    </view>
+    <view class="module-desc">上传并查看办公室会议记录，文件采用 PDF 格式存入云存储。</view>
+    <view class="module-action">进入模块 ›</view>
+  </view>
+
+  <view class="card module-card" wx:if="{{showMaterialModule}}" bindtap="goBaseMaterials">
+    <view class="module-header">
+      <view class="module-title">基础资料</view>
+      <view class="module-tag">多格式</view>
+    </view>
+    <view class="module-desc">上传和查看办公室常用基础资料，支持 PDF、Word、Excel 等文件格式，并保留原始文件名。</view>
+    <view class="module-action">进入模块 ›</view>
+  </view>
+</view>

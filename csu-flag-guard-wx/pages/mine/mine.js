@@ -6,6 +6,7 @@ Page({
   data: {
     userInfo: null,
     isAdmin: false,
+    isCadre: false,
     memberInfo: null,
     makeupPendingCount: 0,
     makeupUpcomingCount: 0,
@@ -45,6 +46,7 @@ Page({
       this.setData({
         userInfo: userInfo,
         isAdmin: userInfo.role === 'admin',
+        isCadre: memberInfo ? storage.hasAdminPosition(memberInfo.position) : false,
         memberInfo: memberInfo,
         makeupPendingCount: makeupPendingCount,
         makeupUpcomingCount: makeupUpcomingCount,
@@ -70,6 +72,11 @@ Page({
   },
 
   switchRole: function() {
+    if (!this.data.isCadre) {
+      util.showToast('仅干部可切换身份');
+      return;
+    }
+
     var userInfo = this.data.userInfo;
     userInfo.role = userInfo.role === 'admin' ? 'member' : 'admin';
     storage.setUserInfo(userInfo);
@@ -81,6 +88,11 @@ Page({
   },
 
   resetData: function() {
+    if (!this.data.isAdmin) {
+      util.showToast('仅管理员可清除本地缓存');
+      return;
+    }
+
     wx.showModal({
       title: '确认清除',
       content: '将清除本地缓存与登录状态，不会影响云数据库中的业务数据，确定吗？',

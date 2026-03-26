@@ -10,6 +10,8 @@
 - `trainings`
 - `flag_ceremonies`
 - `chronicles`
+- `meeting_records`
+- `office_materials`
 - `tutorials`
 
 ## 当前使用的云函数
@@ -28,11 +30,13 @@
 1. 在微信开发者工具里打开“云开发”
 2. 创建或选择一个云环境
 3. 确认小程序当前项目绑定到了这个云环境
-4. 在云数据库中创建下面 5 个集合：
+4. 在云数据库中创建下面 7 个集合：
    - `members`
    - `trainings`
    - `flag_ceremonies`
    - `chronicles`
+   - `meeting_records`
+   - `office_materials`
    - `tutorials`
 5. 在开发者工具中上传并部署 `cloudfunctions/memberImport`
 6. 在开发者工具中上传并部署 `cloudfunctions/memberManage`
@@ -56,6 +60,23 @@
 - 上传时会自动生成逻辑目录
 - 封面图单独设置，不占用配图名额；当前每则人物志支持 1 张封面图和最多 9 张配图
 - Excel 导入人物志时只导入文本，仍只读 A 列，不导入图片
+
+## 办公室会议记录存储说明
+
+办公室会议记录使用 CloudBase 云存储保存 PDF 文件，并在云数据库中记录元数据。
+
+- PDF 文件本体：上传到 CloudBase 云存储
+- 元数据：保存在 `meeting_records`
+- 推荐目录：`meeting-records/office/...`
+- 当前支持在办公室模块中上传和查看 PDF 会议记录
+
+## 办公室基础资料存储说明
+办公室基础资料使用 CloudBase 云存储保存常用文件，并在云数据库中记录元数据。
+- 文件本体：上传到 CloudBase 云存储
+- 元数据：保存在 `office_materials`
+- 推荐目录：`office-materials/office/...`
+- 当前支持在办公室模块中上传和查看 PDF、Word、Excel、PPT、CSV 等常见格式
+- 上传时无需手动重命名，列表展示名称即原文件名
 
 ## 权限建议
 

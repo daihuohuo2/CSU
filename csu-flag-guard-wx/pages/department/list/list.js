@@ -58,12 +58,11 @@ Page({
 
   handleDepartmentTap: function(e) {
     var key = e.currentTarget.dataset.key;
-    var name = e.currentTarget.dataset.name;
     if (key === 'security') {
       wx.navigateTo({ url: '/pages/department/security/list/list' });
       return;
     }
 
-    util.showToast(name + '模块待完善');
+    wx.navigateTo({ url: '/pages/department/detail/detail?key=' + key });
   }
 });
