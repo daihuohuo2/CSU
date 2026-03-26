@@ -15,35 +15,28 @@
         <view class="summary-label">总页数</view>
       </view>
     </view>
-    <view class="summary-tip">每页展示 5 则人物志内容，正文按整段长文本展示，图片会跟随每则人物志一并显示。</view>
+    <view class="summary-tip">每页展示 8 位人物，按“封面图片 + 人名”双列排版。点击卡片可进入个人人物志页面。</view>
     <view class="action-row">
       <button class="btn-secondary import-btn" bindtap="handleImport" loading="{{isImporting}}" disabled="{{isImporting}}">Excel导入</button>
     </view>
     <view class="progress-text" wx:if="{{progressText}}">{{progressText}}</view>
   </view>
 
-  <view wx:if="{{pageEntries.length}}">
-    <view class="card entry-card" wx:for="{{pageEntries}}" wx:key="id" wx:for-item="entry" wx:for-index="entryIndex">
-      <view class="entry-header">
-        <view class="entry-index">第 {{entry.displayIndex}} 则</view>
-        <view class="entry-edit" bindtap="goEdit" data-id="{{entry.id}}">编辑</view>
+  <view class="cover-grid" wx:if="{{pageEntries.length}}">
+    <view
+      class="card cover-card"
+      wx:for="{{pageEntries}}"
+      wx:key="id"
+      bindtap="goDetail"
+      data-id="{{item.id}}"
+    >
+      <view class="cover-frame" wx:if="{{item.coverImage}}">
+        <image class="cover-photo" src="{{item.coverImage.tempFileURL}}" mode="aspectFill" />
       </view>
-      <view class="entry-content" wx:if="{{entry.content}}">{{entry.content}}</view>
-      <view class="entry-empty" wx:else>暂无正文内容</view>
-      <view class="entry-image-grid" wx:if="{{entry.images.length}}">
-        <image
-          class="entry-image"
-          wx:for="{{entry.images}}"
-          wx:key="imageId"
-          wx:for-item="image"
-          wx:for-index="imageIndex"
-          src="{{image.tempFileURL}}"
-          mode="aspectFill"
-          bindtap="previewImage"
-          data-entry-index="{{entryIndex}}"
-          data-image-index="{{imageIndex}}"
-        />
+      <view class="cover-frame placeholder" wx:else>
+        <view class="cover-placeholder-text">暂无封面</view>
       </view>
+      <view class="cover-name">{{item.personName || '未命名人物'}}</view>
     </view>
   </view>
 

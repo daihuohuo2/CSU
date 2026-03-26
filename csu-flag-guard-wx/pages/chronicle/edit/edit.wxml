@@ -6,7 +6,7 @@
 
   <view class="card" wx:else>
     <view class="section-header">{{gradeLabel}}人物志</view>
-    <view class="intro-text">{{isEdit ? '可直接修改正文与图片，保存后会同步更新当前人物志。' : '每次提交保存为一则独立人物志，支持同时上传最多 9 张图片。'}}</view>
+    <view class="intro-text">{{isEdit ? '可直接修改封面、人名、正文和配图，保存后会同步更新当前人物志。' : '每次提交保存为一则独立人物志，支持单独设置 1 张封面图，并额外上传最多 9 张配图。'}}</view>
 
     <view class="form-group">
       <text class="form-label">年级</text>
@@ -14,13 +14,36 @@
     </view>
 
     <view class="form-group">
-      <text class="form-label">人物志内容 *</text>
-      <textarea class="form-textarea content-textarea" maxlength="-1" placeholder="请输入一则完整的人物志内容" value="{{content}}" bindinput="onInput" />
+      <text class="form-label">封面图片</text>
+      <view class="cover-section">
+        <view class="cover-preview {{coverImage ? 'has-cover' : ''}}" wx:if="{{coverImage}}" bindtap="previewCoverImage">
+          <image class="cover-image" src="{{coverImage.tempFileURL}}" mode="aspectFill" />
+        </view>
+        <view class="cover-upload" wx:else bindtap="chooseCoverImage">
+          <view class="upload-plus">+</view>
+          <view class="upload-text">上传封面</view>
+        </view>
+      </view>
+      <view class="cover-action-row" wx:if="{{coverImage}}">
+        <view class="cover-action-btn" bindtap="chooseCoverImage">更换封面</view>
+        <view class="cover-action-btn danger" bindtap="removeCoverImage">删除封面</view>
+      </view>
+      <view class="image-tip">封面图单独设置，不占用配图名额，显示在年级列表卡片顶部。</view>
     </view>
 
     <view class="form-group">
-      <text class="form-label">人物志图片（{{images.length}} / {{maxImageCount}}）</text>
-      <view class="image-tip">最多上传 9 张图片。Excel 导入仍只导入文本，不会导入图片。</view>
+      <text class="form-label">人物姓名 *</text>
+      <input class="form-input" placeholder="请输入人物姓名" value="{{personName}}" bindinput="onPersonNameInput" />
+    </view>
+
+    <view class="form-group">
+      <text class="form-label">人物志正文 *</text>
+      <textarea class="form-textarea content-textarea" maxlength="-1" placeholder="请输入一则完整的人物志内容" value="{{content}}" bindinput="onContentInput" />
+    </view>
+
+    <view class="form-group">
+      <text class="form-label">配图（{{images.length}} / {{maxImageCount}}）</text>
+      <view class="image-tip">封面与配图分开计算，最多上传 9 张配图。Excel 导入仍只导入文本，不会导入图片。</view>
       <view class="image-grid">
         <view class="image-item" wx:for="{{images}}" wx:key="imageId">
           <image class="image-thumb" src="{{item.tempFileURL}}" mode="aspectFill" bindtap="previewImage" data-index="{{index}}" />
@@ -29,7 +52,7 @@
         </view>
         <view class="image-upload" wx:if="{{images.length < maxImageCount}}" bindtap="chooseImages">
           <view class="upload-plus">+</view>
-          <view class="upload-text">上传图片</view>
+          <view class="upload-text">上传配图</view>
         </view>
       </view>
       <view class="uploading-text" wx:if="{{isUploading}}">正在上传图片，请稍候...</view>

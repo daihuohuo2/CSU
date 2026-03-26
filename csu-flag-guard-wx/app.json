@@ -18,6 +18,7 @@
     "pages/department/security/makeup/detail/detail",
     "pages/chronicle/list/list",
     "pages/chronicle/grade/grade",
+    "pages/chronicle/detail/detail",
     "pages/chronicle/edit/edit",
     "pages/member/list/list",
     "pages/member/detail/detail",

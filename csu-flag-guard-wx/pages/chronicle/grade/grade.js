@@ -3,6 +3,7 @@ var util = require('../../../utils/util');
 var chronicleHelper = require('../../../utils/chronicle');
 
 var IMPORT_BATCH_SIZE = 10;
+var GRID_PAGE_SIZE = 8;
 
 function chooseMessageFile() {
   return new Promise(function(resolve, reject) {
@@ -66,7 +67,9 @@ Page({
   },
 
   buildDisplayEntries: async function(entries) {
-    var resolvedEntries = await chronicleHelper.resolveChronicleEntries(entries || []);
+    var resolvedEntries = await chronicleHelper.resolveChronicleEntries(entries || [], {
+      resolveImages: false
+    });
     return resolvedEntries.map(function(item, index) {
       return Object.assign({}, item, {
         displayIndex: index + 1
@@ -75,7 +78,7 @@ Page({
   },
 
   applyPagination: function(page) {
-    var paged = chronicleHelper.buildPagedEntries(this.data.allEntries, page, chronicleHelper.PAGE_SIZE);
+    var paged = chronicleHelper.buildPagedEntries(this.data.allEntries, page, GRID_PAGE_SIZE);
     this.setData({
       currentPage: paged.currentPage,
       totalPages: paged.totalPages,
@@ -134,31 +137,14 @@ Page({
     });
   },
 
-  goEdit: function(e) {
+  goDetail: function(e) {
     var id = e.currentTarget.dataset.id;
     if (!id) {
       return;
     }
 
     wx.navigateTo({
-      url: '/pages/chronicle/edit/edit?id=' + id + '&year=' + this.data.gradeYear
-    });
-  },
-
-  previewImage: function(e) {
-    var entryIndex = Number(e.currentTarget.dataset.entryIndex);
-    var imageIndex = Number(e.currentTarget.dataset.imageIndex);
-    var entry = this.data.pageEntries[entryIndex];
-    var currentImage = entry && entry.images && entry.images[imageIndex];
-    var urls = entry && entry.previewUrls ? entry.previewUrls : [];
-
-    if (!currentImage || !currentImage.tempFileURL || !urls.length) {
-      return;
-    }
-
-    wx.previewImage({
-      current: currentImage.tempFileURL,
-      urls: urls
+      url: '/pages/chronicle/detail/detail?id=' + id + '&year=' + this.data.gradeYear
     });
   },
 

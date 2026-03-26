@@ -46,6 +46,7 @@
 人物志图片不需要单独创建图片集合。
 
 - 图片本体：上传到 CloudBase 云存储
+- 封面图索引：保存在 `chronicles.coverImage` 与 `chronicles.coverFileId`
 - 图片索引：保存在 `chronicles.images`
 - 推荐目录：`chronicles/{gradeYear}/{chronicleId}/...`
 
@@ -53,6 +54,7 @@
 
 - 不需要手动先创建云存储目录
 - 上传时会自动生成逻辑目录
+- 封面图单独设置，不占用配图名额；当前每则人物志支持 1 张封面图和最多 9 张配图
 - Excel 导入人物志时只导入文本，仍只读 A 列，不导入图片
 
 ## 权限建议

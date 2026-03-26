@@ -38,7 +38,7 @@
 - 人物志
   - 管理员可按年级维护人物志
   - 支持手动新增、编辑、Excel 导入文本
-  - 支持为每则人物志上传最多 9 张图片
+  - 支持单独设置 1 张封面图，并额外上传最多 9 张配图
   - 图片本体存入 CloudBase 云存储，数据库只存图片元数据
 - 补训系统
   - 个人中心可查看“我的补训”
@@ -125,6 +125,7 @@ csu-flag-guard-wx/
     ├── chronicle/
     │   ├── list/
     │   ├── grade/
+    │   ├── detail/
     │   └── edit/
     └── tutorial/
         ├── list/
@@ -265,12 +266,14 @@ csu-flag-guard-wx/
 
 - 首页仅管理员可见“人物志”入口
 - 年级菜单从 `2023级` 到 `2012级`
-- 年级页每页展示 5 则人物志
-- 右下角 `+` 可新增人物志
-- 每则人物志右上角提供“编辑”入口
-- 正文按长文本展示并保留换行
-- 每则人物志最多可上传 9 张图片
-- 图片显示在正文下方，可点击预览
+- 年级页按“封面图 + 人名”双列卡片展示
+- 每页展示 8 位人物，即四行两列
+- 点击卡片进入对应个人人物志详情页
+- 详情页右上角提供“编辑”入口
+- 编辑页可修改封面图、人名、正文和配图
+- 封面图单独设置，不占用配图名额
+- 支持 1 张封面图和最多 9 张配图
+- 配图显示在详情页正文下方，可点击预览
 - Excel 导入仍然只读取 A 列文本，不导入图片
 
 ### 动作教程
@@ -431,7 +434,16 @@ csu-flag-guard-wx/
   id: String,
   gradeYear: String,
   gradeLabel: String,
+  personName: String,
   content: String,
+  coverImage: {
+    imageId: String,
+    fileID: String,
+    sortOrder: Number,
+    caption: String,
+    fileName: String,
+    uploadedAt: Number
+  },
   coverFileId: String,
   images: [
     {
@@ -493,6 +505,7 @@ csu-flag-guard-wx/
 人物志图片使用 CloudBase 云存储，不单独建图片表。
 
 - 图片本体：存入云存储
+- 封面图索引：存入 `chronicles.coverImage` 与 `chronicles.coverFileId`
 - 图片元数据：存入 `chronicles.images`
 - 推荐目录：`chronicles/{gradeYear}/{chronicleId}/...`
 - 人物志图片属于长期文件

@@ -24,10 +24,61 @@
   color: #999;
 }
 
+.cover-section {
+  margin-top: 18rpx;
+}
+
+.cover-preview,
+.cover-upload {
+  position: relative;
+  width: 100%;
+  height: 380rpx;
+  border-radius: 18rpx;
+  overflow: hidden;
+  background: #F7F7F7;
+}
+
+.cover-upload {
+  border: 2rpx dashed #D9D9D9;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.cover-image {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
 .image-tip {
   margin-top: 6rpx;
   font-size: 24rpx;
   color: #999;
+}
+
+.cover-action-row {
+  display: flex;
+  gap: 18rpx;
+  margin-top: 18rpx;
+}
+
+.cover-action-btn {
+  min-width: 180rpx;
+  height: 68rpx;
+  padding: 0 28rpx;
+  border-radius: 999rpx;
+  background: #F3ECFF;
+  color: #6D3FC1;
+  font-size: 24rpx;
+  line-height: 68rpx;
+  text-align: center;
+}
+
+.cover-action-btn.danger {
+  background: #FFF1F1;
+  color: #D85656;
 }
 
 .image-grid {

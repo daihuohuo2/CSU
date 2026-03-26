@@ -3,7 +3,10 @@ var PAGE_SIZE = 5;
 var GRADE_START = 2023;
 var GRADE_END = 2012;
 var FETCH_LIMIT = 20;
-var MAX_IMAGE_COUNT = 9;
+var TEMP_FILE_URL_BATCH_SIZE = 20;
+var MAX_COVER_IMAGE_COUNT = 1;
+var MAX_GALLERY_IMAGE_COUNT = 9;
+var MAX_IMAGE_COUNT = MAX_COVER_IMAGE_COUNT + MAX_GALLERY_IMAGE_COUNT;
 
 function buildGradeOptions() {
   var grades = [];
@@ -71,6 +74,22 @@ function normalizeImages(images) {
   });
 }
 
+function normalizeSingleImage(image) {
+  if (!image || !image.fileID) {
+    return null;
+  }
+
+  return {
+    imageId: normalizeImageId(image, 0),
+    fileID: image.fileID,
+    sortOrder: 1,
+    caption: normalizeText(image.caption),
+    fileName: normalizeText(image.fileName),
+    uploadedAt: Number(image.uploadedAt || 0),
+    tempFileURL: normalizeText(image.tempFileURL)
+  };
+}
+
 function buildChronicleImagesForStorage(images) {
   return normalizeImages(images).map(function(item, index) {
     return {
@@ -82,6 +101,22 @@ function buildChronicleImagesForStorage(images) {
       uploadedAt: item.uploadedAt || Date.now()
     };
   });
+}
+
+function buildChronicleImageForStorage(image) {
+  var normalized = normalizeSingleImage(image);
+  if (!normalized) {
+    return null;
+  }
+
+  return {
+    imageId: normalized.imageId,
+    fileID: normalized.fileID,
+    sortOrder: 1,
+    caption: normalized.caption || '',
+    fileName: normalized.fileName || '',
+    uploadedAt: normalized.uploadedAt || Date.now()
+  };
 }
 
 function getFileExtension(fileName) {
@@ -102,6 +137,13 @@ function buildImageCloudPath(gradeYear, chronicleId, index, fileName) {
   var ext = getFileExtension(fileName);
   var safeIndex = String(index + 1).padStart(2, '0');
   return 'chronicles/' + year + '/' + id + '/' + Date.now() + '_' + safeIndex + ext;
+}
+
+function buildCoverCloudPath(gradeYear, chronicleId, fileName) {
+  var year = normalizeText(gradeYear) || 'unknown';
+  var id = normalizeText(chronicleId) || 'chronicle';
+  var ext = getFileExtension(fileName);
+  return 'chronicles/' + year + '/' + id + '/cover_' + Date.now() + ext;
 }
 
 async function fetchChronicleById(id) {
@@ -132,15 +174,18 @@ async function getTempFileUrlMap(fileIDs) {
   }
 
   try {
-    var res = await wx.cloud.getTempFileURL({
-      fileList: list
-    });
     var map = {};
-    (res.fileList || []).forEach(function(item) {
-      if (item.fileID && item.tempFileURL) {
-        map[item.fileID] = item.tempFileURL;
-      }
-    });
+    for (var i = 0; i < list.length; i += TEMP_FILE_URL_BATCH_SIZE) {
+      var batch = list.slice(i, i + TEMP_FILE_URL_BATCH_SIZE);
+      var res = await wx.cloud.getTempFileURL({
+        fileList: batch
+      });
+      (res.fileList || []).forEach(function(item) {
+        if (item.fileID && item.tempFileURL) {
+          map[item.fileID] = item.tempFileURL;
+        }
+      });
+    }
     return map;
   } catch (err) {
     console.error('get chronicle temp file url failed', err);
@@ -165,26 +210,58 @@ async function resolveChronicleImages(images) {
   return attachImageTempUrls(normalized, tempUrlMap);
 }
 
-async function resolveChronicleEntries(entries) {
+async function resolveChronicleEntries(entries, options) {
+  var settings = Object.assign({
+    resolveImages: true
+  }, options || {});
   var enrichedEntries = (entries || []).map(enrichChronicle);
   var fileIDs = [];
 
   enrichedEntries.forEach(function(entry) {
-    (entry.images || []).forEach(function(image) {
-      if (image.fileID && fileIDs.indexOf(image.fileID) === -1) {
-        fileIDs.push(image.fileID);
-      }
-    });
+    if (entry.coverImage && entry.coverImage.fileID && fileIDs.indexOf(entry.coverImage.fileID) === -1) {
+      fileIDs.push(entry.coverImage.fileID);
+    }
+    if (entry.coverFileId && fileIDs.indexOf(entry.coverFileId) === -1) {
+      fileIDs.push(entry.coverFileId);
+    }
+    if (settings.resolveImages) {
+      (entry.images || []).forEach(function(image) {
+        if (image.fileID && fileIDs.indexOf(image.fileID) === -1) {
+          fileIDs.push(image.fileID);
+        }
+      });
+    }
   });
 
   var tempUrlMap = await getTempFileUrlMap(fileIDs);
   return enrichedEntries.map(function(entry) {
-    var images = attachImageTempUrls(entry.images, tempUrlMap);
+    var images = settings.resolveImages
+      ? attachImageTempUrls(entry.images, tempUrlMap)
+      : normalizeImages(entry.images);
+    var coverFallback = images[0] ? Object.assign({}, images[0], {
+      sortOrder: 1
+    }) : null;
+    var persistedCover = normalizeSingleImage(entry.coverImage) || (entry.coverFileId ? {
+      imageId: normalizeImageId({ fileID: entry.coverFileId }, 0),
+      fileID: entry.coverFileId,
+      sortOrder: 1,
+      caption: '',
+      fileName: '',
+      uploadedAt: 0,
+      tempFileURL: ''
+    } : null);
+    var coverImage = persistedCover || coverFallback;
+    if (coverImage) {
+      coverImage = Object.assign({}, coverImage, {
+        tempFileURL: (tempUrlMap && tempUrlMap[coverImage.fileID]) || coverImage.tempFileURL || ''
+      });
+    }
     return Object.assign({}, entry, {
+      coverImage: coverImage,
       images: images,
-      previewUrls: images.map(function(image) {
+      previewUrls: settings.resolveImages ? images.map(function(image) {
         return image.tempFileURL;
-      }).filter(Boolean)
+      }).filter(Boolean) : []
     });
   });
 }
@@ -257,11 +334,22 @@ async function fetchChroniclesByGrade(gradeYear) {
 function enrichChronicle(entry) {
   var content = normalizeText(entry.content);
   var images = normalizeImages(entry.images);
+  var coverImage = normalizeSingleImage(entry.coverImage) || (entry.coverFileId ? {
+    imageId: normalizeImageId({ fileID: entry.coverFileId }, 0),
+    fileID: entry.coverFileId,
+    sortOrder: 1,
+    caption: '',
+    fileName: '',
+    uploadedAt: 0,
+    tempFileURL: ''
+  } : null);
   return Object.assign({}, entry, {
+    personName: normalizeText(entry.personName) || '未命名人物',
     content: content,
     sections: buildSections(content),
+    coverImage: coverImage,
     images: images,
-    coverFileId: normalizeText(entry.coverFileId || (images[0] && images[0].fileID) || '')
+    coverFileId: normalizeText(entry.coverFileId || (coverImage && coverImage.fileID) || (images[0] && images[0].fileID) || '')
   });
 }
 
@@ -281,10 +369,14 @@ function buildPagedEntries(entries, currentPage, pageSize) {
 
 module.exports = {
   COLLECTION_NAME: COLLECTION_NAME,
+  MAX_COVER_IMAGE_COUNT: MAX_COVER_IMAGE_COUNT,
+  MAX_GALLERY_IMAGE_COUNT: MAX_GALLERY_IMAGE_COUNT,
   MAX_IMAGE_COUNT: MAX_IMAGE_COUNT,
   PAGE_SIZE: PAGE_SIZE,
   attachImageTempUrls: attachImageTempUrls,
+  buildChronicleImageForStorage: buildChronicleImageForStorage,
   buildChronicleImagesForStorage: buildChronicleImagesForStorage,
+  buildCoverCloudPath: buildCoverCloudPath,
   buildImageCloudPath: buildImageCloudPath,
   buildGradeOptions: buildGradeOptions,
   buildPagedEntries: buildPagedEntries,
@@ -299,6 +391,7 @@ module.exports = {
   getTempFileUrlMap: getTempFileUrlMap,
   normalizeText: normalizeText,
   normalizeImages: normalizeImages,
+  normalizeSingleImage: normalizeSingleImage,
   resolveChronicleEntries: resolveChronicleEntries,
   resolveChronicleImages: resolveChronicleImages
 };
