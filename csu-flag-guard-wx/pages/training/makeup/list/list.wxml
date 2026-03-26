@@ -44,6 +44,6 @@
       </view>
       <view class="record-block-value pending-text" wx:else>点击选择未来补训日程</view>
     </view>
-    <view class="record-action">{{item.isPending ? '去登记补训' : '调整补训'}} &gt;</view>
+    <view class="record-action">{{item.isPending ? '去登记补训' : '调整补训'}} ›</view>
   </view>
 </view>

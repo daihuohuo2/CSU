@@ -58,11 +58,11 @@ Page({
   },
 
   goTraining: function() {
-    wx.navigateTo({ url: '/pages/training/list/list' });
+    wx.navigateTo({ url: '/pages/training/list/list?mode=mine' });
   },
 
   goFlag: function() {
-    wx.navigateTo({ url: '/pages/flag/list/list' });
+    wx.navigateTo({ url: '/pages/flag/list/list?mode=mine' });
   },
 
   goMakeupList: function() {

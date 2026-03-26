@@ -31,8 +31,8 @@
 
   <view class="empty-state" wx:else>
     <view class="empty-icon">🚩</view>
-    <view class="empty-text">暂无升降旗记录</view>
+    <view class="empty-text">{{isMineMode ? '暂无与你相关的升降旗记录' : '暂无升降旗记录'}}</view>
   </view>
 
-  <view class="fab-btn" wx:if="{{isAdmin}}" bindtap="goCreate">+</view>
+  <view class="fab-btn" wx:if="{{isAdmin && !isMineMode}}" bindtap="goCreate">+</view>
 </view>
