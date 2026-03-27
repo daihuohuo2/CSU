@@ -1,14 +1,16 @@
 <view class="container">
-  <!-- 顶部横幅 -->
   <view class="header">
     <view class="header-bg">
-      <view class="header-flag">★</view>
+      <view class="header-emblems">
+        <image class="header-badge" src="/mock/university.png" mode="aspectFit" />
+        <view class="header-flag">★</view>
+        <image class="header-badge" src="/mock/class.png" mode="aspectFit" />
+      </view>
       <view class="header-title">中南大学国旗班</view>
-      <view class="header-subtitle">管理系统</view>
+      <view class="header-subtitle">智慧管理系统</view>
     </view>
   </view>
 
-  <!-- 用户信息栏 -->
   <view class="user-bar card" wx:if="{{userInfo}}" bindtap="goMine">
     <view class="user-avatar">{{userInfo.name[0]}}</view>
     <view class="user-info">
@@ -17,12 +19,12 @@
     </view>
     <text class="arrow-right">›</text>
   </view>
+
   <view class="user-bar card login-prompt" wx:else bindtap="goLogin">
     <text class="login-text">请先登录以使用全部功能</text>
     <text class="login-btn-text">去登录 ›</text>
   </view>
 
-  <!-- 功能入口 -->
   <view class="section-title">功能模块</view>
   <view class="menu-grid">
     <view class="menu-item card" bindtap="goTraining">
@@ -33,6 +35,7 @@
       </view>
       <text class="arrow-right">›</text>
     </view>
+
     <view class="menu-item card" bindtap="goFlag">
       <view class="menu-icon" style="background: #FFF8E6; color: #E6A23C;">🚩</view>
       <view class="menu-body">
@@ -41,6 +44,7 @@
       </view>
       <text class="arrow-right">›</text>
     </view>
+
     <view class="menu-item card" bindtap="goMember">
       <view class="menu-icon" style="background: #F0F5FF; color: #576B95;">👥</view>
       <view class="menu-body">
@@ -49,6 +53,7 @@
       </view>
       <text class="arrow-right">›</text>
     </view>
+
     <view class="menu-item card" wx:if="{{isAdmin}}" bindtap="goDepartment">
       <view class="menu-icon" style="background: #FFF6E8; color: #A85C00;">🏢</view>
       <view class="menu-body">
@@ -57,14 +62,16 @@
       </view>
       <text class="arrow-right">›</text>
     </view>
+
     <view class="menu-item card" wx:if="{{!isAdmin}}" bindtap="goDepartmentWork">
-      <view class="menu-icon" style="background: #EEF8F2; color: #1D8A52;">🧩</view>
+      <view class="menu-icon" style="background: #EEF8F2; color: #1D8A52;">📋</view>
       <view class="menu-body">
         <view class="menu-text">部门工作</view>
         <view class="menu-desc">{{memberInfo && memberInfo.department ? memberInfo.department : '查看所属部门工作安排'}}</view>
       </view>
       <text class="arrow-right">›</text>
     </view>
+
     <view class="menu-item card" bindtap="goChronicle">
       <view class="menu-icon" style="background: #F7F1FF; color: #6D3FC1;">📚</view>
       <view class="menu-body">
@@ -73,8 +80,9 @@
       </view>
       <text class="arrow-right">›</text>
     </view>
+
     <view class="menu-item card" bindtap="goTutorial">
-      <view class="menu-icon" style="background: #F0FFF0; color: #07C160;">📖</view>
+      <view class="menu-icon" style="background: #F0FFF0; color: #07C160;">📝</view>
       <view class="menu-body">
         <view class="menu-text">动作教程</view>
         <view class="menu-desc">训练动作要领</view>
@@ -83,17 +91,16 @@
     </view>
   </view>
 
-  <!-- 快捷操作 (管理员) -->
   <view wx:if="{{isAdmin}}">
     <view class="section-title">管理员快捷操作</view>
     <view class="quick-list card">
       <view class="quick-item" bindtap="goTrainingCreate">
-        <text class="quick-icon">📝</text>
+        <text class="quick-icon">📍</text>
         <text class="quick-text">创建训练任务</text>
         <text class="arrow-right">›</text>
       </view>
       <view class="quick-item" bindtap="goFlagCreate">
-        <text class="quick-icon">🏁</text>
+        <text class="quick-icon">🎫</text>
         <text class="quick-text">创建升降旗任务</text>
         <text class="arrow-right">›</text>
       </view>
@@ -110,7 +117,6 @@
     </view>
   </view>
 
-  <!-- 底部 -->
   <view class="footer">
     <text class="footer-text">中南大学国旗班 © 2024</text>
   </view>

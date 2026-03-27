@@ -1,13 +1,33 @@
 .header {
   background: linear-gradient(135deg, #8B0000 0%, #C41A1A 100%);
-  padding: 60rpx 40rpx 50rpx;
+  padding: 54rpx 40rpx 50rpx;
   text-align: center;
+}
+
+.header-bg {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.header-emblems {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 26rpx;
+  margin-bottom: 18rpx;
+}
+
+.header-badge {
+  width: 84rpx;
+  height: 84rpx;
+  display: block;
 }
 
 .header-flag {
   font-size: 60rpx;
+  line-height: 1;
   color: #FFD700;
-  margin-bottom: 10rpx;
 }
 
 .header-title {
@@ -23,7 +43,6 @@
   margin-top: 8rpx;
 }
 
-/* 用户信息栏 */
 .user-bar {
   display: flex;
   align-items: center;
@@ -89,7 +108,6 @@
   font-weight: bold;
 }
 
-/* 功能入口 */
 .menu-grid {
   padding: 0;
 }
@@ -128,7 +146,6 @@
   margin-top: 6rpx;
 }
 
-/* 快捷操作 */
 .quick-list {
   padding: 10rpx 30rpx;
 }
@@ -155,7 +172,6 @@
   color: #333333;
 }
 
-/* 底部 */
 .footer {
   text-align: center;
   padding: 40rpx 0 20rpx;
