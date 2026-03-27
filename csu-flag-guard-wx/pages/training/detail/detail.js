@@ -1,6 +1,7 @@
 var storage = require('../../../utils/storage');
 var util = require('../../../utils/util');
 var makeupHelper = require('../../../utils/makeup');
+var memberSorter = require('../../../utils/member-sort');
 
 var ARRIVED_STATUS = '\u5df2\u5230';
 var LEAVE_STATUS = '\u8bf7\u5047';
@@ -15,6 +16,16 @@ function buildPendingLeaveActionText(item) {
     parts.push(item.leaveTrainingTitle);
   }
   return parts.join(' ').trim() || '\u8bf7\u5047\u8bb0\u5f55';
+}
+
+function buildMemberMap(members) {
+  var map = {};
+  (members || []).forEach(function(member) {
+    if (member && member.id) {
+      map[member.id] = member;
+    }
+  });
+  return map;
 }
 
 Page({
@@ -119,10 +130,45 @@ Page({
 
   noop: function() {},
 
+  sortAttendanceByMemberOrder: function(attendance, memberMap) {
+    var map = memberMap || {};
+    return (attendance || []).slice().sort(function(a, b) {
+      var memberA = map[a.memberId] || {
+        id: a.memberId,
+        name: a.name || '',
+        grade: '',
+        joinDate: '',
+        studentId: '',
+        position: []
+      };
+      var memberB = map[b.memberId] || {
+        id: b.memberId,
+        name: b.name || '',
+        grade: '',
+        joinDate: '',
+        studentId: '',
+        position: []
+      };
+
+      var compare = memberSorter.compareMembersForAssignment(memberA, memberB);
+      if (compare !== 0) {
+        return compare;
+      }
+
+      return String(a.name || '').localeCompare(String(b.name || ''));
+    });
+  },
+
   loadData: async function() {
     try {
-      var detail = await storage.getById(storage.KEYS.TRAININGS, this.data.id);
+      var result = await Promise.all([
+        storage.getById(storage.KEYS.TRAININGS, this.data.id),
+        storage.getList(storage.KEYS.MEMBERS)
+      ]);
+      var detail = result[0];
+      var members = storage.enrichMembers(result[1] || []);
       if (detail) {
+        detail.attendance = this.sortAttendanceByMemberOrder(detail.attendance || [], buildMemberMap(members));
         var stats = util.calcAttendanceStats(detail.attendance || []);
         this.setData({
           detail: detail,
@@ -139,6 +185,8 @@ Page({
   updateTrainingAttendance: async function(training, attendance) {
     await storage.update(storage.KEYS.TRAININGS, training.id, {
       _docId: training._docId,
+      title: training.title,
+      type: training.type,
       attendance: attendance
     });
   },
@@ -185,10 +233,7 @@ Page({
     detail.attendance[index] = currentRecord;
 
     try {
-      await storage.update(storage.KEYS.TRAININGS, this.data.id, {
-        _docId: detail._docId,
-        attendance: detail.attendance
-      });
+      await this.updateTrainingAttendance(detail, detail.attendance);
 
       if (status !== LEAVE_STATUS && previousMakeupTrainingId) {
         var trainings = await storage.getList(storage.KEYS.TRAININGS);
@@ -453,7 +498,9 @@ Page({
       success: async function(res) {
         if (res.confirm) {
           try {
-            await storage.remove(storage.KEYS.TRAININGS, that.data.id);
+            await storage.remove(storage.KEYS.TRAININGS, that.data.id, {
+              _docId: that.data.detail && that.data.detail._docId
+            });
             util.showToast('\u5df2\u5220\u9664', 'success');
             setTimeout(function() {
               wx.navigateBack();

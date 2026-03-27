@@ -1,0 +1,70 @@
+<view class="container" wx:if="{{task}}">
+  <view class="card">
+    <view class="section-header">{{task.title}}</view>
+    <view class="task-meta">DDL：{{task.displayDueDate}}</view>
+    <view class="task-meta">完成进度：{{task.progressText}}</view>
+    <view class="task-meta">发布人：{{task.createdBy || '管理员'}}</view>
+  </view>
+
+  <view class="card" wx:if="{{!isMemberMode}}">
+    <view class="section-header">成员完成情况</view>
+    <view class="assignee-item" wx:for="{{task.assigneeRows}}" wx:key="memberId">
+      <view class="assignee-main">
+        <view class="assignee-name">{{item.name}}</view>
+        <view class="assignee-meta" wx:if="{{item.submitted}}">提交时间：{{item.submittedAt}}</view>
+        <view class="assignee-meta" wx:if="{{item.submitted}}">提交文件：{{item.fileName}}</view>
+        <view class="assignee-meta" wx:if="{{!item.submitted}}">尚未提交</view>
+      </view>
+      <view class="assignee-status {{item.submitted ? 'done' : 'pending'}}">{{item.submitted ? '已完成' : '待完成'}}</view>
+    </view>
+  </view>
+
+  <view class="card" wx:if="{{!isMemberMode}}">
+    <view class="section-header">提交文件</view>
+    <view wx:if="{{task.displaySubmissions.length}}">
+      <view class="submission-item" wx:for="{{task.displaySubmissions}}" wx:key="memberId" bindtap="openSubmission" data-file-id="{{item.fileID}}" data-file-name="{{item.fileName}}">
+        <view class="submission-title-row">
+          <view class="submission-title">{{item.name}}</view>
+          <view class="submission-tag">{{item.fileTypeLabel}}</view>
+        </view>
+        <view class="submission-meta">{{item.fileName}}</view>
+        <view class="submission-meta">提交时间：{{item.displaySubmittedAt}}</view>
+        <view class="submission-action">查看提交文件 ›</view>
+      </view>
+    </view>
+    <view wx:else class="empty-title">当前暂无成员提交文件</view>
+  </view>
+
+  <view wx:if="{{isMemberMode}}">
+    <view class="card" wx:if="{{task.isSubmittedForMember && task.memberSubmission}}">
+      <view class="section-header">我的提交</view>
+      <view class="submission-item" bindtap="openSubmission" data-file-id="{{task.memberSubmission.fileID}}" data-file-name="{{task.memberSubmission.fileName}}">
+        <view class="submission-title-row">
+          <view class="submission-title">已完成提交</view>
+          <view class="submission-tag done-tag">{{task.memberSubmission.fileTypeLabel}}</view>
+        </view>
+        <view class="submission-meta">{{task.memberSubmission.fileName}}</view>
+        <view class="submission-action">查看已提交文件 ›</view>
+      </view>
+    </view>
+
+    <view class="card" wx:elif="{{task.isAssignedToMember}}">
+      <view class="section-header">提交任务文件</view>
+      <view class="form-group">
+        <text class="form-label">提交文件 *</text>
+        <view class="file-card" bindtap="chooseFile">
+          <view wx:if="{{selectedFile}}">
+            <view class="file-name">{{selectedFile.name}}</view>
+            <view class="file-size">类型：{{selectedFile.tag}} / 大小：{{selectedFile.displaySize}}</view>
+          </view>
+          <view class="file-placeholder" wx:else>点击选择 PDF / Word / Excel 等文件</view>
+        </view>
+      </view>
+      <button class="btn-primary submit-btn" bindtap="submitTask" loading="{{isSubmitting}}" disabled="{{isSubmitting}}">提交并完成任务</button>
+    </view>
+
+    <view class="card" wx:else>
+      <view class="empty-title">该任务未分配给当前成员</view>
+    </view>
+  </view>
+</view>

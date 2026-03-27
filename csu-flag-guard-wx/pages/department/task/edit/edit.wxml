@@ -1,0 +1,38 @@
+<view class="container" wx:if="{{isAdmin}}">
+  <view class="card">
+    <view class="section-header">发布任务</view>
+
+    <view class="form-group">
+      <text class="form-label">任务名称 *</text>
+      <input class="form-input" placeholder="请输入任务名称" value="{{title}}" bindinput="onTitleInput" />
+    </view>
+
+    <view class="form-group">
+      <text class="form-label">DDL *</text>
+      <picker mode="date" value="{{dueDate}}" bindchange="onDatePick">
+        <view class="form-input">{{dueDate || '请选择截止日期'}}</view>
+      </picker>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="section-header">选择人员</view>
+    <view class="member-summary">已选择 {{selectedCount}} 人</view>
+
+    <view wx:if="{{members.length}}">
+      <view class="member-item" wx:for="{{members}}" wx:key="id">
+        <view class="member-main">
+          <view class="member-name">{{item.name}}</view>
+          <view class="member-meta">{{item.grade}} {{item.className || ''}}</view>
+          <view class="member-meta">{{item.positionText || '队员'}}</view>
+        </view>
+        <switch checked="{{item.checked}}" data-index="{{index}}" bindchange="toggleMember" color="#C41A1A" />
+      </view>
+    </view>
+    <view wx:else class="empty-title">当前暂无办公室在队成员</view>
+  </view>
+
+  <button class="btn-primary submit-btn" bindtap="handleSubmit" loading="{{isSubmitting}}" disabled="{{isSubmitting || isLoading}}">
+    发布任务
+  </button>
+</view>

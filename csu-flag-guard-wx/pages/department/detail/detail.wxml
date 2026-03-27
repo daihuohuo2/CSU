@@ -22,6 +22,15 @@
     <view wx:else class="member-empty">当前暂无在队{{departmentName}}成员</view>
   </view>
 
+  <view class="card module-card" wx:if="{{showTaskModule}}" bindtap="goOfficeTasks">
+    <view class="module-header">
+      <view class="module-title">发布任务</view>
+      <view class="module-tag">任务</view>
+    </view>
+    <view class="module-desc">发布办公室任务、设置 DDL，并在任务详情中查看已完成任务和成员提交的文件。</view>
+    <view class="module-action">进入模块 ›</view>
+  </view>
+
   <view class="card module-card" wx:if="{{showMeetingModule}}" bindtap="goMeetingRecords">
     <view class="module-header">
       <view class="module-title">会议记录</view>

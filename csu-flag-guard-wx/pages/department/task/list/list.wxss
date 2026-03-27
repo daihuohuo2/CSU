@@ -1,0 +1,83 @@
+.intro-text {
+  font-size: 24rpx;
+  color: #666666;
+  line-height: 1.8;
+}
+
+.upload-entry-card {
+  border: 2rpx dashed #E7D8FF;
+}
+
+.upload-entry-title {
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #333333;
+}
+
+.upload-entry-desc {
+  margin-top: 14rpx;
+  font-size: 24rpx;
+  color: #666666;
+  line-height: 1.8;
+}
+
+.upload-entry-action {
+  margin-top: 20rpx;
+  text-align: right;
+  font-size: 24rpx;
+  color: #6B4EFF;
+}
+
+.task-card {
+  border: 2rpx solid #F1E9FF;
+  border-radius: 18rpx;
+  padding: 24rpx;
+  margin-top: 18rpx;
+}
+
+.task-card.done {
+  border-color: #E6F7EC;
+  background: #FBFFFC;
+}
+
+.task-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20rpx;
+}
+
+.task-title {
+  flex: 1;
+  min-width: 0;
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #333333;
+}
+
+.task-progress {
+  flex-shrink: 0;
+  font-size: 22rpx;
+  color: #6B4EFF;
+  background: #F5F0FF;
+  padding: 6rpx 16rpx;
+  border-radius: 20rpx;
+}
+
+.done-tag {
+  color: #1D8A52;
+  background: #EEF8F2;
+}
+
+.task-meta {
+  margin-top: 12rpx;
+  font-size: 24rpx;
+  color: #666666;
+}
+
+.task-action {
+  margin-top: 18rpx;
+  text-align: right;
+  font-size: 24rpx;
+  color: #6B4EFF;
+}

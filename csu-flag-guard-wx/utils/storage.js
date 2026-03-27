@@ -228,15 +228,21 @@ function normalizeItemForStorage(key, item) {
   }
 
   if (key === KEYS.TRAININGS) {
-    return Object.assign({}, item, {
-      type: normalizeTrainingType(item.type, item.title)
-    });
+    var nextTraining = Object.assign({}, item);
+    var hasTypeContext = Object.prototype.hasOwnProperty.call(item, 'type')
+      || Object.prototype.hasOwnProperty.call(item, 'title');
+    if (hasTypeContext) {
+      nextTraining.type = normalizeTrainingType(item.type, item.title);
+    }
+    return nextTraining;
   }
 
   if (key === KEYS.TUTORIALS) {
-    return Object.assign({}, item, {
-      category: normalizeTutorialCategory(item.category)
-    });
+    var nextTutorial = Object.assign({}, item);
+    if (Object.prototype.hasOwnProperty.call(item, 'category')) {
+      nextTutorial.category = normalizeTutorialCategory(item.category);
+    }
+    return nextTutorial;
   }
 
   return item;
@@ -338,9 +344,23 @@ async function backfillMemberDefaults() {
 async function backfillTrainingTypes() {
   var collection = getCollection(KEYS.TRAININGS);
   var trainings = await fetchAll(collection);
+  var linkedMakeupIds = {};
+
+  for (var j = 0; j < trainings.length; j++) {
+    var attendance = trainings[j].attendance || [];
+    for (var k = 0; k < attendance.length; k++) {
+      var record = attendance[k] || {};
+      if (record.status === '璇峰亣' && record.makeupTrainingId) {
+        linkedMakeupIds[record.makeupTrainingId] = true;
+      }
+    }
+  }
 
   for (var i = 0; i < trainings.length; i++) {
     var normalizedType = normalizeTrainingType(trainings[i].type, trainings[i].title);
+    if (!normalizedType && linkedMakeupIds[trainings[i].id]) {
+      normalizedType = '琛ヨ';
+    }
     if (!normalizedType || normalizedType === trainings[i].type) {
       continue;
     }
@@ -533,6 +553,11 @@ async function queryChroniclesPage(options) {
   };
 }
 
+async function queryChronicleGradeSummary() {
+  var result = await queryListPageInCloud('chronicleGradeSummary');
+  return Object.assign({}, result.countMap || {});
+}
+
 async function queryMeetingRecordsPage(options) {
   var result = await queryListPageInCloud('meetingRecords', options);
   return {
@@ -682,6 +707,17 @@ async function clearMakeupTraining(options) {
   });
 }
 
+async function removeTrainingInCloud(id, options) {
+  var settings = Object.assign({
+    _docId: ''
+  }, options || {});
+
+  return queryListPageInCloud('removeTraining', {
+    id: id,
+    docId: settings._docId || ''
+  });
+}
+
 async function update(key, id, data) {
   await ensureReady();
 
@@ -720,9 +756,21 @@ async function update(key, id, data) {
   return updatedItem;
 }
 
-async function remove(key, id) {
+async function remove(key, id, options) {
   await ensureReady();
+
+  if (key === KEYS.TRAININGS) {
+    return removeTrainingInCloud(id, options);
+  }
+
   var collection = getCollection(key);
+  var docId = options && options._docId ? options._docId : '';
+
+  if (docId) {
+    await collection.doc(docId).remove();
+    return;
+  }
+
   var target = await collection.where({ id: id }).limit(1).get();
   if (!target.data || !target.data.length) {
     return;
@@ -967,6 +1015,7 @@ module.exports = {
   queryTrainingsPage: queryTrainingsPage,
   queryFlagsPage: queryFlagsPage,
   queryChroniclesPage: queryChroniclesPage,
+  queryChronicleGradeSummary: queryChronicleGradeSummary,
   queryMeetingRecordsPage: queryMeetingRecordsPage,
   queryOfficeMaterialsPage: queryOfficeMaterialsPage,
   getMemberMakeupSummary: getMemberMakeupSummary,
@@ -975,6 +1024,7 @@ module.exports = {
   getMakeupSelectionData: getMakeupSelectionData,
   assignMakeupTraining: assignMakeupTraining,
   clearMakeupTraining: clearMakeupTraining,
+  removeTrainingInCloud: removeTrainingInCloud,
   normalizePositions: normalizePositions,
   getPositionText: getPositionText,
   hasAdminPosition: hasAdminPosition,

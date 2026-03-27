@@ -33,7 +33,9 @@ Page({
 
   onLoad: function(options) {
     var gradeYear = chronicleHelper.normalizeText(options.year);
-    var gradeLabel = gradeYear ? gradeYear + '级' : '';
+    var gradeLabel = gradeYear
+      ? (/[级届]$/.test(gradeYear) ? gradeYear : gradeYear + '级')
+      : '';
 
     this.setData({
       gradeYear: gradeYear,
@@ -49,14 +51,6 @@ Page({
   },
 
   onShow: async function() {
-    if (!this.data.isAdmin) {
-      util.showToast('仅管理员可查看人物志');
-      setTimeout(function() {
-        wx.navigateBack();
-      }, 1200);
-      return;
-    }
-
     await this.loadData(this.data.currentPage);
   },
 
@@ -146,6 +140,11 @@ Page({
   },
 
   goAdd: function() {
+    if (!this.data.isAdmin) {
+      util.showToast('仅管理员可新增人物志');
+      return;
+    }
+
     wx.navigateTo({
       url: '/pages/chronicle/edit/edit?year=' + this.data.gradeYear
     });
@@ -226,6 +225,11 @@ Page({
   },
 
   handleImport: async function() {
+    if (!this.data.isAdmin) {
+      util.showToast('仅管理员可导入人物志');
+      return;
+    }
+
     if (this.data.isImporting) {
       return;
     }

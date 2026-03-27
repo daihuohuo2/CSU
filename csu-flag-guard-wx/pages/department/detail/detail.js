@@ -40,6 +40,7 @@ Page({
     bgColor: '#F5F5F5',
     color: '#333333',
     members: [],
+    showTaskModule: false,
     showMeetingModule: false,
     showMaterialModule: false
   },
@@ -64,6 +65,7 @@ Page({
       icon: config.icon,
       bgColor: config.bgColor,
       color: config.color,
+      showTaskModule: departmentKey === 'office',
       showMeetingModule: departmentKey === 'office',
       showMaterialModule: departmentKey === 'office'
     });
@@ -114,6 +116,16 @@ Page({
 
     wx.navigateTo({
       url: '/pages/department/meeting/list/list'
+    });
+  },
+
+  goOfficeTasks: function() {
+    if (this.data.departmentKey !== 'office') {
+      return;
+    }
+
+    wx.navigateTo({
+      url: '/pages/department/task/list/list'
     });
   },
 

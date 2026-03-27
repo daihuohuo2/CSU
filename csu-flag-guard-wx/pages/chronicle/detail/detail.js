@@ -19,14 +19,6 @@ Page({
   },
 
   onShow: async function() {
-    if (!this.data.isAdmin) {
-      util.showToast('仅管理员可查看人物志');
-      setTimeout(function() {
-        wx.navigateBack();
-      }, 1200);
-      return;
-    }
-
     await this.loadData();
   },
 
@@ -71,11 +63,16 @@ Page({
         detail: null,
         isLoading: false
       });
-      util.showToast('加载人物志失败');
+      util.showToast(err.message || '加载人物志失败');
     }
   },
 
   goEdit: function() {
+    if (!this.data.isAdmin) {
+      util.showToast('仅管理员可编辑人物志');
+      return;
+    }
+
     if (!this.data.detail) {
       return;
     }

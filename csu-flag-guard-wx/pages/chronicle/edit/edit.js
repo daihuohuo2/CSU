@@ -41,7 +41,9 @@ Page({
   onLoad: async function(options) {
     var chronicleId = chronicleHelper.normalizeText(options.id) || util.generateId('c');
     var gradeYear = chronicleHelper.normalizeText(options.year);
-    var gradeLabel = gradeYear ? gradeYear + '级' : '';
+    var gradeLabel = gradeYear
+      ? (/[级届]$/.test(gradeYear) ? gradeYear : gradeYear + '级')
+      : '';
     var isAdmin = storage.isAdmin();
 
     this.setData({
@@ -143,7 +145,9 @@ Page({
       var resolvedEntries = await chronicleHelper.resolveChronicleEntries([entry]);
       var chronicle = resolvedEntries[0] || chronicleHelper.enrichChronicle(entry);
       var gradeYear = chronicle.gradeYear || this.data.gradeYear;
-      var gradeLabel = gradeYear ? gradeYear + '级' : '';
+      var gradeLabel = gradeYear
+        ? (/[级届]$/.test(gradeYear) ? gradeYear : gradeYear + '级')
+        : '';
 
       this.setData({
         isLoading: false,

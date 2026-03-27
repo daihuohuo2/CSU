@@ -12,14 +12,6 @@ Page({
   onShow: async function() {
     var isAdmin = storage.isAdmin();
     this.setData({ isAdmin: isAdmin });
-    if (!isAdmin) {
-      util.showToast('仅管理员可查看人物志');
-      setTimeout(function() {
-        wx.navigateBack();
-      }, 1200);
-      return;
-    }
-
     await this.loadData();
   },
 
@@ -28,24 +20,35 @@ Page({
     var countMap = {};
 
     try {
-      var rows = await chronicleHelper.fetchAllChronicles();
-      rows.forEach(function(item) {
-        var year = chronicleHelper.normalizeText(item.gradeYear);
-        if (!year) {
-          return;
-        }
-        countMap[year] = (countMap[year] || 0) + 1;
-      });
+      try {
+        countMap = await storage.queryChronicleGradeSummary();
+      } catch (queryErr) {
+        console.warn('listQuery chronicleGradeSummary unavailable, fallback to local query', queryErr);
+        var rows = await chronicleHelper.fetchAllChronicles();
+        rows.forEach(function(item) {
+          var year = chronicleHelper.normalizeText(item.gradeYear);
+          if (!year) {
+            return;
+          }
+          countMap[year] = (countMap[year] || 0) + 1;
+        });
+      }
     } catch (err) {
       console.error(err);
-      util.showToast('加载人物志失败');
+      util.showToast(err.message || '加载人物志失败');
     }
 
     var grades = chronicleHelper.buildGradeOptions().map(function(item) {
       return Object.assign({}, item, {
-        count: countMap[item.year] || 0
+        count: Number(countMap[item.year] || 0)
       });
     });
+
+    if (!this.data.isAdmin) {
+      grades = grades.filter(function(item) {
+        return item.count > 0;
+      });
+    }
 
     this.setData({
       grades: grades,
@@ -55,6 +58,10 @@ Page({
 
   goGrade: function(e) {
     var year = e.currentTarget.dataset.year;
+    if (!year) {
+      return;
+    }
+
     wx.navigateTo({
       url: '/pages/chronicle/grade/grade?year=' + year
     });

@@ -1,0 +1,104 @@
+.file-card {
+  background: #FAFAFA;
+  border: 2rpx dashed #E5E5E5;
+  border-radius: 16rpx;
+  padding: 24rpx;
+}
+
+.file-name {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #333333;
+}
+
+.file-size {
+  margin-top: 10rpx;
+  font-size: 24rpx;
+  color: #999999;
+}
+
+.file-placeholder {
+  font-size: 24rpx;
+  color: #999999;
+}
+
+.task-meta {
+  margin-top: 14rpx;
+  font-size: 24rpx;
+  color: #666666;
+}
+
+.assignee-item,
+.submission-item {
+  padding: 22rpx 0;
+  border-bottom: 1rpx solid #F5F5F5;
+}
+
+.assignee-item:last-child,
+.submission-item:last-child {
+  border-bottom: none;
+}
+
+.assignee-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20rpx;
+}
+
+.assignee-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.assignee-name,
+.submission-title {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #333333;
+}
+
+.assignee-meta,
+.submission-meta {
+  margin-top: 8rpx;
+  font-size: 24rpx;
+  color: #999999;
+}
+
+.assignee-status,
+.submission-tag {
+  flex-shrink: 0;
+  font-size: 22rpx;
+  padding: 6rpx 16rpx;
+  border-radius: 20rpx;
+}
+
+.assignee-status.pending,
+.submission-tag {
+  color: #B7791F;
+  background: #FFF7E8;
+}
+
+.assignee-status.done,
+.done-tag {
+  color: #1D8A52;
+  background: #EEF8F2;
+}
+
+.submission-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20rpx;
+}
+
+.submission-action {
+  margin-top: 14rpx;
+  text-align: right;
+  font-size: 24rpx;
+  color: #6B4EFF;
+}
+
+.submit-btn {
+  margin-top: 20rpx;
+}

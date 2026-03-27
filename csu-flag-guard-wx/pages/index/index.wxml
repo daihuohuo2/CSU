@@ -65,11 +65,11 @@
       </view>
       <text class="arrow-right">›</text>
     </view>
-    <view class="menu-item card" wx:if="{{isAdmin}}" bindtap="goChronicle">
+    <view class="menu-item card" bindtap="goChronicle">
       <view class="menu-icon" style="background: #F7F1FF; color: #6D3FC1;">📚</view>
       <view class="menu-body">
         <view class="menu-text">人物志</view>
-        <view class="menu-desc">按年级维护人物志内容</view>
+        <view class="menu-desc">{{isAdmin ? '按年级维护人物志内容' : '按年级查看已发布人物志'}}</view>
       </view>
       <text class="arrow-right">›</text>
     </view>

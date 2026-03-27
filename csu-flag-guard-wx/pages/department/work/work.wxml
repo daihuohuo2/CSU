@@ -15,18 +15,55 @@
     </view>
 
     <view class="card">
-      <view class="section-header">部门任务</view>
-      <view class="placeholder-box">
-        <view class="placeholder-title">待完善</view>
-        <view class="placeholder-text">当前部门暂未分配任务，或内部菜单尚未设置完成。</view>
+      <view class="section-header">部门成员概览</view>
+      <view class="member-summary">当前在队成员 {{members.length}} 人</view>
+      <view wx:if="{{members.length}}">
+        <view class="member-item" wx:for="{{members}}" wx:key="id">
+          <view class="member-main">
+            <view class="member-name">{{item.name}}</view>
+            <view class="member-meta">{{item.grade}} {{item.className || ''}}</view>
+          </view>
+          <view class="member-position">{{item.positionText || '队员'}}</view>
+        </view>
+      </view>
+      <view wx:else class="empty-title">当前暂无部门成员</view>
+    </view>
+
+    <view class="card" wx:if="{{isOfficeDepartment}}">
+      <view class="section-header">待完成任务</view>
+      <view wx:if="{{pendingTasks.length}}">
+        <view class="task-item" wx:for="{{pendingTasks}}" wx:key="id" bindtap="goTaskDetail" data-id="{{item.id}}">
+          <view class="task-title">{{item.title}}</view>
+          <view class="task-meta">DDL：{{item.displayDueDate}}</view>
+          <view class="task-action">提交文件并完成任务 ›</view>
+        </view>
+      </view>
+      <view wx:else class="placeholder-box">
+        <view class="placeholder-title">暂无待完成任务</view>
+        <view class="placeholder-text">当前没有分配给你的办公室任务。</view>
       </view>
     </view>
 
-    <view class="card">
-      <view class="section-header">部门功能</view>
+    <view class="card" wx:if="{{isOfficeDepartment}}">
+      <view class="section-header">已完成任务</view>
+      <view wx:if="{{completedTasks.length}}">
+        <view class="task-item done" wx:for="{{completedTasks}}" wx:key="id" bindtap="goTaskDetail" data-id="{{item.id}}">
+          <view class="task-title">{{item.title}}</view>
+          <view class="task-meta">DDL：{{item.displayDueDate}}</view>
+          <view class="task-action">查看已提交文件 ›</view>
+        </view>
+      </view>
+      <view wx:else class="placeholder-box">
+        <view class="placeholder-title">暂无已完成任务</view>
+        <view class="placeholder-text">完成提交后，会在这里显示对应任务。</view>
+      </view>
+    </view>
+
+    <view class="card" wx:if="{{!isOfficeDepartment}}">
+      <view class="section-header">部门任务</view>
       <view class="placeholder-box">
         <view class="placeholder-title">待完善</view>
-        <view class="placeholder-text">后续可在这里补充 {{departmentMeta.title}} 的专属工作入口与内部菜单。</view>
+        <view class="placeholder-text">当前部门暂未接入专属任务模块，后续可继续补充。</view>
       </view>
     </view>
   </block>

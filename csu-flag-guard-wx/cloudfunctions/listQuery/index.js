@@ -206,9 +206,9 @@ function parseDateTimeValue(date, time) {
     return 0;
   }
 
-  var timeMatch = timeText.match(/(\d{1,2}):(\d{1,2})/);
-  var hour = timeMatch ? Number(timeMatch[1]) : 0;
-  var minute = timeMatch ? Number(timeMatch[2]) : 0;
+  var parsedTime = parseTimeText(timeText);
+  var hour = parsedTime.hour;
+  var minute = parsedTime.minute;
 
   return new Date(
     Number(dateMatch[1]),
@@ -217,6 +217,92 @@ function parseDateTimeValue(date, time) {
     hour,
     minute
   ).getTime();
+}
+
+function parseChineseNumber(text) {
+  var raw = normalizeText(text).replace(/两/g, '二').replace(/〇/g, '零');
+  if (!raw) {
+    return 0;
+  }
+
+  if (/^\d+$/.test(raw)) {
+    return Number(raw);
+  }
+
+  var digitMap = {
+    '零': 0,
+    '一': 1,
+    '二': 2,
+    '三': 3,
+    '四': 4,
+    '五': 5,
+    '六': 6,
+    '七': 7,
+    '八': 8,
+    '九': 9
+  };
+
+  if (raw === '十') {
+    return 10;
+  }
+
+  if (raw.indexOf('十') !== -1) {
+    var parts = raw.split('十');
+    var tens = parts[0] ? (digitMap[parts[0]] || 0) : 1;
+    var ones = parts[1] ? (digitMap[parts[1]] || 0) : 0;
+    return tens * 10 + ones;
+  }
+
+  return digitMap[raw] || 0;
+}
+
+function parseTimeText(time) {
+  var text = normalizeText(time);
+  if (!text) {
+    return { hour: 0, minute: 0 };
+  }
+
+  var startText = text.split(/[到至\-~—]/)[0];
+  var colonMatch = startText.match(/(\d{1,2})\s*[:：]\s*(\d{1,2})/);
+  if (colonMatch) {
+    return {
+      hour: Number(colonMatch[1]),
+      minute: Number(colonMatch[2])
+    };
+  }
+
+  var hour = 0;
+  var minute = 0;
+  var hourMatch = startText.match(/([零〇一二两三四五六七八九十\d]{1,3})\s*[点时]/);
+  if (hourMatch) {
+    hour = parseChineseNumber(hourMatch[1]);
+  }
+
+  if (/半/.test(startText)) {
+    minute = 30;
+  } else if (/三刻/.test(startText)) {
+    minute = 45;
+  } else if (/一刻/.test(startText)) {
+    minute = 15;
+  } else {
+    var minuteMatch = startText.match(/[点时]\s*([零〇一二两三四五六七八九十\d]{1,3})\s*分?/);
+    if (minuteMatch) {
+      minute = parseChineseNumber(minuteMatch[1]);
+    }
+  }
+
+  if (/(下午|晚上|傍晚)/.test(startText) && hour > 0 && hour < 12) {
+    hour += 12;
+  } else if (/中午/.test(startText) && hour > 0 && hour < 11) {
+    hour += 12;
+  } else if (/凌晨/.test(startText) && hour === 12) {
+    hour = 0;
+  }
+
+  return {
+    hour: hour,
+    minute: minute
+  };
 }
 
 function compareScheduleDesc(a, b) {
@@ -345,12 +431,7 @@ function buildAvailableMakeupTrainings(trainings, options) {
     })
     .map(enrichTraining)
     .sort(function(a, b) {
-      var dateCompare = normalizeText(a.date).localeCompare(normalizeText(b.date));
-      if (dateCompare !== 0) {
-        return dateCompare;
-      }
-
-      return normalizeText(a.time).localeCompare(normalizeText(b.time));
+      return parseDateTimeValue(a.date, a.time) - parseDateTimeValue(b.date, b.time);
     });
 }
 
@@ -818,6 +899,25 @@ async function queryChroniclesByGrade(event) {
   return buildPageResult(list, page, pageSize);
 }
 
+async function queryChronicleGradeSummary() {
+  var list = (await fetchAll(db.collection('chronicles'))).map(enrichChronicle);
+  var countMap = {};
+
+  list.forEach(function(item) {
+    var gradeYear = normalizeText(item.gradeYear);
+    if (!gradeYear) {
+      return;
+    }
+
+    countMap[gradeYear] = (countMap[gradeYear] || 0) + 1;
+  });
+
+  return {
+    success: true,
+    countMap: countMap
+  };
+}
+
 function enrichMeetingRecord(record) {
   return Object.assign({}, record, {
     _docId: record._id || record._docId || '',
@@ -1164,6 +1264,72 @@ async function clearMakeupTrainingForMember(event) {
   };
 }
 
+async function removeTraining(event) {
+  var id = normalizeText(event.id);
+  var docId = normalizeText(event.docId);
+  var collection = db.collection('trainings');
+  var target = null;
+
+  if (docId) {
+    try {
+      var docRes = await collection.doc(docId).get();
+      if (docRes && docRes.data) {
+        target = docRes.data;
+      }
+    } catch (err) {
+      console.warn('removeTraining doc lookup failed, fallback to id lookup', err);
+    }
+  }
+
+  if (!target && id) {
+    var queryRes = await collection.where({ id: id }).limit(1).get();
+    if (queryRes.data && queryRes.data.length) {
+      target = queryRes.data[0];
+    }
+  }
+
+  if (!target) {
+    return {
+      success: true
+    };
+  }
+
+  var trainingId = normalizeText(target.id);
+  var trainings = await fetchAll(collection);
+
+  for (var i = 0; i < trainings.length; i++) {
+    var training = trainings[i];
+    if (!training || training._id === target._id) {
+      continue;
+    }
+
+    var attendance = training.attendance || [];
+    var nextAttendance = null;
+
+    for (var j = 0; j < attendance.length; j++) {
+      var record = attendance[j] || {};
+      if (record.makeupTrainingId !== trainingId) {
+        continue;
+      }
+
+      if (!nextAttendance) {
+        nextAttendance = attendance.slice();
+      }
+      nextAttendance[j] = stripMakeupFields(record);
+    }
+
+    if (nextAttendance) {
+      await updateTrainingAttendance(training, nextAttendance);
+    }
+  }
+
+  await collection.doc(target._id).remove();
+
+  return {
+    success: true
+  };
+}
+
 exports.main = async function(event) {
   try {
     var action = normalizeText(event.action);
@@ -1182,6 +1348,10 @@ exports.main = async function(event) {
 
     if (action === 'chroniclesByGrade') {
       return await queryChroniclesByGrade(event);
+    }
+
+    if (action === 'chronicleGradeSummary') {
+      return await queryChronicleGradeSummary(event);
     }
 
     if (action === 'meetingRecords') {
@@ -1214,6 +1384,10 @@ exports.main = async function(event) {
 
     if (action === 'clearMakeupTraining') {
       return await clearMakeupTrainingForMember(event);
+    }
+
+    if (action === 'removeTraining') {
+      return await removeTraining(event);
     }
 
     throw new Error('Unsupported list query action');

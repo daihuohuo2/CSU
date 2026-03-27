@@ -1,4 +1,4 @@
-<view class="container" wx:if="{{isAdmin}}">
+<view class="container">
   <view class="card loading-card" wx:if="{{isLoading}}">
     <loading color="#6D3FC1"></loading>
     <view class="loading-text">正在加载人物志...</view>
@@ -18,7 +18,7 @@
           <view class="hero-name">{{detail.personName}}</view>
           <view class="hero-grade">{{detail.gradeLabel}}</view>
         </view>
-        <view class="hero-edit" bindtap="goEdit">编辑</view>
+        <view class="hero-edit" wx:if="{{isAdmin}}" bindtap="goEdit">编辑</view>
       </view>
     </view>
 

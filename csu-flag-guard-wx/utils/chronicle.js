@@ -17,6 +17,11 @@ function buildGradeOptions() {
       shortLabel: String(year).slice(2)
     });
   }
+  grades.push({
+    year: '18届',
+    label: '18届',
+    shortLabel: '18'
+  });
   return grades;
 }
 

@@ -15,6 +15,9 @@
     "pages/department/detail/detail",
     "pages/department/meeting/list/list",
     "pages/department/material/list/list",
+    "pages/department/task/list/list",
+    "pages/department/task/edit/edit",
+    "pages/department/task/detail/detail",
     "pages/department/work/work",
     "pages/department/security/list/list",
     "pages/department/security/makeup/list/list",
@@ -34,7 +37,7 @@
   "window": {
     "backgroundTextStyle": "dark",
     "navigationBarBackgroundColor": "#8B0000",
-    "navigationBarTitleText": "中南大学国旗班",
+    "navigationBarTitleText": "CSU Flag Guard",
     "navigationBarTextStyle": "white",
     "backgroundColor": "#F2F2F2"
   },

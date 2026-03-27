@@ -16,6 +16,119 @@ function compareDesc(a, b) {
   return a > b ? -1 : 1;
 }
 
+function parseChineseNumber(text) {
+  var raw = String(text || '').trim().replace(/两/g, '二').replace(/〇/g, '零');
+  if (!raw) {
+    return 0;
+  }
+
+  if (/^\d+$/.test(raw)) {
+    return Number(raw);
+  }
+
+  var digitMap = {
+    '零': 0,
+    '一': 1,
+    '二': 2,
+    '三': 3,
+    '四': 4,
+    '五': 5,
+    '六': 6,
+    '七': 7,
+    '八': 8,
+    '九': 9
+  };
+
+  if (raw === '十') {
+    return 10;
+  }
+
+  if (raw.indexOf('十') !== -1) {
+    var parts = raw.split('十');
+    var tens = parts[0] ? (digitMap[parts[0]] || 0) : 1;
+    var ones = parts[1] ? (digitMap[parts[1]] || 0) : 0;
+    return tens * 10 + ones;
+  }
+
+  return digitMap[raw] || 0;
+}
+
+function parseTimeText(time) {
+  var text = String(time || '').trim();
+  if (!text) {
+    return { hour: 0, minute: 0 };
+  }
+
+  var startText = text.split(/[到至\-~—]/)[0];
+  var colonMatch = startText.match(/(\d{1,2})\s*[:：]\s*(\d{1,2})/);
+  if (colonMatch) {
+    return {
+      hour: Number(colonMatch[1]),
+      minute: Number(colonMatch[2])
+    };
+  }
+
+  var hour = 0;
+  var minute = 0;
+  var hourMatch = startText.match(/([零〇一二两三四五六七八九十\d]{1,3})\s*[点时]/);
+  if (hourMatch) {
+    hour = parseChineseNumber(hourMatch[1]);
+  }
+
+  if (/半/.test(startText)) {
+    minute = 30;
+  } else if (/三刻/.test(startText)) {
+    minute = 45;
+  } else if (/一刻/.test(startText)) {
+    minute = 15;
+  } else {
+    var minuteMatch = startText.match(/[点时]\s*([零〇一二两三四五六七八九十\d]{1,3})\s*分?/);
+    if (minuteMatch) {
+      minute = parseChineseNumber(minuteMatch[1]);
+    }
+  }
+
+  if (/(下午|晚上|傍晚)/.test(startText) && hour > 0 && hour < 12) {
+    hour += 12;
+  } else if (/中午/.test(startText) && hour > 0 && hour < 11) {
+    hour += 12;
+  } else if (/凌晨/.test(startText) && hour === 12) {
+    hour = 0;
+  }
+
+  return {
+    hour: hour,
+    minute: minute
+  };
+}
+
+function parseDateTimeValue(date, time) {
+  var dateText = String(date || '').trim();
+  if (!dateText) {
+    return 0;
+  }
+
+  var normalized = (dateText + ' ' + String(time || '').trim()).replace(/\./g, '-').replace('T', ' ');
+  var directTimestamp = new Date(normalized).getTime();
+  if (!isNaN(directTimestamp)) {
+    return directTimestamp;
+  }
+
+  var dateMatch = dateText.match(/(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+  if (!dateMatch) {
+    return 0;
+  }
+
+  var parsedTime = parseTimeText(time);
+  return new Date(
+    Number(dateMatch[1]),
+    Number(dateMatch[2]) - 1,
+    Number(dateMatch[3]),
+    parsedTime.hour,
+    parsedTime.minute
+  ).getTime();
+}
+
 function normalizeGradeValue(grade) {
   if (grade === undefined || grade === null || grade === '') {
     return Number.MAX_SAFE_INTEGER;
@@ -314,12 +427,7 @@ function getAvailableMakeupTrainings(trainings, options) {
   return (trainings || []).filter(function(training) {
     return isEligibleMakeupTraining(training, options);
   }).sort(function(a, b) {
-    var dateCompare = compareAsc(a.date || '', b.date || '');
-    if (dateCompare !== 0) {
-      return dateCompare;
-    }
-
-    return compareAsc(a.time || '', b.time || '');
+    return parseDateTimeValue(a.date, a.time) - parseDateTimeValue(b.date, b.time);
   });
 }
 
