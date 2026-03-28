@@ -127,6 +127,24 @@ function getPositionText(position) {
   return normalizePositions(position).join('、');
 }
 
+function getInitialMemberPassword(member) {
+  if (!member) {
+    return DEFAULT_MEMBER_PASSWORD;
+  }
+
+  var studentId = member.studentId ? String(member.studentId).trim() : '';
+  if (studentId) {
+    return studentId;
+  }
+
+  var phone = member.phone ? String(member.phone).trim() : '';
+  if (phone) {
+    return phone;
+  }
+
+  return DEFAULT_MEMBER_PASSWORD;
+}
+
 function hasAdminPosition(position) {
   var positions = normalizePositions(position);
   return positions.some(function(item) {
@@ -202,7 +220,7 @@ function enrichMember(member) {
   if (!member) return null;
   var positions = normalizePositions(member.position);
   return Object.assign({}, member, {
-    password: member.password || DEFAULT_MEMBER_PASSWORD,
+    password: member.password || getInitialMemberPassword(member),
     position: positions,
     positionText: positions.join('、')
   });
@@ -246,7 +264,7 @@ function normalizeItemForStorage(key, item) {
 
   if (key === KEYS.MEMBERS) {
     return Object.assign({}, item, {
-      password: item.password || DEFAULT_MEMBER_PASSWORD
+      password: item.password || getInitialMemberPassword(item)
     });
   }
 
@@ -295,6 +313,10 @@ async function ensureCloud() {
   })();
 
   return cloudInitPromise;
+}
+
+async function warmupCloud() {
+  return ensureCloud();
 }
 
 async function fetchAll(collectionRef, query) {
@@ -357,7 +379,7 @@ async function backfillMemberDefaults() {
 
     await collection.doc(members[i]._id).update({
       data: {
-        password: DEFAULT_MEMBER_PASSWORD,
+        password: getInitialMemberPassword(members[i]),
         updatedAt: Date.now()
       }
     });
@@ -482,6 +504,7 @@ async function add(key, item) {
 }
 
 async function updateMemberInCloud(id, data) {
+  await ensureCloud();
   var payload = clone(data);
   var res = await wx.cloud.callFunction({
     name: 'memberManage',
@@ -500,6 +523,7 @@ async function updateMemberInCloud(id, data) {
 }
 
 async function batchUpdateMemberStatusInCloud(ids, status) {
+  await ensureCloud();
   var res = await wx.cloud.callFunction({
     name: 'memberManage',
     data: {
@@ -515,8 +539,48 @@ async function batchUpdateMemberStatusInCloud(ids, status) {
   return result.updatedCount || 0;
 }
 
+async function removeMemberInCloud(id, options) {
+  await ensureCloud();
+  var settings = Object.assign({
+    _docId: ''
+  }, options || {});
+
+  var res = await wx.cloud.callFunction({
+    name: 'memberManage',
+    data: {
+      action: 'remove',
+      id: id,
+      docId: settings._docId || ''
+    }
+  });
+  var result = res.result || {};
+  if (!result.success) {
+    throw new Error(result.message || '删除成员失败');
+  }
+  return result.removedMember || null;
+}
+
+async function deduplicateMembersInCloud() {
+  await ensureCloud();
+  var res = await wx.cloud.callFunction({
+    name: 'memberManage',
+    data: {
+      action: 'deduplicate'
+    }
+  });
+  var result = res.result || {};
+  if (!result.success) {
+    throw new Error(result.message || '人员去重失败');
+  }
+  return {
+    removedCount: Number(result.removedCount || 0),
+    groupCount: Number(result.groupCount || 0),
+    duplicateGroups: result.duplicateGroups || []
+  };
+}
+
 async function queryListPageInCloud(action, options) {
-  await ensureReady();
+  await ensureCloud();
   var res = await wx.cloud.callFunction({
     name: 'listQuery',
     data: Object.assign({
@@ -731,6 +795,7 @@ async function clearMakeupTraining(options) {
 }
 
 async function removeTrainingInCloud(id, options) {
+  await ensureCloud();
   var settings = Object.assign({
     _docId: ''
   }, options || {});
@@ -742,15 +807,16 @@ async function removeTrainingInCloud(id, options) {
 }
 
 async function update(key, id, data) {
-  await ensureReady();
-
   if (key === KEYS.MEMBERS) {
+    await ensureCloud();
     var updatedMember = await updateMemberInCloud(id, data);
     if (updatedMember) {
       syncCurrentUserInfo(updatedMember);
     }
     return updatedMember;
   }
+
+  await ensureReady();
 
   var collection = getCollection(key);
   var payload = clone(normalizeItemForStorage(key, data));
@@ -780,11 +846,22 @@ async function update(key, id, data) {
 }
 
 async function remove(key, id, options) {
-  await ensureReady();
+  if (key === KEYS.MEMBERS) {
+    await ensureCloud();
+    var removedMember = await removeMemberInCloud(id, options);
+    var user = getUserInfo();
+    if (user && removedMember && ((user.memberId && user.memberId === removedMember.id) || (user.studentId && user.studentId === removedMember.studentId))) {
+      clearUserInfo();
+    }
+    return removedMember;
+  }
 
   if (key === KEYS.TRAININGS) {
+    await ensureCloud();
     return removeTrainingInCloud(id, options);
   }
+
+  await ensureReady();
 
   var collection = getCollection(key);
   var docId = options && options._docId ? options._docId : '';
@@ -825,8 +902,31 @@ async function resetData() {
 }
 
 async function batchUpdateMemberStatus(ids, status) {
-  await ensureReady();
+  await ensureCloud();
   return batchUpdateMemberStatusInCloud(ids, status);
+}
+
+async function deduplicateMembers() {
+  await ensureCloud();
+  return deduplicateMembersInCloud();
+}
+
+async function resetAllMemberPasswordsToStudentId() {
+  await ensureCloud();
+  var res = await wx.cloud.callFunction({
+    name: 'memberManage',
+    data: {
+      action: 'resetPasswordsToStudentId'
+    }
+  });
+  var result = res.result || {};
+  if (!result.success) {
+    throw new Error(result.message || '批量重置密码失败');
+  }
+  return {
+    updatedCount: Number(result.updatedCount || 0),
+    skippedCount: Number(result.skippedCount || 0)
+  };
 }
 
 function getUserInfo() {
@@ -842,29 +942,56 @@ function clearUserInfo() {
 }
 
 async function getCurrentMember() {
-  await ensureReady();
+  await ensureCloud();
   var user = getUserInfo();
   if (!user) {
     return null;
   }
 
   if (user.memberId) {
-    return getById(KEYS.MEMBERS, user.memberId);
+    var memberByIdRes = await getCollection(KEYS.MEMBERS).where({ id: user.memberId }).limit(1).get();
+    if (memberByIdRes.data && memberByIdRes.data.length) {
+      var memberById = Object.assign({}, memberByIdRes.data[0]);
+      memberById._docId = memberById._id;
+      delete memberById._id;
+      return enrichMember(memberById);
+    }
   }
 
   if (user.studentId) {
-    var memberByStudentId = await getFirstByQuery(KEYS.MEMBERS, {
+    var memberByStudentIdRes = await getCollection(KEYS.MEMBERS).where({
       studentId: user.studentId
-    });
-    if (memberByStudentId) {
-      return memberByStudentId;
+    }).limit(1).get();
+    if (memberByStudentIdRes.data && memberByStudentIdRes.data.length) {
+      var memberByStudentId = Object.assign({}, memberByStudentIdRes.data[0]);
+      memberByStudentId._docId = memberByStudentId._id;
+      delete memberByStudentId._id;
+      return enrichMember(memberByStudentId);
+    }
+  }
+
+  if (user.studentId) {
+    var memberByPhoneRes = await getCollection(KEYS.MEMBERS).where({
+      phone: user.studentId
+    }).limit(1).get();
+    if (memberByPhoneRes.data && memberByPhoneRes.data.length) {
+      var memberByPhone = Object.assign({}, memberByPhoneRes.data[0]);
+      memberByPhone._docId = memberByPhone._id;
+      delete memberByPhone._id;
+      return enrichMember(memberByPhone);
     }
   }
 
   if (user.name) {
-    return getFirstByQuery(KEYS.MEMBERS, {
+    var memberByNameRes = await getCollection(KEYS.MEMBERS).where({
       name: user.name
-    });
+    }).limit(1).get();
+    if (memberByNameRes.data && memberByNameRes.data.length) {
+      var memberByName = Object.assign({}, memberByNameRes.data[0]);
+      memberByName._docId = memberByName._id;
+      delete memberByName._id;
+      return enrichMember(memberByName);
+    }
   }
 
   return null;
@@ -903,10 +1030,28 @@ function isAdmin() {
   return !!(user && user.role === 'admin');
 }
 
-async function loginByCredentials(studentId, password) {
-  var member = await getFirstByQuery(KEYS.MEMBERS, {
-    studentId: studentId
-  });
+async function loginByCredentials(account, password) {
+  await ensureCloud();
+  var identifier = account ? String(account).trim() : '';
+  if (!identifier) {
+    return null;
+  }
+
+  var memberRes = await getCollection(KEYS.MEMBERS).where({
+    studentId: identifier
+  }).limit(1).get();
+  var member = memberRes.data && memberRes.data.length
+    ? enrichMember(Object.assign({ _docId: memberRes.data[0]._id }, memberRes.data[0]))
+    : null;
+
+  if (!member) {
+    var phoneMemberRes = await getCollection(KEYS.MEMBERS).where({
+      phone: identifier
+    }).limit(1).get();
+    member = phoneMemberRes.data && phoneMemberRes.data.length
+      ? enrichMember(Object.assign({ _docId: phoneMemberRes.data[0]._id }, phoneMemberRes.data[0]))
+      : null;
+  }
 
   if (member && member.password === password) {
     var role = hasAdminPosition(member.position) ? 'admin' : 'member';
@@ -1010,7 +1155,7 @@ enrichMember = function(member) {
   if (!member) return null;
   var positions = normalizePositions(member.position);
   return Object.assign({}, member, {
-    password: member.password || DEFAULT_MEMBER_PASSWORD,
+    password: member.password || getInitialMemberPassword(member),
     position: positions,
     positionText: getPositionText(positions),
     isSpecialPosition: hasSpecialPosition(positions)
@@ -1037,6 +1182,9 @@ module.exports = {
   update: update,
   remove: remove,
   batchUpdateMemberStatus: batchUpdateMemberStatus,
+  deduplicateMembers: deduplicateMembers,
+  resetAllMemberPasswordsToStudentId: resetAllMemberPasswordsToStudentId,
+  warmupCloud: warmupCloud,
   queryMembersPage: queryMembersPage,
   queryTrainingsPage: queryTrainingsPage,
   queryFlagsPage: queryFlagsPage,
@@ -1052,6 +1200,7 @@ module.exports = {
   clearMakeupTraining: clearMakeupTraining,
   removeTrainingInCloud: removeTrainingInCloud,
   normalizePositions: normalizePositions,
+  getInitialMemberPassword: getInitialMemberPassword,
   getPositionText: getPositionText,
   hasAdminPosition: hasAdminPosition,
   hasSpecialPosition: hasSpecialPosition,

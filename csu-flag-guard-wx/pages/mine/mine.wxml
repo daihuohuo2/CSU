@@ -76,6 +76,11 @@
       <text class="mine-menu-text">清除本地缓存</text>
       <text class="arrow-right">›</text>
     </view>
+    <view class="mine-menu-item" wx:if="{{isAdmin}}" bindtap="deduplicateMembers">
+      <text class="mine-menu-icon">🧹</text>
+      <text class="mine-menu-text">人员去重</text>
+      <text class="arrow-right">›</text>
+    </view>
     <view class="mine-menu-item logout" bindtap="handleLogout">
       <text class="mine-menu-icon">🚪</text>
       <text class="mine-menu-text" style="color: #EE4D4D;">退出登录</text>

@@ -4,29 +4,60 @@ Page({
   data: {
     userInfo: null,
     isAdmin: false,
-    memberInfo: null
+    memberInfo: null,
+    authResolved: false,
+    isProfileLoading: false
   },
 
   onShow: async function () {
+    var requestId = Date.now();
+    this.currentProfileRequestId = requestId;
     var userInfo = storage.getUserInfo();
     if (!userInfo) {
-      wx.reLaunch({ url: '/pages/login/login' });
+      this.setData({
+        userInfo: null,
+        isAdmin: false,
+        memberInfo: null,
+        authResolved: true,
+        isProfileLoading: false
+      });
       return;
-    }
-
-    var memberInfo = null;
-    if (userInfo.memberId) {
-      memberInfo = storage.enrichMember(await storage.getById(storage.KEYS.MEMBERS, userInfo.memberId));
     }
 
     this.setData({
       userInfo: userInfo,
       isAdmin: userInfo.role === 'admin',
-      memberInfo: memberInfo
+      authResolved: true,
+      isProfileLoading: true
     });
+
+    try {
+      var memberInfo = storage.enrichMember(await storage.getCurrentMember());
+      if (this.currentProfileRequestId !== requestId) {
+        return;
+      }
+
+      this.setData({
+        memberInfo: memberInfo,
+        isProfileLoading: false
+      });
+    } catch (err) {
+      console.error(err);
+      if (this.currentProfileRequestId !== requestId) {
+        return;
+      }
+      this.setData({
+        memberInfo: null,
+        isProfileLoading: false
+      });
+    }
   },
 
   goLogin: function () {
+    if (storage.getUserInfo()) {
+      wx.navigateTo({ url: '/pages/mine/mine' });
+      return;
+    }
     wx.navigateTo({ url: '/pages/login/login' });
   },
 

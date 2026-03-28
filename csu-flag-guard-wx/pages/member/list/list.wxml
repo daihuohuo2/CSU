@@ -10,8 +10,13 @@
       <view class="filter-tag {{currentStatus === '离队' ? 'active' : ''}}" bindtap="filterStatus" data-status="离队">离队</view>
     </view>
 
-    <view wx:if="{{isAdmin}}" class="toolbar-action {{isBatchMode ? 'active' : ''}}" bindtap="toggleBatchMode">
-      {{isBatchMode ? '取消' : '批量调整'}}
+    <view wx:if="{{isAdmin}}" class="toolbar-actions">
+      <view class="toolbar-action toolbar-action-secondary" bindtap="resetPasswordsToStudentId">
+        重置密码
+      </view>
+      <view class="toolbar-action {{isBatchMode ? 'active' : ''}}" bindtap="toggleBatchMode">
+        {{isBatchMode ? '取消' : '批量调整'}}
+      </view>
     </view>
   </view>
 

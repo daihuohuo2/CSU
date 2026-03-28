@@ -8,6 +8,12 @@ Page({
     passwordVisible: false
   },
 
+  onShow: function () {
+    if (storage.getUserInfo()) {
+      wx.reLaunch({ url: '/pages/index/index' });
+    }
+  },
+
   onStudentIdInput: function (e) {
     this.setData({ studentId: e.detail.value });
   },
@@ -24,7 +30,7 @@ Page({
     var studentId = this.data.studentId.trim();
     var password = this.data.password;
     if (!studentId) {
-      util.showToast('请输入学号');
+      util.showToast('请输入学号或手机号');
       return;
     }
     if (!password) {
@@ -35,7 +41,7 @@ Page({
     try {
       var userInfo = await storage.loginByCredentials(studentId, password);
       if (!userInfo) {
-        util.showToast('学号或密码错误');
+        util.showToast('账号或密码错误');
         return;
       }
       storage.setUserInfo(userInfo);

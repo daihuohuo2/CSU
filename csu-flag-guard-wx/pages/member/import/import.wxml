@@ -28,7 +28,7 @@
     <view class="rule-item">G列：班级</view>
     <view class="rule-item">H列：部门</view>
     <view class="rule-item">I列：手机号</view>
-    <view class="rule-note">微信号默认与手机号一致，默认职务为“队员”，默认状态为“在队”，默认密码为“123456”。</view>
+    <view class="rule-note">除姓名外，其余列都允许留空。微信号默认与手机号一致，默认职务为“队员”，默认状态为“在队”；有学号时初始密码为学号，无学号时初始密码为手机号，若二者都为空则回退为“123456”。</view>
   </view>
 
   <view class="submit-area">

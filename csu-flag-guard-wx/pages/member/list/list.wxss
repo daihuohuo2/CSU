@@ -12,6 +12,12 @@
   background: transparent;
 }
 
+.toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
 .toolbar-action {
   display: inline-flex;
   align-items: center;
@@ -24,6 +30,11 @@
   font-size: 24rpx;
   font-weight: 600;
   white-space: nowrap;
+}
+
+.toolbar-action-secondary {
+  background: #FFF7E8;
+  color: #9A5A00;
 }
 
 .toolbar-action.active {

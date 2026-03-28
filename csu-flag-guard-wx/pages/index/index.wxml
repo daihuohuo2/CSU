@@ -17,7 +17,15 @@
       <text class="user-name">{{userInfo.name}}</text>
       <text class="user-role-tag {{isAdmin ? 'admin-tag' : ''}}">{{isAdmin ? '管理员' : '普通成员'}}</text>
     </view>
+    <view class="profile-loading-inline" wx:if="{{isProfileLoading}}">
+      <loading size="18" color="#C41A1A"></loading>
+    </view>
     <text class="arrow-right">›</text>
+  </view>
+
+  <view class="user-bar card login-prompt loading-prompt" wx:elif="{{!authResolved}}">
+    <loading size="20" color="#C41A1A"></loading>
+    <text class="login-text">正在恢复登录状态...</text>
   </view>
 
   <view class="user-bar card login-prompt" wx:else bindtap="goLogin">

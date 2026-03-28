@@ -92,9 +92,21 @@
   background: #FFF0F0;
 }
 
+.profile-loading-inline {
+  margin-right: 12rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .login-prompt {
   justify-content: space-between;
   margin-top: -20rpx;
+}
+
+.loading-prompt {
+  justify-content: flex-start;
+  gap: 16rpx;
 }
 
 .login-text {

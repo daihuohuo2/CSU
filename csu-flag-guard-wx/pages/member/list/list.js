@@ -236,6 +236,40 @@ Page({
     this.confirmBatchUpdateStatus('离队');
   },
 
+  resetPasswordsToStudentId: function() {
+    if (!this.data.isAdmin || this.data.isLoading || this.data.isLoadingMore || this.data.isBatchSubmitting) {
+      return;
+    }
+
+    var that = this;
+    wx.showModal({
+      title: '确认重置密码',
+      content: '确定将当前数据库中已有成员的密码一键重置为学号吗？没有学号的成员会跳过。',
+      success: async function(res) {
+        if (!res.confirm) {
+          return;
+        }
+
+        that.setData({ isBatchSubmitting: true });
+
+        try {
+          var result = await storage.resetAllMemberPasswordsToStudentId();
+          wx.showModal({
+            title: '重置完成',
+            content: '已重置 ' + result.updatedCount + ' 个账号的密码为学号'
+              + (result.skippedCount ? ('\n跳过 ' + result.skippedCount + ' 个无学号账号') : ''),
+            showCancel: false
+          });
+        } catch (err) {
+          console.error(err);
+          util.showToast(err.message || '重置密码失败');
+        } finally {
+          that.setData({ isBatchSubmitting: false });
+        }
+      }
+    });
+  },
+
   goDetail: function(e) {
     wx.navigateTo({ url: '/pages/member/detail/detail?id=' + e.currentTarget.dataset.id });
   },

@@ -8,7 +8,7 @@
   <view class="login-form card">
     <view class="form-group">
       <text class="form-label">学号</text>
-      <input class="form-input" placeholder="请输入学号" value="{{studentId}}" bindinput="onStudentIdInput" type="number"
+      <input class="form-input" placeholder="请输入学号或手机号" value="{{studentId}}" bindinput="onStudentIdInput" type="text"
         maxlength="20" />
     </view>
 
@@ -27,6 +27,6 @@
   </view>
 
   <view class="login-tip">
-    <text>默认密码：123456　班长、副班长及各部门负责人自动获得管理员权限</text>
+    <text>账号与密码：23级之后（含）为学号，23级之前为手机号</text>
   </view>
 </view>

@@ -120,7 +120,6 @@ Page({
     var form = this.data.form;
     if (!form.name.trim()) { util.showToast('请输入姓名'); return; }
     if (!form.gender) { util.showToast('请选择性别'); return; }
-    if (!form.studentId.trim()) { util.showToast('请输入学号'); return; }
     if (!form.department) { util.showToast('请选择部门'); return; }
     if (!form.position.length) { util.showToast('请至少选择一个职务'); return; }
 
@@ -138,7 +137,7 @@ Page({
       } else {
         var member = Object.assign({}, form, {
           id: util.generateId('m'),
-          password: storage.DEFAULT_MEMBER_PASSWORD
+          password: storage.getInitialMemberPassword(form)
         });
         await storage.add(storage.KEYS.MEMBERS, member);
         util.showToast('新增成功', 'success');

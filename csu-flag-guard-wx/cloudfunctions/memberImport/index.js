@@ -50,6 +50,10 @@ function normalizeDepartment(value) {
   return VALID_DEPARTMENTS.indexOf(text) !== -1 ? text : null;
 }
 
+function getInitialPassword(studentId, phone) {
+  return normalizeNumberText(studentId) || normalizeNumberText(phone) || DEFAULT_PASSWORD;
+}
+
 function isHeaderRow(row) {
   return normalizeText(row[0]) === '姓名'
     && normalizeText(row[1]) === '性别'
@@ -193,19 +197,13 @@ exports.main = async function(event) {
         continue;
       }
 
-      if (!studentId) {
-        skipped += 1;
-        skippedRows.push({ rowNumber: rowNumber, reason: '学号为空' });
-        continue;
-      }
-
       if (departmentText && department === null) {
         skipped += 1;
         skippedRows.push({ rowNumber: rowNumber, reason: '部门不在允许范围内' });
         continue;
       }
 
-      if (existingStudentIds[studentId] || seenStudentIds[studentId]) {
+      if (studentId && (existingStudentIds[studentId] || seenStudentIds[studentId])) {
         skipped += 1;
         skippedRows.push({ rowNumber: rowNumber, reason: '学号重复，已跳过' });
         continue;
@@ -217,7 +215,7 @@ exports.main = async function(event) {
           name: name,
           gender: gender,
           studentId: studentId,
-          password: DEFAULT_PASSWORD,
+          password: getInitialPassword(studentId, phone),
           college: college,
           major: major,
           grade: grade,
@@ -234,7 +232,9 @@ exports.main = async function(event) {
         }
       });
 
-      seenStudentIds[studentId] = true;
+      if (studentId) {
+        seenStudentIds[studentId] = true;
+      }
       imported += 1;
     }
 

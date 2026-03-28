@@ -34,12 +34,14 @@ Page({
       success: async function(res) {
         if (res.confirm) {
           try {
-            await storage.remove(storage.KEYS.MEMBERS, that.data.id);
+            await storage.remove(storage.KEYS.MEMBERS, that.data.id, {
+              _docId: that.data.detail && that.data.detail._docId ? that.data.detail._docId : ''
+            });
             util.showToast('已删除', 'success');
             setTimeout(function() { wx.navigateBack(); }, 1500);
           } catch (err) {
             console.error(err);
-            util.showToast('删除失败');
+            util.showToast(err.message || '删除失败');
           }
         }
       }
