@@ -3,9 +3,9 @@ var util = require('../../../utils/util');
 var makeupHelper = require('../../../utils/makeup');
 var memberSorter = require('../../../utils/member-sort');
 
-var ARRIVED_STATUS = '\u5df2\u5230';
-var LEAVE_STATUS = '\u8bf7\u5047';
-var MAKEUP_TYPE = '\u8865\u8bad';
+var ARRIVED_STATUS = '已到';
+var LEAVE_STATUS = '请假';
+var MAKEUP_TYPE = '补训';
 
 function buildPendingLeaveActionText(item) {
   var parts = [];
@@ -15,7 +15,7 @@ function buildPendingLeaveActionText(item) {
   if (item.leaveTrainingTitle) {
     parts.push(item.leaveTrainingTitle);
   }
-  return parts.join(' ').trim() || '\u8bf7\u5047\u8bb0\u5f55';
+  return parts.join(' ').trim() || '请假记录';
 }
 
 function buildMemberMap(members) {
@@ -44,17 +44,17 @@ Page({
     selectedRecordMemberName: '',
     selectedRecordMemberPendingCount: 0,
     statusKeys: {
-      arrived: '\u5df2\u5230',
-      late: '\u8fdf\u5230',
-      absent: '\u7f3a\u52e4',
-      leave: '\u8bf7\u5047'
+      arrived: '已到',
+      late: '迟到',
+      absent: '缺勤',
+      leave: '请假'
     },
     statusColors: {
-      '\u5df2\u5230': '#07C160',
-      '\u8fdf\u5230': '#FFA500',
-      '\u7f3a\u52e4': '#EE0000',
-      '\u8bf7\u5047': '#576B95',
-      '\u672a\u8bb0\u5f55': '#CCCCCC'
+      '已到': '#07C160',
+      '迟到': '#FFA500',
+      '缺勤': '#EE0000',
+      '请假': '#576B95',
+      '未记录': '#CCCCCC'
     }
   },
 
@@ -130,6 +130,16 @@ Page({
 
   noop: function() {},
 
+  goEdit: function() {
+    if (!this.data.isAdmin || this.data.isMakeupTraining) {
+      return;
+    }
+
+    wx.navigateTo({
+      url: '/pages/training/create/create?id=' + encodeURIComponent(this.data.id)
+    });
+  },
+
   sortAttendanceByMemberOrder: function(attendance, memberMap) {
     var map = memberMap || {};
     return (attendance || []).slice().sort(function(a, b) {
@@ -178,7 +188,7 @@ Page({
       }
     } catch (err) {
       console.error(err);
-      util.showToast('\u52a0\u8f7d\u8bad\u7ec3\u5931\u8d25');
+      util.showToast('加载训练失败');
     }
   },
 
@@ -187,6 +197,10 @@ Page({
       _docId: training._docId,
       title: training.title,
       type: training.type,
+      date: training.date,
+      time: training.time || '',
+      location: training.location || '',
+      description: training.description || '',
       attendance: attendance
     });
   },
@@ -248,10 +262,10 @@ Page({
 
       var stats = util.calcAttendanceStats(detail.attendance);
       this.setData({ detail: detail, stats: stats });
-      util.showToast('\u5df2\u66f4\u65b0', 'success');
+      util.showToast('已更新', 'success');
     } catch (err) {
       console.error(err);
-      util.showToast('\u66f4\u65b0\u5931\u8d25');
+      util.showToast('更新失败');
     }
   },
 
@@ -259,7 +273,7 @@ Page({
     var settings = Object.assign({
       requireFuture: false,
       markArrived: false,
-      successText: '\u5df2\u767b\u8bb0\u8865\u8bad',
+      successText: '已登记补训',
       loadingKey: 'isJoiningMakeup'
     }, options || {});
     var loadingState = {};
@@ -272,23 +286,23 @@ Page({
       var leaveTraining = makeupHelper.findTrainingById(trainings, leaveItem.leaveTrainingId);
 
       if (!currentTraining) {
-        throw new Error('\u672a\u627e\u5230\u5f53\u524d\u8865\u8bad\u65e5\u7a0b');
+        throw new Error('未找到当前补训日程');
       }
       if (settings.requireFuture && !makeupHelper.isEligibleMakeupTraining(currentTraining, { today: makeupHelper.getToday() })) {
-        throw new Error('\u53ea\u80fd\u9009\u62e9\u4eca\u5929\u4e4b\u540e\u7684\u8865\u8bad\u65e5\u7a0b');
+        throw new Error('只能选择今天之后的补训日程');
       }
       if (!leaveTraining) {
-        throw new Error('\u539f\u8bf7\u5047\u8bb0\u5f55\u4e0d\u5b58\u5728');
+        throw new Error('原请假记录不存在');
       }
 
       var attendance = (leaveTraining.attendance || []).slice();
       var currentRecord = attendance[leaveItem.attendanceIndex];
 
       if (!currentRecord || currentRecord.memberId !== memberInfo.id || currentRecord.status !== LEAVE_STATUS) {
-        throw new Error('\u8bf7\u5047\u8bb0\u5f55\u5df2\u53d8\u5316\uff0c\u8bf7\u8fd4\u56de\u5237\u65b0\u540e\u91cd\u8bd5');
+        throw new Error('请假记录已变化，请返回刷新后重试');
       }
       if (currentRecord.makeupTrainingId && currentRecord.makeupTrainingId !== currentTraining.id) {
-        throw new Error('\u8be5\u8bf7\u5047\u8bb0\u5f55\u5df2\u5173\u8054\u5176\u4ed6\u8865\u8bad');
+        throw new Error('该请假记录已关联其他补训');
       }
 
       var previousMakeupTrainingId = currentRecord.makeupTrainingId || '';
@@ -325,7 +339,7 @@ Page({
       console.error(err);
       loadingState[settings.loadingKey] = false;
       this.setData(loadingState);
-      util.showToast(err.message || '\u767b\u8bb0\u8865\u8bad\u5931\u8d25');
+      util.showToast(err.message || '登记补训失败');
       return false;
     }
   },
@@ -342,14 +356,14 @@ Page({
 
     var today = makeupHelper.getToday();
     if (!makeupHelper.isEligibleMakeupTraining(detail, { today: today })) {
-      util.showToast('\u53ea\u80fd\u9009\u62e9\u4eca\u5929\u4e4b\u540e\u7684\u8865\u8bad\u65e5\u7a0b');
+      util.showToast('只能选择今天之后的补训日程');
       return;
     }
 
     try {
       var memberInfo = storage.enrichMember(await storage.getCurrentMember());
       if (!memberInfo) {
-        util.showToast('\u672a\u627e\u5230\u5f53\u524d\u6210\u5458\u6863\u6848');
+        util.showToast('未找到当前成员档案');
         return;
       }
 
@@ -372,7 +386,7 @@ Page({
       var pendingItems = pendingResult.items || [];
 
       if (!pendingItems.length) {
-        util.showToast('\u65e0\u9700\u8865\u8bad');
+        util.showToast('无需补训');
         return;
       }
 
@@ -386,14 +400,14 @@ Page({
           that.bindLeaveRecordToCurrentMakeupTraining(pendingItems[res.tapIndex], memberInfo, {
             requireFuture: true,
             markArrived: false,
-            successText: '\u5df2\u767b\u8bb0\u8865\u8bad',
+            successText: '已登记补训',
             loadingKey: 'isJoiningMakeup'
           });
         }
       });
     } catch (err) {
       console.error(err);
-      util.showToast('\u52a0\u8f7d\u8865\u8bad\u8bb0\u5f55\u5931\u8d25');
+      util.showToast('加载补训记录失败');
     }
   },
 
@@ -426,7 +440,7 @@ Page({
       }
 
       if (!pendingMembers.length) {
-        util.showToast('\u5f53\u524d\u6ca1\u6709\u5f85\u8865\u8bad\u6210\u5458');
+        util.showToast('当前没有待补训成员');
         return;
       }
 
@@ -439,7 +453,7 @@ Page({
       await this.selectRecordMakeupMemberById(pendingMembers[0].id);
     } catch (err) {
       console.error(err);
-      util.showToast('\u52a0\u8f7d\u8865\u767b\u4fe1\u606f\u5931\u8d25');
+      util.showToast('加载补登信息失败');
     }
   },
 
@@ -467,21 +481,21 @@ Page({
     }
 
     if (!selectedMember) {
-      util.showToast('\u8bf7\u5148\u9009\u62e9\u6210\u5458');
+      util.showToast('请先选择成员');
       return;
     }
 
     var index = Number(e.currentTarget.dataset.index);
     var leaveItem = this.data.recordMakeupItems[index];
     if (!leaveItem) {
-      util.showToast('\u672a\u627e\u5230\u5f85\u8865\u767b\u8bb0\u5f55');
+      util.showToast('未找到待补登记记录');
       return;
     }
 
     var success = await this.bindLeaveRecordToCurrentMakeupTraining(leaveItem, selectedMember, {
       requireFuture: false,
       markArrived: true,
-      successText: '\u5df2\u8865\u767b\u8865\u8bad',
+      successText: '已补登补训',
       loadingKey: 'isRecordingMakeup'
     });
 
@@ -493,21 +507,21 @@ Page({
   handleDelete: function() {
     var that = this;
     wx.showModal({
-      title: '\u786e\u8ba4\u5220\u9664',
-      content: '\u786e\u5b9a\u5220\u9664\u6b64\u8bad\u7ec3\u8bb0\u5f55\u5417\uff1f\u5220\u9664\u540e\u4e0d\u53ef\u6062\u590d\u3002',
+      title: '确认删除',
+      content: '确定删除此训练记录吗？删除后不可恢复。',
       success: async function(res) {
         if (res.confirm) {
           try {
             await storage.remove(storage.KEYS.TRAININGS, that.data.id, {
               _docId: that.data.detail && that.data.detail._docId
             });
-            util.showToast('\u5df2\u5220\u9664', 'success');
+            util.showToast('已删除', 'success');
             setTimeout(function() {
               wx.navigateBack();
             }, 1500);
           } catch (err) {
             console.error(err);
-            util.showToast('\u5220\u9664\u5931\u8d25');
+            util.showToast('删除失败');
           }
         }
       }

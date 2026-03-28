@@ -1,3 +1,18 @@
+.detail-top-actions {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 20rpx;
+}
+
+.detail-edit-btn {
+  font-size: 24rpx;
+  color: #C41A1A;
+  background: #FFF2F2;
+  padding: 8rpx 20rpx;
+  border-radius: 999rpx;
+  font-weight: 600;
+}
+
 .detail-title {
   font-size: 36rpx;
   font-weight: bold;
@@ -86,10 +101,29 @@
   color: #999999;
 }
 
-.att-status-btn.active-green { background: #E8F5E9; color: #07C160; font-weight: bold; }
-.att-status-btn.active-orange { background: #FFF3E0; color: #FFA500; font-weight: bold; }
-.att-status-btn.active-red { background: #FFEBEE; color: #EE0000; font-weight: bold; }
-.att-status-btn.active-blue { background: #E8EAF6; color: #576B95; font-weight: bold; }
+.att-status-btn.active-green {
+  background: #E8F5E9;
+  color: #07C160;
+  font-weight: bold;
+}
+
+.att-status-btn.active-orange {
+  background: #FFF3E0;
+  color: #FFA500;
+  font-weight: bold;
+}
+
+.att-status-btn.active-red {
+  background: #FFEBEE;
+  color: #EE0000;
+  font-weight: bold;
+}
+
+.att-status-btn.active-blue {
+  background: #E8EAF6;
+  color: #576B95;
+  font-weight: bold;
+}
 
 .bottom-actions {
   padding: 30rpx 24rpx;

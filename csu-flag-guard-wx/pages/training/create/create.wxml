@@ -1,6 +1,6 @@
 <view class="container">
   <view class="card">
-    <view class="section-header">创建训练任务</view>
+    <view class="section-header">{{isEdit ? '编辑训练日程' : '创建训练任务'}}</view>
 
     <view class="form-group">
       <text class="form-label">训练标题 *</text>
@@ -9,9 +9,10 @@
 
     <view class="form-group">
       <text class="form-label">训练类型 *</text>
-      <picker mode="selector" range="{{typeOptions}}" bindchange="onTypePick">
+      <picker wx:if="{{!isEdit}}" mode="selector" range="{{typeOptions}}" bindchange="onTypePick">
         <view class="form-input picker-value">{{type || typePlaceholder}}</view>
       </picker>
+      <view wx:else class="form-input picker-value">{{type || typePlaceholder}}</view>
     </view>
 
     <view class="form-group">
@@ -39,32 +40,32 @@
 
   <view class="card" wx:if="{{!isMakeupTraining}}">
     <view class="section-header">参与成员</view>
-    <view class="section-tip">仅显示在队成员，默认全选并记为已到</view>
+    <view class="section-tip">仅显示在队成员；如果该日程原本包含已离队成员，也会继续保留在列表中供你调整。</view>
     <view class="section-meta">
-      <text class="meta-tag">在队成员 {{members.length}} 人</text>
+      <text class="meta-tag">可选成员 {{members.length}} 人</text>
       <text class="meta-tag">已勾选 {{selectedCount}} 人</text>
     </view>
     <view wx:if="{{members.length}}">
       <view class="member-check-item" wx:for="{{members}}" wx:key="id">
         <view class="check-info">
           <text class="check-name">{{item.name}}</text>
-          <text class="check-pos">{{item.positionText}}</text>
+          <text class="check-pos">{{item.positionText || (item.status || '成员')}}</text>
         </view>
         <switch checked="{{item.checked}}" bindchange="toggleMember" data-index="{{index}}" color="#C41A1A" />
       </view>
     </view>
-    <view wx:else class="member-empty">当前没有在队成员可供选择</view>
+    <view wx:else class="member-empty">当前没有可供选择的成员</view>
   </view>
 
   <view class="card" wx:else>
     <view class="section-header">补训参与方式</view>
-    <view class="section-tip">补训任务初始无需选择成员，创建后由成员在“我的补训”或训练详情页中自行关联并加入日程。</view>
+    <view class="section-tip">补训日程暂不支持在详情页内编辑。如需补训参与，请由成员在“我的补训”或补训详情页中自行关联。</view>
     <view class="section-meta">
       <text class="meta-tag">初始参与人数 0 人</text>
     </view>
   </view>
 
   <view class="submit-area">
-    <button class="btn-primary" bindtap="handleSubmit">创建训练</button>
+    <button class="btn-primary" bindtap="handleSubmit">{{isEdit ? '保存修改' : '创建训练'}}</button>
   </view>
 </view>

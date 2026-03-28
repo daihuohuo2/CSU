@@ -43,7 +43,7 @@
 
     <view class="form-group">
       <text class="form-label">配图（{{images.length}} / {{maxImageCount}}）</text>
-      <view class="image-tip">封面与配图分开计算，最多上传 9 张配图。Excel 导入仍只导入文本，不会导入图片。</view>
+      <view class="image-tip">封面与配图分开计算，最多上传 9 张配图。除单张上传外，也支持直接上传一个 ZIP 图片包，包内图片无需命名，会全部导入到当前人物志。</view>
       <view class="image-grid">
         <view class="image-item" wx:for="{{images}}" wx:key="imageId">
           <image class="image-thumb" src="{{item.tempFileURL}}" mode="aspectFill" bindtap="previewImage" data-index="{{index}}" />
@@ -55,7 +55,11 @@
           <view class="upload-text">上传配图</view>
         </view>
       </view>
-      <view class="uploading-text" wx:if="{{isUploading}}">正在上传图片，请稍候...</view>
+      <view class="zip-import-row" wx:if="{{images.length < maxImageCount}}">
+        <view class="zip-import-btn" bindtap="importZipImages">ZIP 导图</view>
+        <view class="zip-import-tip">适合一次性导入当前人物志的多张配图。</view>
+      </view>
+      <view class="uploading-text" wx:if="{{isUploading}}">正在上传或导入图片，请稍候...</view>
     </view>
   </view>
 

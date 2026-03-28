@@ -6,8 +6,8 @@
 
   <block wx:elif="{{detail}}">
     <view class="card hero-card">
-      <view class="hero-cover" wx:if="{{detail.coverImage}}" bindtap="previewCover">
-        <image class="hero-cover-image" src="{{detail.coverImage.tempFileURL}}" mode="aspectFill" />
+      <view class="hero-cover" wx:if="{{detail.displayCoverImage}}" bindtap="previewCover">
+        <image class="hero-cover-image" src="{{detail.displayCoverImage.tempFileURL}}" mode="aspectFill" />
       </view>
       <view class="hero-cover placeholder" wx:else>
         <view class="placeholder-text">暂无封面</view>

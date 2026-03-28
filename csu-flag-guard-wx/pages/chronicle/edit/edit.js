@@ -16,6 +16,25 @@ function chooseImages(count) {
   });
 }
 
+function chooseZipFile() {
+  return new Promise(function(resolve, reject) {
+    wx.chooseMessageFile({
+      count: 1,
+      type: 'file',
+      extension: ['zip'],
+      success: resolve,
+      fail: reject
+    });
+  });
+}
+
+function buildZipImportCloudPath(gradeYear, chronicleId, fileName) {
+  var safeYear = chronicleHelper.normalizeText(gradeYear) || 'unknown';
+  var safeId = chronicleHelper.normalizeText(chronicleId) || 'chronicle';
+  var safeName = chronicleHelper.getFileBaseName(fileName || 'images.zip').replace(/[^\w.\-\u4e00-\u9fa5]/g, '_');
+  return 'chronicle-imports/' + safeYear + '/' + safeId + '/' + Date.now() + '-' + safeName;
+}
+
 Page({
   data: {
     gradeYear: '',
@@ -198,6 +217,20 @@ Page({
     });
   },
 
+  cleanupImportZipFile: async function(fileID) {
+    if (!fileID) {
+      return;
+    }
+
+    try {
+      await wx.cloud.deleteFile({
+        fileList: [fileID]
+      });
+    } catch (err) {
+      console.error('delete chronicle import zip failed', err);
+    }
+  },
+
   uploadSingleImage: async function(file, cloudPathBuilder) {
     var filePath = (file && (file.path || file.tempFilePath)) || '';
     if (!filePath) {
@@ -305,6 +338,105 @@ Page({
       }
       console.error(err);
       util.showToast('选择图片失败');
+    }
+  },
+
+  importZipImages: async function() {
+    if (this.data.isUploading) {
+      return;
+    }
+
+    var remaining = this.data.maxImageCount - this.data.images.length;
+    if (remaining <= 0) {
+      util.showToast('最多上传 9 张配图');
+      return;
+    }
+
+    var zipCloudID = '';
+    var importedImages = [];
+    var hasAppendedImages = false;
+
+    try {
+      var zipRes = await chooseZipFile();
+      var zipFile = (zipRes.tempFiles && zipRes.tempFiles[0]) || {};
+      var zipPath = zipFile.path || zipFile.tempFilePath || '';
+      if (!zipPath) {
+        util.showToast('未获取到 ZIP 文件');
+        return;
+      }
+
+      this.setData({ isUploading: true });
+
+      var uploadRes = await wx.cloud.uploadFile({
+        cloudPath: buildZipImportCloudPath(this.data.gradeYear, this.data.chronicleId, zipFile.name || 'images.zip'),
+        filePath: zipPath
+      });
+      zipCloudID = uploadRes.fileID;
+
+      var importRes = await wx.cloud.callFunction({
+        name: 'chronicleImport',
+        data: {
+          action: 'importZipImages',
+          zipFileID: zipCloudID,
+          gradeYear: this.data.gradeYear,
+          chronicleId: this.data.chronicleId,
+          startIndex: this.data.images.length,
+          limit: remaining
+        }
+      });
+
+      var result = importRes.result || {};
+      if (!result.success) {
+        throw new Error(result.message || 'ZIP 导图失败');
+      }
+
+      importedImages = result.images || [];
+      if (!importedImages.length) {
+        this.setData({ isUploading: false });
+        await this.cleanupImportZipFile(zipCloudID);
+        zipCloudID = '';
+        util.showToast('ZIP 中未找到可导入图片');
+        return;
+      }
+
+      var tempUrlMap = await chronicleHelper.getTempFileUrlMap(importedImages.map(function(image) {
+        return image.fileID;
+      }));
+      var appendedImages = importedImages.map(function(image) {
+        return Object.assign({}, image, {
+          tempFileURL: tempUrlMap[image.fileID] || '',
+          origin: 'session'
+        });
+      });
+
+      this.setData({
+        images: this.resequenceImages(this.data.images.concat(appendedImages)),
+        isUploading: false
+      });
+      appendedImages.forEach(function(image) {
+        this.trackSessionFile(image.fileID);
+      }, this);
+      hasAppendedImages = true;
+
+      await this.cleanupImportZipFile(zipCloudID);
+      zipCloudID = '';
+      util.showToast('已导入 ' + appendedImages.length + ' 张', 'success');
+    } catch (err) {
+      if (err && err.errMsg && err.errMsg.indexOf('cancel') !== -1) {
+        this.setData({ isUploading: false });
+        await this.cleanupImportZipFile(zipCloudID);
+        return;
+      }
+
+      console.error(err);
+      if (importedImages.length && !hasAppendedImages) {
+        await chronicleHelper.deleteCloudFiles(importedImages.map(function(image) {
+          return image.fileID;
+        }));
+      }
+      await this.cleanupImportZipFile(zipCloudID);
+      this.setData({ isUploading: false });
+      util.showToast(err.message || 'ZIP 导图失败');
     }
   },
 

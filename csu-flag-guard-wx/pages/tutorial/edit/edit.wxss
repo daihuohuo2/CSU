@@ -1,3 +1,8 @@
 .submit-area {
   padding: 30rpx 24rpx 60rpx;
 }
+
+.disabled-input {
+  color: #666666;
+  background: #F7F7F7;
+}

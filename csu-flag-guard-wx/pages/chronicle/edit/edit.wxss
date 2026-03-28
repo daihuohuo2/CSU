@@ -159,6 +159,34 @@
   color: #6D3FC1;
 }
 
+.zip-import-row {
+  margin-top: 20rpx;
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
+  flex-wrap: wrap;
+}
+
+.zip-import-btn {
+  min-width: 180rpx;
+  height: 68rpx;
+  padding: 0 28rpx;
+  border-radius: 999rpx;
+  background: #FFF3D8;
+  color: #9A5A00;
+  font-size: 24rpx;
+  line-height: 68rpx;
+  text-align: center;
+}
+
+.zip-import-tip {
+  flex: 1;
+  min-width: 220rpx;
+  font-size: 24rpx;
+  color: #999;
+  line-height: 1.7;
+}
+
 .submit-area {
   padding: 30rpx 24rpx 60rpx;
 }

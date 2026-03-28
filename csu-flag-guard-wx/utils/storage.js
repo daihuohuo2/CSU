@@ -26,6 +26,15 @@ var TUTORIAL_CATEGORY_OPTIONS = [
   '升旗队列流程'
 ];
 
+var SPECIAL_POSITION_OPTIONS = [
+  '擎旗手',
+  '撒旗手',
+  '升旗手',
+  '指挥员'
+];
+
+var SPECIAL_TUTORIAL_CATEGORY = TUTORIAL_CATEGORY_OPTIONS[1] || '';
+
 var DEPARTMENT_OPTIONS = [
   '办公室成员',
   '财务部成员',
@@ -64,7 +73,6 @@ var LEGACY_TUTORIAL_CATEGORY_MAP = {
   '仪式流程': '基础动作重点',
   '其他': '基础动作重点'
 };
-
 var KEYS = {
   MEMBERS: 'fg_members',
   TRAININGS: 'fg_trainings',
@@ -124,6 +132,21 @@ function hasAdminPosition(position) {
   return positions.some(function(item) {
     return ADMIN_POSITIONS.indexOf(item) !== -1;
   });
+}
+
+function hasSpecialPosition(position) {
+  var positions = normalizePositions(position);
+  return positions.some(function(item) {
+    return SPECIAL_POSITION_OPTIONS.indexOf(item) !== -1;
+  });
+}
+
+function canManageTutorial(position, category) {
+  if (hasAdminPosition(position)) {
+    return true;
+  }
+
+  return hasSpecialPosition(position) && normalizeTutorialCategory(category) === SPECIAL_TUTORIAL_CATEGORY;
 }
 
 function isMemberActive(member) {
@@ -989,7 +1012,8 @@ enrichMember = function(member) {
   return Object.assign({}, member, {
     password: member.password || DEFAULT_MEMBER_PASSWORD,
     position: positions,
-    positionText: getPositionText(positions)
+    positionText: getPositionText(positions),
+    isSpecialPosition: hasSpecialPosition(positions)
   });
 };
 
@@ -998,6 +1022,8 @@ module.exports = {
   POSITION_OPTIONS: POSITION_OPTIONS,
   TRAINING_TYPE_OPTIONS: TRAINING_TYPE_OPTIONS,
   TUTORIAL_CATEGORY_OPTIONS: TUTORIAL_CATEGORY_OPTIONS,
+  SPECIAL_POSITION_OPTIONS: SPECIAL_POSITION_OPTIONS,
+  SPECIAL_TUTORIAL_CATEGORY: SPECIAL_TUTORIAL_CATEGORY,
   DEPARTMENT_OPTIONS: DEPARTMENT_OPTIONS,
   ADMIN_POSITIONS: ADMIN_POSITIONS,
   DEFAULT_MEMBER_PASSWORD: DEFAULT_MEMBER_PASSWORD,
@@ -1028,6 +1054,8 @@ module.exports = {
   normalizePositions: normalizePositions,
   getPositionText: getPositionText,
   hasAdminPosition: hasAdminPosition,
+  hasSpecialPosition: hasSpecialPosition,
+  canManageTutorial: canManageTutorial,
   isMemberActive: isMemberActive,
   normalizeTrainingType: normalizeTrainingType,
   normalizeTutorialCategory: normalizeTutorialCategory,

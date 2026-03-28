@@ -7,11 +7,24 @@ Page({
     filteredList: [],
     categories: storage.TUTORIAL_CATEGORY_OPTIONS || [],
     currentCategory: '',
-    isAdmin: false
+    isAdmin: false,
+    canManageSpecialTutorials: false,
+    canAddTutorial: false,
+    specialCategory: storage.SPECIAL_TUTORIAL_CATEGORY || ''
   },
 
   onShow: async function() {
-    this.setData({ isAdmin: storage.isAdmin() });
+    var currentMember = await storage.getCurrentMember();
+    var isAdmin = storage.isAdmin();
+    var canManageSpecialTutorials = !!(currentMember && storage.hasSpecialPosition(currentMember.position));
+
+    this.setData({
+      isAdmin: isAdmin,
+      canManageSpecialTutorials: canManageSpecialTutorials,
+      canAddTutorial: isAdmin || canManageSpecialTutorials,
+      specialCategory: storage.SPECIAL_TUTORIAL_CATEGORY || ''
+    });
+
     await this.loadData();
   },
 
@@ -36,23 +49,35 @@ Page({
   },
 
   applyFilter: function() {
-    var cat = this.data.currentCategory;
-    var filtered = this.data.list;
+    var currentCategory = this.data.currentCategory;
+    var filteredList = this.data.list;
 
-    if (cat) {
-      filtered = filtered.filter(function(item) {
-        return item.category === cat;
+    if (currentCategory) {
+      filteredList = filteredList.filter(function(item) {
+        return item.category === currentCategory;
       });
     }
 
-    this.setData({ filteredList: filtered });
+    this.setData({ filteredList: filteredList });
   },
 
   goDetail: function(e) {
-    wx.navigateTo({ url: '/pages/tutorial/detail/detail?id=' + e.currentTarget.dataset.id });
+    wx.navigateTo({
+      url: '/pages/tutorial/detail/detail?id=' + e.currentTarget.dataset.id
+    });
   },
 
   goAdd: function() {
-    wx.navigateTo({ url: '/pages/tutorial/edit/edit' });
+    if (!this.data.canAddTutorial) {
+      util.showToast('当前无新增教程权限');
+      return;
+    }
+
+    var url = '/pages/tutorial/edit/edit';
+    if (!this.data.isAdmin) {
+      url += '?category=' + encodeURIComponent(this.data.specialCategory);
+    }
+
+    wx.navigateTo({ url: url });
   }
 });

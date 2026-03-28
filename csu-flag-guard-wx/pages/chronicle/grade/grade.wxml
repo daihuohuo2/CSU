@@ -16,27 +16,31 @@
       </view>
     </view>
     <view class="summary-tip" wx:if="{{isAdmin}}">
-      每页展示 8 位人物，按“封面图片 + 人名”双列排版。管理员可新增、编辑或通过 Excel 导入人物志。
+      每页展示 8 位人物，按“封面图片 + 人名”双列排版。管理员可新增、编辑、Excel 导入，也可进入多选模式批量删除。
     </view>
     <view class="summary-tip" wx:else>
       每页展示 8 位人物，按“封面图片 + 人名”双列排版。点击卡片可进入人物志详情页。
     </view>
     <view class="action-row" wx:if="{{isAdmin}}">
-      <button class="btn-secondary import-btn" bindtap="handleImport" loading="{{isImporting}}" disabled="{{isImporting}}">Excel导入</button>
+      <button class="btn-secondary import-btn" bindtap="handleImport" loading="{{isImporting}}" disabled="{{isImporting || isDeleting}}">Excel导入</button>
+      <button class="btn-secondary select-btn" bindtap="toggleSelectionMode" disabled="{{isImporting || isDeleting}}">{{isSelecting ? '取消多选' : '多选删除'}}</button>
     </view>
     <view class="progress-text" wx:if="{{progressText}}">{{progressText}}</view>
   </view>
 
   <view class="cover-grid" wx:if="{{pageEntries.length}}">
     <view
-      class="card cover-card"
+      class="card cover-card {{item.selected ? 'selected' : ''}}"
       wx:for="{{pageEntries}}"
       wx:key="id"
-      bindtap="goDetail"
+      bindtap="handleCardTap"
       data-id="{{item.id}}"
     >
-      <view class="cover-frame" wx:if="{{item.coverImage}}">
-        <image class="cover-photo" src="{{item.coverImage.tempFileURL}}" mode="aspectFill" />
+      <view class="select-badge {{item.selected ? 'active' : ''}}" wx:if="{{isSelecting}}">
+        {{item.selected ? '已选' : '选择'}}
+      </view>
+      <view class="cover-frame" wx:if="{{item.displayCoverImage}}">
+        <image class="cover-photo" src="{{item.displayCoverImage.tempFileURL}}" mode="aspectFill" />
       </view>
       <view class="cover-frame placeholder" wx:else>
         <view class="cover-placeholder-text">暂无封面</view>
@@ -62,5 +66,10 @@
     <button class="btn-secondary pager-btn" bindtap="nextPage" disabled="{{currentPage >= totalPages}}">下一页</button>
   </view>
 
-  <view class="fab-btn" wx:if="{{isAdmin}}" bindtap="goAdd">+</view>
+  <view class="batch-action-bar" wx:if="{{isSelecting}}">
+    <view class="batch-action-text">已选择 {{selectedIds.length}} 条</view>
+    <button class="btn-danger batch-delete-btn" bindtap="handleBatchDelete" loading="{{isDeleting}}" disabled="{{isDeleting}}">一键删除</button>
+  </view>
+
+  <view class="fab-btn" wx:if="{{isAdmin && !isSelecting}}" bindtap="goAdd">+</view>
 </view>

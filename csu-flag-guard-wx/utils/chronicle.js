@@ -95,6 +95,33 @@ function normalizeSingleImage(image) {
   };
 }
 
+function buildLegacyCoverImage(coverFileId, images) {
+  var fileID = normalizeText(coverFileId);
+  var firstImage = normalizeImages(images)[0] || null;
+
+  if (!fileID) {
+    return null;
+  }
+
+  if (firstImage && firstImage.fileID === fileID) {
+    return null;
+  }
+
+  return {
+    imageId: normalizeImageId({ fileID: fileID }, 0),
+    fileID: fileID,
+    sortOrder: 1,
+    caption: '',
+    fileName: '',
+    uploadedAt: 0,
+    tempFileURL: ''
+  };
+}
+
+function buildDisplayCoverImage(coverImage, images) {
+  return coverImage || (normalizeImages(images)[0] || null);
+}
+
 function buildChronicleImagesForStorage(images) {
   return normalizeImages(images).map(function(item, index) {
     return {
@@ -243,26 +270,21 @@ async function resolveChronicleEntries(entries, options) {
     var images = settings.resolveImages
       ? attachImageTempUrls(entry.images, tempUrlMap)
       : normalizeImages(entry.images);
-    var coverFallback = images[0] ? Object.assign({}, images[0], {
-      sortOrder: 1
-    }) : null;
-    var persistedCover = normalizeSingleImage(entry.coverImage) || (entry.coverFileId ? {
-      imageId: normalizeImageId({ fileID: entry.coverFileId }, 0),
-      fileID: entry.coverFileId,
-      sortOrder: 1,
-      caption: '',
-      fileName: '',
-      uploadedAt: 0,
-      tempFileURL: ''
-    } : null);
-    var coverImage = persistedCover || coverFallback;
+    var coverImage = normalizeSingleImage(entry.coverImage) || buildLegacyCoverImage(entry.coverFileId, images);
     if (coverImage) {
       coverImage = Object.assign({}, coverImage, {
         tempFileURL: (tempUrlMap && tempUrlMap[coverImage.fileID]) || coverImage.tempFileURL || ''
       });
     }
+    var displayCoverImage = buildDisplayCoverImage(coverImage, images);
+    if (displayCoverImage) {
+      displayCoverImage = Object.assign({}, displayCoverImage, {
+        tempFileURL: (tempUrlMap && tempUrlMap[displayCoverImage.fileID]) || displayCoverImage.tempFileURL || ''
+      });
+    }
     return Object.assign({}, entry, {
       coverImage: coverImage,
+      displayCoverImage: displayCoverImage,
       images: images,
       previewUrls: settings.resolveImages ? images.map(function(image) {
         return image.tempFileURL;
@@ -339,22 +361,16 @@ async function fetchChroniclesByGrade(gradeYear) {
 function enrichChronicle(entry) {
   var content = normalizeText(entry.content);
   var images = normalizeImages(entry.images);
-  var coverImage = normalizeSingleImage(entry.coverImage) || (entry.coverFileId ? {
-    imageId: normalizeImageId({ fileID: entry.coverFileId }, 0),
-    fileID: entry.coverFileId,
-    sortOrder: 1,
-    caption: '',
-    fileName: '',
-    uploadedAt: 0,
-    tempFileURL: ''
-  } : null);
+  var coverImage = normalizeSingleImage(entry.coverImage) || buildLegacyCoverImage(entry.coverFileId, images);
+  var displayCoverImage = buildDisplayCoverImage(coverImage, images);
   return Object.assign({}, entry, {
     personName: normalizeText(entry.personName) || '未命名人物',
     content: content,
     sections: buildSections(content),
     coverImage: coverImage,
+    displayCoverImage: displayCoverImage,
     images: images,
-    coverFileId: normalizeText(entry.coverFileId || (coverImage && coverImage.fileID) || (images[0] && images[0].fileID) || '')
+    coverFileId: normalizeText(entry.coverFileId || (displayCoverImage && displayCoverImage.fileID) || '')
   });
 }
 

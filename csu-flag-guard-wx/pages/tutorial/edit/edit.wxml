@@ -9,7 +9,8 @@
 
     <view class="form-group">
       <text class="form-label">分类 *</text>
-      <picker mode="selector" range="{{categoryOptions}}" bindchange="onCategoryPick">
+      <view wx:if="{{categoryLocked}}" class="form-input disabled-input">{{form.category || specialCategory}}</view>
+      <picker wx:else mode="selector" range="{{categoryOptions}}" bindchange="onCategoryPick">
         <view class="form-input">{{form.category || '请选择分类'}}</view>
       </picker>
     </view>

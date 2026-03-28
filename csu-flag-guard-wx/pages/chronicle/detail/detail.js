@@ -83,7 +83,7 @@ Page({
   },
 
   previewCover: function() {
-    var coverImage = this.data.detail && this.data.detail.coverImage;
+    var coverImage = this.data.detail && (this.data.detail.displayCoverImage || this.data.detail.coverImage);
     if (!coverImage || !coverImage.tempFileURL) {
       return;
     }

@@ -1,5 +1,9 @@
 <view class="container" wx:if="{{detail}}">
   <view class="card">
+    <view class="detail-top-actions" wx:if="{{isAdmin && !isMakeupTraining}}">
+      <view class="detail-edit-btn" bindtap="goEdit">编辑</view>
+    </view>
+
     <view class="detail-title">{{detail.title}}</view>
     <view class="detail-type">{{detail.type}}</view>
     <view class="info-row">
