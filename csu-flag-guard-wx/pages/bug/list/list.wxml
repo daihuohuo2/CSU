@@ -1,0 +1,28 @@
+<view class="container">
+  <view class="card summary-card" wx:if="{{memberInfo}}">
+    <view class="section-header">BUG汇总</view>
+    <view class="summary-text">当前共收到 {{reports.length}} 条反馈，办公室主任可在此集中查看。</view>
+  </view>
+
+  <view class="empty-state card" wx:if="{{!isLoading && !reports.length}}">
+    <view class="empty-title">暂无BUG反馈</view>
+    <view class="empty-text">目前还没有成员提交问题。</view>
+  </view>
+
+  <view class="list-wrap" wx:if="{{reports.length}}">
+    <view class="card report-card" wx:for="{{reports}}" wx:key="id">
+      <view class="report-head">
+        <view class="report-title">{{item.title}}</view>
+        <view class="report-status">{{item.status}}</view>
+      </view>
+
+      <view class="report-meta">
+        <text>{{item.reporterName}}</text>
+        <text>{{item.reporterDepartment || '未分配'}}</text>
+        <text>{{item.displayCreatedAt}}</text>
+      </view>
+
+      <view class="report-content">{{item.content}}</view>
+    </view>
+  </view>
+</view>

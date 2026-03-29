@@ -2,7 +2,6 @@ var mockData = require('../mock/data');
 
 var POSITION_OPTIONS = [
   '班长',
-  '超级牛逼雷霆之人',
   '副班长',
   '办公室主任',
   '特勤部部长',
@@ -44,7 +43,6 @@ var DEPARTMENT_OPTIONS = [
 
 var ADMIN_POSITIONS = [
   '班长',
-  '超级牛逼雷霆之人',
   '副班长',
   '办公室主任',
   '特勤部部长',
@@ -1068,7 +1066,6 @@ async function loginByCredentials(account, password) {
 
 POSITION_OPTIONS = [
   '班长',
-  '超级牛逼雷霆之人',
   '副班长',
   '办公室主任',
   '特勤部部长',
@@ -1095,7 +1092,6 @@ DEPARTMENT_OPTIONS = [
 
 ADMIN_POSITIONS = [
   '班长',
-  '超级牛逼雷霆之人',
   '副班长',
   '办公室主任',
   '特勤部部长',

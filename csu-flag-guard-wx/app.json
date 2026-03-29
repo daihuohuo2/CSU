@@ -3,6 +3,8 @@
     "pages/index/index",
     "pages/login/login",
     "pages/mine/mine",
+    "pages/bug/report/report",
+    "pages/bug/list/list",
     "pages/training/list/list",
     "pages/training/detail/detail",
     "pages/training/create/create",

@@ -1,0 +1,39 @@
+<view class="container">
+  <view class="card">
+    <view class="section-header">BUG提交</view>
+
+    <view class="reporter-bar" wx:if="{{userInfo}}">
+      <view class="reporter-name">{{userInfo.name}}</view>
+      <view class="reporter-meta">{{memberInfo && memberInfo.department ? memberInfo.department : '未分配部门'}}</view>
+    </view>
+
+    <view class="form-group">
+      <text class="form-label">BUG标题</text>
+      <input
+        class="form-input"
+        placeholder="例如：训练记录页面无法刷新"
+        value="{{title}}"
+        maxlength="40"
+        bindinput="onTitleInput"
+      />
+    </view>
+
+    <view class="form-group">
+      <text class="form-label">问题描述</text>
+      <textarea
+        class="form-textarea"
+        placeholder="请尽量写清楚：出现在哪个页面、点击了什么、报了什么错、如何复现。"
+        value="{{content}}"
+        maxlength="1200"
+        auto-height
+        bindinput="onContentInput"
+      />
+    </view>
+
+    <view class="report-tip">提交后会写入云数据库，供办公室主任统一汇总查看。</view>
+
+    <button class="btn-primary" loading="{{isSubmitting}}" bindtap="submitReport">
+      提交BUG
+    </button>
+  </view>
+</view>

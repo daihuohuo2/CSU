@@ -13,7 +13,6 @@ const TRAINING_TYPE_MAKEUP = '\u8865\u8bad';
 
 const POSITION_RANK = {
   '班长': 0,
-  '超级牛逼雷霆之人': 0,
   '副班长': 1,
   '办公室主任': 2,
   '特勤部部长': 3,

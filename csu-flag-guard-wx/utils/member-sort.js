@@ -2,7 +2,6 @@ var storage = require('./storage');
 
 var CADRE_ORDER = {
   '班长': 0,
-  '超级牛逼雷霆之人': 0,
   '副班长': 1,
   '办公室主任': 2,
   '特勤部部长': 3,

@@ -1,4 +1,14 @@
 var storage = require('../../utils/storage');
+var ACTIVE_STATUS_TEXT = '\u5728\u961f';
+
+function isActiveMember(memberInfo) {
+  if (!memberInfo) {
+    return false;
+  }
+
+  var status = memberInfo.status ? String(memberInfo.status).trim() : '';
+  return !status || status === ACTIVE_STATUS_TEXT;
+}
 
 Page({
   data: {
@@ -6,7 +16,9 @@ Page({
     isAdmin: false,
     memberInfo: null,
     authResolved: false,
-    isProfileLoading: false
+    isProfileLoading: false,
+    memberAccessResolved: false,
+    isActiveMember: false
   },
 
   onShow: async function () {
@@ -19,7 +31,9 @@ Page({
         isAdmin: false,
         memberInfo: null,
         authResolved: true,
-        isProfileLoading: false
+        isProfileLoading: false,
+        memberAccessResolved: true,
+        isActiveMember: false
       });
       return;
     }
@@ -28,7 +42,8 @@ Page({
       userInfo: userInfo,
       isAdmin: userInfo.role === 'admin',
       authResolved: true,
-      isProfileLoading: true
+      isProfileLoading: true,
+      memberAccessResolved: false
     });
 
     try {
@@ -39,7 +54,9 @@ Page({
 
       this.setData({
         memberInfo: memberInfo,
-        isProfileLoading: false
+        isProfileLoading: false,
+        memberAccessResolved: true,
+        isActiveMember: isActiveMember(memberInfo)
       });
     } catch (err) {
       console.error(err);
@@ -48,7 +65,9 @@ Page({
       }
       this.setData({
         memberInfo: null,
-        isProfileLoading: false
+        isProfileLoading: false,
+        memberAccessResolved: true,
+        isActiveMember: false
       });
     }
   },
@@ -78,19 +97,36 @@ Page({
   },
 
   goDepartment: function () {
+    if (this.data.userInfo && this.data.memberAccessResolved && !this.data.isActiveMember) {
+      return;
+    }
     wx.navigateTo({ url: '/pages/department/list/list' });
   },
 
   goDepartmentWork: function () {
+    if (this.data.userInfo && this.data.memberAccessResolved && !this.data.isActiveMember) {
+      return;
+    }
     wx.navigateTo({ url: '/pages/department/work/work' });
   },
 
   goTutorial: function () {
+    if (this.data.userInfo && this.data.memberAccessResolved && !this.data.isActiveMember) {
+      return;
+    }
     wx.navigateTo({ url: '/pages/tutorial/list/list' });
   },
 
   goChronicle: function () {
     wx.navigateTo({ url: '/pages/chronicle/list/list' });
+  },
+
+  goBugReport: function () {
+    if (!storage.getUserInfo()) {
+      wx.navigateTo({ url: '/pages/login/login' });
+      return;
+    }
+    wx.navigateTo({ url: '/pages/bug/report/report' });
   },
 
   goTrainingCreate: function () {

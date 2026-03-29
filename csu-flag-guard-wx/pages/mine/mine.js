@@ -1,11 +1,35 @@
 var storage = require('../../utils/storage');
 var util = require('../../utils/util');
+var OFFICE_DIRECTOR_LABEL = '\u529e\u516c\u5ba4\u4e3b\u4efb';
+var BUG_SUMMARY_FORBIDDEN_TEXT = '\u4ec5\u529e\u516c\u5ba4\u4e3b\u4efb\u53ef\u67e5\u770bBUG\u6c47\u603b';
+
+function hasOfficeDirectorRole(memberInfo) {
+  if (!memberInfo) {
+    return false;
+  }
+
+  var positions = [];
+  if (typeof storage.normalizePositions === 'function') {
+    positions = storage.normalizePositions(memberInfo.position);
+  } else if (Array.isArray(memberInfo.position)) {
+    positions = memberInfo.position.slice();
+  } else if (memberInfo.position) {
+    positions = [memberInfo.position];
+  }
+
+  if (positions.indexOf(OFFICE_DIRECTOR_LABEL) !== -1) {
+    return true;
+  }
+
+  return String(memberInfo.positionText || '').indexOf(OFFICE_DIRECTOR_LABEL) !== -1;
+}
 
 Page({
   data: {
     userInfo: null,
     isAdmin: false,
     isCadre: false,
+    isOfficeDirector: false,
     memberInfo: null,
     makeupPendingCount: 0,
     makeupUpcomingCount: 0,
@@ -58,6 +82,7 @@ Page({
         userInfo: userInfo,
         isAdmin: userInfo.role === 'admin',
         isCadre: memberInfo ? storage.hasAdminPosition(memberInfo.position) : false,
+        isOfficeDirector: hasOfficeDirectorRole(memberInfo),
         memberInfo: memberInfo,
         makeupPendingCount: makeupPendingCount,
         makeupUpcomingCount: makeupUpcomingCount,
@@ -72,6 +97,7 @@ Page({
       this.setData({
         memberInfo: null,
         isCadre: false,
+        isOfficeDirector: false,
         makeupPendingCount: 0,
         makeupUpcomingCount: 0,
         makeupBadgeText: '暂无补训',
@@ -90,6 +116,15 @@ Page({
 
   goMakeupList: function() {
     wx.navigateTo({ url: '/pages/training/makeup/list/list' });
+  },
+
+  goBugSummary: function() {
+    if (!this.data.isOfficeDirector) {
+      util.showToast(BUG_SUMMARY_FORBIDDEN_TEXT);
+      return;
+    }
+
+    wx.navigateTo({ url: '/pages/bug/list/list' });
   },
 
   switchRole: function() {
