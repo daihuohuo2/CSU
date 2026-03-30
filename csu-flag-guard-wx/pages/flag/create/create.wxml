@@ -1,0 +1,81 @@
+<view class="container">
+  <view class="card">
+    <view class="section-header">{{isEdit ? '编辑升降旗日程' : '创建升降旗任务'}}</view>
+
+    <view class="form-group">
+      <text class="form-label">任务标题 *</text>
+      <input class="form-input" placeholder="请输入任务标题" value="{{title}}" bindinput="onInput" data-field="title" />
+    </view>
+
+    <view class="form-group">
+      <text class="form-label">任务类型 *</text>
+      <picker wx:if="{{!isEdit}}" mode="selector" range="{{typeOptions}}" bindchange="onTypePick">
+        <view class="form-input picker-value">{{type || '请选择类型'}}</view>
+      </picker>
+      <view wx:else class="form-input picker-value">{{type || '请选择类型'}}</view>
+    </view>
+
+    <view class="form-group">
+      <text class="form-label">日期 *</text>
+      <picker mode="date" value="{{date}}" bindchange="onDatePick">
+        <view class="form-input picker-value">{{date || '请选择日期'}}</view>
+      </picker>
+    </view>
+
+    <view class="form-group">
+      <text class="form-label">时间</text>
+      <input class="form-input" placeholder="如：07:20" value="{{time}}" bindinput="onInput" data-field="time" />
+    </view>
+
+    <view class="form-group">
+      <text class="form-label">地点</text>
+      <input class="form-input" placeholder="请输入地点" value="{{location}}" bindinput="onInput" data-field="location" />
+    </view>
+
+    <view class="form-group">
+      <text class="form-label">描述</text>
+      <textarea class="form-textarea" placeholder="请输入描述" value="{{description}}" bindinput="onInput" data-field="description" />
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="section-header">上岗成员</view>
+    <view class="section-tip">{{isRaiseFlag ? '仅显示在队成员；如果该日程原本包含已离队成员，也会继续保留在列表中。勾选后会自动从观礼成员中移出。' : '降旗任务仅记录上岗成员考勤；原本已选但已离队的成员也会继续保留在列表中。'}}</view>
+    <view class="section-meta">
+      <text class="meta-tag">可选成员 {{members.length}} 人</text>
+      <text class="meta-tag">已上岗 {{queueMemberCount}} 人</text>
+    </view>
+    <view wx:if="{{members.length}}">
+      <view class="member-check-item" wx:for="{{members}}" wx:key="id">
+        <view class="check-info">
+          <text class="check-name">{{item.name}}</text>
+          <text class="check-pos">{{item.positionText || (item.status || '成员')}}</text>
+        </view>
+        <switch checked="{{item.checked}}" bindchange="toggleMember" data-index="{{index}}" color="#C41A1A" />
+      </view>
+    </view>
+    <view wx:else class="member-empty">当前没有可供选择的成员</view>
+  </view>
+
+  <view class="card" wx:if="{{isRaiseFlag}}">
+    <view class="section-header">观礼成员</view>
+    <view class="section-tip">默认包含其余全部未勾选成员，会随上岗成员的选择自动更新。</view>
+    <view class="section-meta">
+      <text class="meta-tag">观礼成员 {{audienceMembers.length}} 人</text>
+    </view>
+    <view wx:if="{{audienceMembers.length}}">
+      <view class="member-check-item" wx:for="{{audienceMembers}}" wx:key="id">
+        <view class="check-info">
+          <text class="check-name">{{item.name}}</text>
+          <text class="check-pos">{{item.positionText || (item.status || '成员')}}</text>
+        </view>
+        <text class="preview-tag">观礼</text>
+      </view>
+    </view>
+    <view wx:else class="member-empty">当前无观礼成员</view>
+  </view>
+
+  <view class="submit-area">
+    <button class="btn-primary" bindtap="handleSubmit">{{isEdit ? '保存修改' : '创建任务'}}</button>
+  </view>
+</view>

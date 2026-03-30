@@ -1,0 +1,65 @@
+{
+  "pages": [
+    "pages/login/login",
+    "pages/index/index",
+    "pages/mine/mine",
+    "pages/bug/report/report",
+    "pages/bug/list/list",
+    "pages/training/list/list",
+    "pages/training/detail/detail",
+    "pages/training/create/create",
+    "pages/training/makeup/list/list",
+    "pages/training/makeup/select/select",
+    "pages/flag/list/list",
+    "pages/flag/detail/detail",
+    "pages/flag/create/create",
+    "pages/department/list/list",
+    "pages/department/detail/detail",
+    "pages/department/meeting/list/list",
+    "pages/department/material/list/list",
+    "pages/department/task/list/list",
+    "pages/department/task/edit/edit",
+    "pages/department/task/detail/detail",
+    "pages/department/work/work",
+    "pages/department/security/list/list",
+    "pages/department/security/makeup/list/list",
+    "pages/department/security/makeup/detail/detail",
+    "pages/chronicle/list/list",
+    "pages/chronicle/grade/grade",
+    "pages/chronicle/detail/detail",
+    "pages/chronicle/edit/edit",
+    "pages/member/list/list",
+    "pages/member/detail/detail",
+    "pages/member/import/import",
+    "pages/member/edit/edit",
+    "pages/tutorial/list/list",
+    "pages/tutorial/detail/detail",
+    "pages/tutorial/edit/edit"
+  ],
+  "tabBar": {
+    "custom": true,
+    "color": "#999999",
+    "selectedColor": "#C41A1A",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "首页"
+      },
+      {
+        "pagePath": "pages/mine/mine",
+        "text": "我的"
+      }
+    ]
+  },
+  "window": {
+    "backgroundTextStyle": "dark",
+    "navigationBarBackgroundColor": "#8B0000",
+    "navigationBarTitleText": "CSU Flag Guard",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#F2F2F2"
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

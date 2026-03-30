@@ -1,0 +1,31 @@
+<view class="container">
+  <view class="card intro-card">
+    <view class="section-header">人物志</view>
+    <view class="intro-text" wx:if="{{isAdmin}}">
+      按年级进入人物志子菜单。管理员可查看全部年级，并在年级页新增、编辑或通过 Excel 导入人物志。
+    </view>
+    <view class="intro-text" wx:else>
+      按年级浏览已发布的人物志内容。仅显示当前已有内容的年级。
+    </view>
+  </view>
+
+  <view class="card loading-state" wx:if="{{isLoading}}">
+    <loading color="#6D3FC1"></loading>
+    <view class="loading-text">正在加载人物志...</view>
+  </view>
+
+  <view class="chronicle-list" wx:elif="{{grades.length}}">
+    <view class="chronicle-item card" wx:for="{{grades}}" wx:key="year" bindtap="goGrade" data-year="{{item.year}}">
+      <view class="chronicle-icon">{{item.shortLabel}}</view>
+      <view class="chronicle-body">
+        <view class="chronicle-name">{{item.label}}</view>
+        <view class="chronicle-desc">已存 {{item.count}} 则人物志</view>
+      </view>
+      <text class="arrow-right">›</text>
+    </view>
+  </view>
+
+  <view class="card empty-state" wx:else>
+    <view class="empty-text">{{isAdmin ? '当前还没有人物志内容' : '当前暂无可查看的人物志内容'}}</view>
+  </view>
+</view>

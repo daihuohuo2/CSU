@@ -1,0 +1,75 @@
+<view class="container">
+  <view class="card summary-card">
+    <view class="section-header">{{gradeLabel}}人物志</view>
+    <view class="summary-row">
+      <view class="summary-box">
+        <view class="summary-num">{{totalCount}}</view>
+        <view class="summary-label">总条数</view>
+      </view>
+      <view class="summary-box">
+        <view class="summary-num">{{currentPage}}</view>
+        <view class="summary-label">当前页</view>
+      </view>
+      <view class="summary-box">
+        <view class="summary-num">{{totalPages}}</view>
+        <view class="summary-label">总页数</view>
+      </view>
+    </view>
+    <view class="summary-tip" wx:if="{{isAdmin}}">
+      每页展示 8 位人物，按“封面图片 + 人名”双列排版。管理员可新增、编辑、Excel 导入，也可进入多选模式批量删除。
+    </view>
+    <view class="summary-tip" wx:else>
+      每页展示 8 位人物，按“封面图片 + 人名”双列排版。点击卡片可进入人物志详情页。
+    </view>
+    <view class="action-row" wx:if="{{isAdmin}}">
+      <button class="btn-secondary import-btn" bindtap="handleImport" loading="{{isImporting}}" disabled="{{isImporting || isDeleting}}">Excel导入</button>
+      <button class="btn-secondary select-btn" bindtap="toggleSelectionMode" disabled="{{isImporting || isDeleting}}">{{isSelecting ? '取消多选' : '多选删除'}}</button>
+    </view>
+    <view class="progress-text" wx:if="{{progressText}}">{{progressText}}</view>
+  </view>
+
+  <view class="cover-grid" wx:if="{{pageEntries.length}}">
+    <view
+      class="card cover-card {{item.selected ? 'selected' : ''}}"
+      wx:for="{{pageEntries}}"
+      wx:key="id"
+      bindtap="handleCardTap"
+      data-id="{{item.id}}"
+    >
+      <view class="select-badge {{item.selected ? 'active' : ''}}" wx:if="{{isSelecting}}">
+        {{item.selected ? '已选' : '选择'}}
+      </view>
+      <view class="cover-frame" wx:if="{{item.displayCoverImage}}">
+        <image class="cover-photo" src="{{item.displayCoverImage.tempFileURL}}" mode="aspectFill" />
+      </view>
+      <view class="cover-frame placeholder" wx:else>
+        <view class="cover-placeholder-text">暂无封面</view>
+      </view>
+      <view class="cover-name">{{item.personName || '未命名人物'}}</view>
+    </view>
+  </view>
+
+  <view class="card loading-state" wx:elif="{{isLoading}}">
+    <loading color="#6D3FC1"></loading>
+    <view class="loading-text">正在加载人物志...</view>
+  </view>
+
+  <view class="card empty-state" wx:else>
+    <view class="empty-text">当前年级还没有人物志内容</view>
+    <view class="empty-subtext" wx:if="{{isAdmin}}">点击右下角 + 可以新增第一则人物志</view>
+    <view class="empty-subtext" wx:else>当前仅管理员可以新增人物志</view>
+  </view>
+
+  <view class="card pager-card" wx:if="{{totalCount > 0}}">
+    <button class="btn-secondary pager-btn" bindtap="prevPage" disabled="{{currentPage <= 1}}">上一页</button>
+    <view class="pager-text">{{currentPage}} / {{totalPages}}</view>
+    <button class="btn-secondary pager-btn" bindtap="nextPage" disabled="{{currentPage >= totalPages}}">下一页</button>
+  </view>
+
+  <view class="batch-action-bar" wx:if="{{isSelecting}}">
+    <view class="batch-action-text">已选择 {{selectedIds.length}} 条</view>
+    <button class="btn-danger batch-delete-btn" bindtap="handleBatchDelete" loading="{{isDeleting}}" disabled="{{isDeleting}}">一键删除</button>
+  </view>
+
+  <view class="fab-btn" wx:if="{{isAdmin && !isSelecting}}" bindtap="goAdd">+</view>
+</view>

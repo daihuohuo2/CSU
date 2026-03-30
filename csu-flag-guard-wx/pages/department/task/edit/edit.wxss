@@ -1,0 +1,39 @@
+.member-summary {
+  font-size: 24rpx;
+  color: #999999;
+  margin-bottom: 16rpx;
+}
+
+.member-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20rpx;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #F5F5F5;
+}
+
+.member-item:last-child {
+  border-bottom: none;
+}
+
+.member-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.member-name {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #333333;
+}
+
+.member-meta {
+  margin-top: 8rpx;
+  font-size: 24rpx;
+  color: #999999;
+}
+
+.submit-btn {
+  margin-top: 24rpx;
+}

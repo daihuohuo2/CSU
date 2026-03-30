@@ -1,0 +1,125 @@
+.tab-bar {
+  display: flex;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 100rpx;
+  background: #fff;
+  padding-bottom: env(safe-area-inset-bottom);
+  z-index: 999;
+}
+
+.tab-bar-border {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1rpx;
+  background: #e0e0e0;
+}
+
+.tab-bar-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.tab-icon {
+  width: 48rpx;
+  height: 48rpx;
+  margin-bottom: 4rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 首页图标 */
+.icon-home {
+  width: 44rpx;
+  height: 42rpx;
+  position: relative;
+}
+
+.icon-home::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 22rpx solid transparent;
+  border-right: 22rpx solid transparent;
+  border-bottom: 18rpx solid #999;
+}
+
+.icon-home::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 26rpx;
+  height: 20rpx;
+  background: #999;
+  border-radius: 3rpx;
+}
+
+.icon-home.active::before {
+  border-bottom-color: #C41A1A;
+}
+
+.icon-home.active::after {
+  background: #C41A1A;
+}
+
+/* 我的图标 */
+.icon-mine {
+  width: 44rpx;
+  height: 44rpx;
+  position: relative;
+}
+
+.icon-mine::before {
+  content: '';
+  position: absolute;
+  top: 2rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 18rpx;
+  height: 18rpx;
+  border-radius: 50%;
+  background: #999;
+}
+
+.icon-mine::after {
+  content: '';
+  position: absolute;
+  bottom: 2rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 32rpx;
+  height: 16rpx;
+  border-radius: 16rpx 16rpx 0 0;
+  background: #999;
+}
+
+.icon-mine.active::before {
+  background: #C41A1A;
+}
+
+.icon-mine.active::after {
+  background: #C41A1A;
+}
+
+.tab-text {
+  font-size: 20rpx;
+  color: #999;
+}
+
+.text-active {
+  color: #C41A1A;
+}

@@ -1,0 +1,62 @@
+.intro-text {
+  font-size: 26rpx;
+  color: #666;
+  margin-bottom: 24rpx;
+}
+
+.file-panel {
+  padding: 24rpx;
+  border-radius: 16rpx;
+  background: #FAFAFA;
+  margin-bottom: 28rpx;
+}
+
+.file-label {
+  font-size: 26rpx;
+  color: #666;
+  margin-bottom: 12rpx;
+}
+
+.file-name {
+  font-size: 28rpx;
+  color: #333;
+  margin-bottom: 20rpx;
+  word-break: break-all;
+}
+
+.file-name.placeholder {
+  color: #999;
+}
+
+.file-btn {
+  width: 100%;
+}
+
+.rule-item {
+  padding: 14rpx 0;
+  font-size: 27rpx;
+  color: #333;
+  border-bottom: 1rpx solid #F5F5F5;
+}
+
+.rule-item:last-of-type {
+  border-bottom: none;
+}
+
+.rule-note {
+  margin-top: 20rpx;
+  font-size: 25rpx;
+  color: #999;
+  line-height: 1.7;
+}
+
+.submit-area {
+  padding: 30rpx 24rpx 60rpx;
+}
+
+.progress-text {
+  margin-top: 18rpx;
+  text-align: center;
+  font-size: 25rpx;
+  color: #999;
+}

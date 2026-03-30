@@ -1,0 +1,9 @@
+{
+  "name": "office-task-manage",
+  "version": "1.0.0",
+  "description": "Manage office department tasks and submissions",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}

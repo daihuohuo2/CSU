@@ -1,0 +1,254 @@
+/* ========== 全局样式 ========== */
+page {
+  background-color: #F2F2F2;
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, 'PingFang SC', 'Microsoft YaHei', Arial, sans-serif;
+  font-size: 28rpx;
+  color: #333333;
+  line-height: 1.6;
+}
+
+.container {
+  padding-bottom: 40rpx;
+}
+
+/* ========== 卡片 ========== */
+.card {
+  background: #FFFFFF;
+  border-radius: 16rpx;
+  margin: 20rpx 24rpx;
+  padding: 30rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.05);
+}
+
+/* ========== 按钮 ========== */
+.btn-primary {
+  background: #C41A1A;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 12rpx;
+  padding: 20rpx 40rpx;
+  font-size: 30rpx;
+  text-align: center;
+}
+
+.btn-primary::after {
+  border: none;
+}
+
+.btn-secondary {
+  background: #FFFFFF;
+  color: #C41A1A;
+  border: 2rpx solid #C41A1A;
+  border-radius: 12rpx;
+  padding: 18rpx 40rpx;
+  font-size: 30rpx;
+  text-align: center;
+}
+
+.btn-secondary::after {
+  border: none;
+}
+
+.btn-danger {
+  background: #EE4D4D;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 12rpx;
+  padding: 20rpx 40rpx;
+  font-size: 30rpx;
+  text-align: center;
+}
+
+.btn-danger::after {
+  border: none;
+}
+
+/* ========== 状态标签 ========== */
+.status-badge {
+  display: inline-block;
+  padding: 4rpx 16rpx;
+  border-radius: 20rpx;
+  font-size: 24rpx;
+  color: #FFFFFF;
+}
+
+/* ========== 表单 ========== */
+.form-group {
+  margin-bottom: 30rpx;
+}
+
+.form-label {
+  font-size: 28rpx;
+  color: #666666;
+  margin-bottom: 10rpx;
+  display: block;
+}
+
+.form-input {
+  width: 100%;
+  min-height: 96rpx;
+  padding: 22rpx 24rpx;
+  border: 2rpx solid #E8E8E8;
+  border-radius: 8rpx;
+  font-size: 28rpx;
+  line-height: 1.4;
+  box-sizing: border-box;
+  background: #FAFAFA;
+  color: #333333;
+}
+
+input.form-input {
+  height: 96rpx;
+}
+
+view.form-input {
+  display: flex;
+  align-items: center;
+}
+
+.form-textarea {
+  width: 100%;
+  padding: 24rpx;
+  border: 2rpx solid #E8E8E8;
+  border-radius: 8rpx;
+  font-size: 28rpx;
+  line-height: 1.6;
+  box-sizing: border-box;
+  min-height: 160rpx;
+  background: #FAFAFA;
+  color: #333333;
+}
+
+/* ========== 段落标题 ========== */
+.section-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333333;
+  padding: 20rpx 24rpx 10rpx;
+}
+
+.section-header {
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #333333;
+  margin-bottom: 20rpx;
+  padding-bottom: 16rpx;
+  border-bottom: 1rpx solid #F0F0F0;
+}
+
+/* ========== 空状态 ========== */
+.empty-state {
+  text-align: center;
+  padding: 100rpx 40rpx;
+  color: #999999;
+}
+
+.empty-icon {
+  font-size: 80rpx;
+  margin-bottom: 20rpx;
+}
+
+.empty-text {
+  font-size: 28rpx;
+}
+
+.empty-title {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #666666;
+  line-height: 1.6;
+}
+
+/* ========== 信息行 ========== */
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16rpx 0;
+  border-bottom: 1rpx solid #F5F5F5;
+}
+
+.info-row:last-child {
+  border-bottom: none;
+}
+
+.info-label {
+  color: #999999;
+  font-size: 26rpx;
+  min-width: 140rpx;
+}
+
+.info-value {
+  color: #333333;
+  font-size: 26rpx;
+  text-align: right;
+  flex: 1;
+}
+
+/* ========== 浮动按钮 ========== */
+.fab-btn {
+  position: fixed;
+  right: 40rpx;
+  bottom: 60rpx;
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 50%;
+  background: #C41A1A;
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48rpx;
+  box-shadow: 0 4rpx 20rpx rgba(196, 26, 26, 0.4);
+  z-index: 100;
+}
+
+/* ========== 列表箭头 ========== */
+.arrow-right {
+  color: #CCCCCC;
+  font-size: 32rpx;
+}
+
+/* ========== 搜索栏 ========== */
+.search-bar {
+  padding: 20rpx 24rpx;
+  background: #FFFFFF;
+}
+
+.search-input {
+  background: #F5F5F5;
+  border-radius: 30rpx;
+  min-height: 72rpx;
+  padding: 0 30rpx;
+  font-size: 26rpx;
+  line-height: 72rpx;
+  box-sizing: border-box;
+  color: #333333;
+}
+
+input.search-input {
+  height: 72rpx;
+}
+
+/* ========== 标签筛选 ========== */
+.filter-bar {
+  display: flex;
+  padding: 16rpx 24rpx;
+  background: #FFFFFF;
+  gap: 16rpx;
+  flex-wrap: wrap;
+}
+
+.filter-tag {
+  padding: 10rpx 24rpx;
+  border-radius: 30rpx;
+  font-size: 24rpx;
+  background: #F5F5F5;
+  color: #666666;
+}
+
+.filter-tag.active {
+  background: #FFF0F0;
+  color: #C41A1A;
+  font-weight: bold;
+}

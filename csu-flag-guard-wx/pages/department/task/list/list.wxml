@@ -1,0 +1,44 @@
+<view class="container" wx:if="{{isAdmin}}">
+  <view class="card intro-card">
+    <view class="section-header">办公室任务管理</view>
+    <view class="intro-text">在这里发布办公室任务、查看完成进度，并进入任务详情查看成员提交的文件。</view>
+  </view>
+
+  <view class="card upload-entry-card" bindtap="goCreate">
+    <view class="upload-entry-title">发布新任务</view>
+    <view class="upload-entry-desc">填写任务名称、选择参与成员并设置 DDL，发布后会同步到对应成员的部门工作页面。</view>
+    <view class="upload-entry-action">开始发布 ›</view>
+  </view>
+
+  <view class="card">
+    <view class="section-header">待完成任务</view>
+    <view wx:if="{{pendingTasks.length}}">
+      <view class="task-card" wx:for="{{pendingTasks}}" wx:key="id" bindtap="goDetail" data-id="{{item.id}}">
+        <view class="task-title-row">
+          <view class="task-title">{{item.title}}</view>
+          <view class="task-progress">{{item.progressText}}</view>
+        </view>
+        <view class="task-meta">DDL：{{item.displayDueDate}}</view>
+        <view class="task-meta">已完成 {{item.completedCount}} / 共 {{item.totalCount}} 人</view>
+        <view class="task-action">查看详情与提交文件 ›</view>
+      </view>
+    </view>
+    <view wx:else class="empty-title">当前暂无待完成任务</view>
+  </view>
+
+  <view class="card">
+    <view class="section-header">已完成任务</view>
+    <view wx:if="{{completedTasks.length}}">
+      <view class="task-card done" wx:for="{{completedTasks}}" wx:key="id" bindtap="goDetail" data-id="{{item.id}}">
+        <view class="task-title-row">
+          <view class="task-title">{{item.title}}</view>
+          <view class="task-progress done-tag">已完成</view>
+        </view>
+        <view class="task-meta">DDL：{{item.displayDueDate}}</view>
+        <view class="task-meta">共 {{item.totalCount}} 人已全部提交</view>
+        <view class="task-action">查看全部提交文件 ›</view>
+      </view>
+    </view>
+    <view wx:else class="empty-title">当前暂无已完成任务</view>
+  </view>
+</view>

@@ -1,0 +1,9 @@
+{
+  "name": "list-query",
+  "version": "1.0.0",
+  "description": "Paged list query cloud function",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}

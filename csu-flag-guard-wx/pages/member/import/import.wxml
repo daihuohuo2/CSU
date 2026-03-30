@@ -1,0 +1,40 @@
+<view class="container">
+  <view class="card">
+    <view class="section-header">Excel导入成员</view>
+    <view class="intro-text">导入首个工作表，支持带表头或不带表头的 Excel 文件。</view>
+
+    <view class="file-panel">
+      <view class="file-label">已选文件</view>
+      <view class="file-name {{fileName ? '' : 'placeholder'}}">{{fileName || '暂未选择 Excel 文件'}}</view>
+      <button class="btn-secondary file-btn" bindtap="chooseExcelFile">选择Excel文件</button>
+    </view>
+
+    <view class="form-group">
+      <text class="form-label">统一入队时间 *</text>
+      <picker mode="date" value="{{joinDate}}" bindchange="onJoinDatePick">
+        <view class="form-input">{{joinDate || '请选择入队时间'}}</view>
+      </picker>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="section-header">模板规则</view>
+    <view class="rule-item">A列：姓名</view>
+    <view class="rule-item">B列：性别</view>
+    <view class="rule-item">C列：学号</view>
+    <view class="rule-item">D列：学院</view>
+    <view class="rule-item">E列：专业</view>
+    <view class="rule-item">F列：年级</view>
+    <view class="rule-item">G列：班级</view>
+    <view class="rule-item">H列：部门</view>
+    <view class="rule-item">I列：手机号</view>
+    <view class="rule-note">除姓名外，其余列都允许留空。微信号默认与手机号一致，默认职务为“队员”，默认状态为“在队”；有学号时初始密码为学号，无学号时初始密码为手机号，若二者都为空则回退为“123456”。</view>
+  </view>
+
+  <view class="submit-area">
+    <button class="btn-primary" bindtap="handleImport" loading="{{isImporting}}" disabled="{{isImporting}}">
+      {{isImporting ? '导入中...' : '开始导入'}}
+    </button>
+    <view class="progress-text" wx:if="{{progressText}}">{{progressText}}</view>
+  </view>
+</view>

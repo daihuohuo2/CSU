@@ -1,0 +1,95 @@
+<view class="container">
+  <view class="card">
+    <view class="edit-header">
+      <view class="edit-title">{{isEdit ? '编辑成员档案' : '新增成员'}}</view>
+      <view wx:if="{{!isEdit}}" class="header-action" bindtap="goExcelImport">Excel导入</view>
+    </view>
+
+    <view class="form-group">
+      <text class="form-label">姓名 *</text>
+      <input class="form-input" placeholder="请输入姓名" value="{{form.name}}" bindinput="onInput" data-field="name" />
+    </view>
+
+    <view class="form-group">
+      <text class="form-label">性别 *</text>
+      <picker mode="selector" range="{{genderOptions}}" bindchange="onGenderPick">
+        <view class="form-input">{{form.gender || '请选择性别'}}</view>
+      </picker>
+    </view>
+
+    <view class="form-group">
+      <text class="form-label">学号 *</text>
+      <input class="form-input" placeholder="请输入学号" value="{{form.studentId}}" bindinput="onInput" data-field="studentId" />
+      <view class="form-tip" wx:if="{{!isEdit}}">新增成员默认初始密码优先取学号；若无学号，则取手机号；二者都为空时回退为 {{storageDefaultPassword || '123456'}}</view>
+    </view>
+
+    <view class="form-group">
+      <text class="form-label">学院</text>
+      <input class="form-input" placeholder="请输入学院" value="{{form.college}}" bindinput="onInput" data-field="college" />
+    </view>
+
+    <view class="form-group">
+      <text class="form-label">专业</text>
+      <input class="form-input" placeholder="请输入专业" value="{{form.major}}" bindinput="onInput" data-field="major" />
+    </view>
+
+    <view class="form-group">
+      <text class="form-label">年级</text>
+      <input class="form-input" placeholder="如：2024" value="{{form.grade}}" bindinput="onInput" data-field="grade" />
+    </view>
+
+    <view class="form-group">
+      <text class="form-label">班级</text>
+      <input class="form-input" placeholder="请输入班级" value="{{form.className}}" bindinput="onInput" data-field="className" />
+    </view>
+
+    <view class="form-group">
+      <text class="form-label">部门 *</text>
+      <picker mode="selector" range="{{departmentOptions}}" bindchange="onDepartmentPick">
+        <view class="form-input">{{form.department || '请选择部门'}}</view>
+      </picker>
+    </view>
+
+    <view class="form-group">
+      <text class="form-label">手机号</text>
+      <input class="form-input" type="number" placeholder="请输入手机号" value="{{form.phone}}" bindinput="onInput" data-field="phone" />
+    </view>
+
+    <view class="form-group">
+      <text class="form-label">微信号</text>
+      <input class="form-input" placeholder="请输入微信号" value="{{form.wechat}}" bindinput="onInput" data-field="wechat" />
+    </view>
+
+    <view class="form-group">
+      <text class="form-label">入队时间</text>
+      <picker mode="date" value="{{form.joinDate}}" bindchange="onJoinDatePick">
+        <view class="form-input">{{form.joinDate || '请选择入队时间'}}</view>
+      </picker>
+    </view>
+
+    <view class="form-group">
+      <text class="form-label">职务 *</text>
+      <view class="position-summary {{positionSummary ? '' : 'placeholder'}}">{{positionSummary || '请选择职务'}}</view>
+      <view class="position-item" wx:for="{{positionOptions}}" wx:key="label">
+        <text class="position-name">{{item.label}}</text>
+        <switch checked="{{item.checked}}" bindchange="togglePosition" data-value="{{item.label}}" color="#C41A1A" />
+      </view>
+    </view>
+
+    <view class="form-group">
+      <text class="form-label">状态</text>
+      <picker mode="selector" range="{{statusOptions}}" bindchange="onStatusPick">
+        <view class="form-input">{{form.status || '请选择状态'}}</view>
+      </picker>
+    </view>
+
+    <view class="form-group">
+      <text class="form-label">备注</text>
+      <textarea class="form-textarea" placeholder="请输入备注" value="{{form.remark}}" bindinput="onInput" data-field="remark" />
+    </view>
+  </view>
+
+  <view class="submit-area">
+    <button class="btn-primary" bindtap="handleSubmit">{{isEdit ? '保存修改' : '新增成员'}}</button>
+  </view>
+</view>

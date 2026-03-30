@@ -1,0 +1,95 @@
+.intro-text {
+  font-size: 24rpx;
+  color: #999999;
+  line-height: 1.8;
+}
+
+.intro-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20rpx;
+  margin-bottom: 12rpx;
+}
+
+.export-btn {
+  margin: 0;
+  padding: 12rpx 24rpx;
+  font-size: 24rpx;
+  line-height: 1.2;
+  flex-shrink: 0;
+}
+
+.table-card {
+  padding: 0 24rpx;
+}
+
+.table-head,
+.table-row {
+  display: flex;
+  align-items: center;
+  padding: 24rpx 0;
+}
+
+.table-head {
+  border-bottom: 1rpx solid #F0F0F0;
+}
+
+.table-row {
+  border-bottom: 1rpx solid #F5F5F5;
+}
+
+.table-row:last-child {
+  border-bottom: none;
+}
+
+.col-member {
+  flex: 1.6;
+}
+
+.col-pending,
+.col-upcoming,
+.col-total {
+  flex: 0.6;
+  text-align: center;
+  font-size: 26rpx;
+}
+
+.table-head .col-member,
+.table-head .col-pending,
+.table-head .col-upcoming,
+.table-head .col-total {
+  font-size: 22rpx;
+  color: #999999;
+}
+
+.member-cell {
+  padding-right: 16rpx;
+}
+
+.member-name {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #333333;
+}
+
+.member-sub {
+  font-size: 22rpx;
+  color: #999999;
+  margin-top: 6rpx;
+}
+
+.pending {
+  color: #C41A1A;
+  font-weight: bold;
+}
+
+.upcoming {
+  color: #E6A23C;
+  font-weight: bold;
+}
+
+.total {
+  color: #333333;
+  font-weight: bold;
+}

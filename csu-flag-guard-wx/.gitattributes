@@ -1,0 +1,28 @@
+# Normalize text files for cross-platform Git usage
+* text=auto eol=lf
+
+# Keep common source files normalized
+*.js text eol=lf
+*.json text eol=lf
+*.wxml text eol=lf
+*.wxss text eol=lf
+*.md text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.xml text eol=lf
+*.sh text eol=lf
+
+# Windows scripts keep CRLF
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.zip binary
+*.xlsx binary
+*.xls binary

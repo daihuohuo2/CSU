@@ -1,0 +1,122 @@
+<view class="container">
+  <!-- 轮播图 -->
+  <view class="swiper-wrap">
+    <swiper class="banner-swiper" indicator-dots indicator-color="rgba(255,255,255,0.4)" indicator-active-color="#fff" autoplay circular interval="{{3000}}">
+      <swiper-item wx:for="{{banners}}" wx:key="index" bindtap="onBannerTap" data-index="{{index}}">
+        <view class="banner-item" style="background: {{item.color}};">
+          <image wx:if="{{item.image}}" src="{{item.image}}" mode="aspectFill" class="banner-image" />
+          <text class="banner-text" wx:else>{{item.title}}</text>
+        </view>
+      </swiper-item>
+    </swiper>
+  </view>
+
+  <view class="section-title">功能模块</view>
+  <view class="menu-grid">
+    <view class="menu-item card" bindtap="goTraining">
+      <view class="menu-icon" style="background: #FFF0F0; color: #C41A1A;">🏃</view>
+      <view class="menu-body">
+        <view class="menu-text">训练考勤</view>
+        <view class="menu-desc">查看训练记录与考勤</view>
+      </view>
+      <text class="arrow-right">›</text>
+    </view>
+
+    <view class="menu-item card" bindtap="goFlag">
+      <view class="menu-icon" style="background: #FFF8E6; color: #E6A23C;">🚩</view>
+      <view class="menu-body">
+        <view class="menu-text">升降旗考勤</view>
+        <view class="menu-desc">升旗降旗任务管理</view>
+      </view>
+      <text class="arrow-right">›</text>
+    </view>
+
+    <view class="menu-item card" bindtap="goMember">
+      <view class="menu-icon" style="background: #F0F5FF; color: #576B95;">👥</view>
+      <view class="menu-body">
+        <view class="menu-text">成员档案</view>
+        <view class="menu-desc">队员信息管理</view>
+      </view>
+      <text class="arrow-right">›</text>
+    </view>
+
+    <view class="menu-item card" wx:if="{{isAdmin && (!userInfo || (memberAccessResolved && isActiveMember))}}" bindtap="goDepartment">
+      <view class="menu-icon" style="background: #FFF6E8; color: #A85C00;">🏢</view>
+      <view class="menu-body">
+        <view class="menu-text">部门管理</view>
+        <view class="menu-desc">办公室与各部门菜单</view>
+      </view>
+      <text class="arrow-right">›</text>
+    </view>
+
+    <view class="menu-item card" wx:if="{{!isAdmin && (!userInfo || (memberAccessResolved && isActiveMember))}}" bindtap="goDepartmentWork">
+      <view class="menu-icon" style="background: #EEF8F2; color: #1D8A52;">📋</view>
+      <view class="menu-body">
+        <view class="menu-text">部门工作</view>
+        <view class="menu-desc">{{memberInfo && memberInfo.department ? memberInfo.department : '查看所属部门工作安排'}}</view>
+      </view>
+      <text class="arrow-right">›</text>
+    </view>
+
+    <view class="menu-item card" bindtap="goChronicle">
+      <view class="menu-icon" style="background: #F7F1FF; color: #6D3FC1;">📚</view>
+      <view class="menu-body">
+        <view class="menu-text">人物志</view>
+        <view class="menu-desc">{{isAdmin ? '按年级维护人物志内容' : '按年级查看已发布人物志'}}</view>
+      </view>
+      <text class="arrow-right">›</text>
+    </view>
+
+    <view class="menu-item card" wx:if="{{!userInfo || (memberAccessResolved && isActiveMember)}}" bindtap="goTutorial">
+      <view class="menu-icon" style="background: #F0FFF0; color: #07C160;">📝</view>
+      <view class="menu-body">
+        <view class="menu-text">动作教程</view>
+        <view class="menu-desc">训练动作要领</view>
+      </view>
+      <text class="arrow-right">›</text>
+    </view>
+  </view>
+
+  <view class="section-title">BUG提交</view>
+  <view class="menu-grid">
+    <view class="menu-item card" bindtap="goBugReport">
+      <view class="menu-icon" style="background: #FFF5E6; color: #D97706;">🐞</view>
+      <view class="menu-body">
+        <view class="menu-text">BUG提交</view>
+        <view class="menu-desc">反馈使用中遇到的问题与异常</view>
+      </view>
+      <text class="arrow-right">›</text>
+    </view>
+  </view>
+
+  <view wx:if="{{isAdmin}}">
+    <view class="section-title">管理员快捷操作</view>
+    <view class="quick-list card">
+      <view class="quick-item" wx:if="{{isActiveMember}}" bindtap="goTrainingCreate">
+        <text class="quick-icon">📍</text>
+        <text class="quick-text">创建训练任务</text>
+        <text class="arrow-right">›</text>
+      </view>
+      <view class="quick-item" wx:if="{{isActiveMember}}" bindtap="goFlagCreate">
+        <text class="quick-icon">🎫</text>
+        <text class="quick-text">创建升降旗任务</text>
+        <text class="arrow-right">›</text>
+      </view>
+      <view class="quick-item" wx:if="{{isActiveMember}}" bindtap="goMemberAdd">
+        <text class="quick-icon">➕</text>
+        <text class="quick-text">新增成员</text>
+        <text class="arrow-right">›</text>
+      </view>
+      <view class="quick-item" bindtap="goTutorialAdd">
+        <text class="quick-icon">✏️</text>
+        <text class="quick-text">新增教程</text>
+        <text class="arrow-right">›</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="footer">
+    <text class="footer-text">中南大学国旗班 © 2026</text>
+  </view>
+  <view style="height: 120rpx;"></view>
+</view>

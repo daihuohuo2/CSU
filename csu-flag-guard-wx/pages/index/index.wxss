@@ -1,0 +1,157 @@
+/* 轮播图 */
+.swiper-wrap {
+  padding: 20rpx 24rpx 0;
+}
+
+.banner-swiper {
+  height: 280rpx;
+  border-radius: 16rpx;
+  overflow: hidden;
+}
+
+.banner-item {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16rpx;
+  overflow: hidden;
+}
+
+.banner-image {
+  width: 100%;
+  height: 100%;
+}
+
+.banner-text {
+  color: #fff;
+  font-size: 34rpx;
+  font-weight: bold;
+  letter-spacing: 2rpx;
+}
+
+/* 用户栏（保留但不再从此处触发） */
+.user-bar {
+  display: flex;
+  align-items: center;
+  margin-top: -20rpx;
+}
+
+.user-avatar {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  background: #C41A1A;
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36rpx;
+  font-weight: bold;
+  margin-right: 20rpx;
+  flex-shrink: 0;
+}
+
+.user-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.user-name {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333333;
+}
+
+.user-role-tag {
+  display: inline-block;
+  font-size: 22rpx;
+  color: #999999;
+  background: #F5F5F5;
+  padding: 2rpx 12rpx;
+  border-radius: 4rpx;
+  margin-top: 6rpx;
+  width: fit-content;
+}
+
+.user-role-tag.admin-tag {
+  color: #C41A1A;
+  background: #FFF0F0;
+}
+
+/* 菜单网格 */
+.menu-grid {
+  padding: 0;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  padding: 30rpx;
+}
+
+.menu-icon {
+  width: 90rpx;
+  height: 90rpx;
+  border-radius: 20rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 44rpx;
+  margin-right: 24rpx;
+  flex-shrink: 0;
+}
+
+.menu-body {
+  flex: 1;
+}
+
+.menu-text {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333333;
+}
+
+.menu-desc {
+  font-size: 24rpx;
+  color: #999999;
+  margin-top: 6rpx;
+}
+
+.quick-list {
+  padding: 10rpx 30rpx;
+}
+
+.quick-item {
+  display: flex;
+  align-items: center;
+  padding: 24rpx 0;
+  border-bottom: 1rpx solid #F5F5F5;
+}
+
+.quick-item:last-child {
+  border-bottom: none;
+}
+
+.quick-icon {
+  font-size: 32rpx;
+  margin-right: 16rpx;
+}
+
+.quick-text {
+  flex: 1;
+  font-size: 28rpx;
+  color: #333333;
+}
+
+.footer {
+  text-align: center;
+  padding: 40rpx 0 20rpx;
+}
+
+.footer-text {
+  font-size: 22rpx;
+  color: #CCCCCC;
+}

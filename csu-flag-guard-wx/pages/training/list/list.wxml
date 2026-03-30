@@ -1,0 +1,40 @@
+<view class="container">
+  <view class="filter-bar">
+    <view class="filter-tag {{currentType === '' ? 'active' : ''}}" bindtap="filterType" data-type="">全部</view>
+    <view
+      class="filter-tag {{currentType === item ? 'active' : ''}}"
+      wx:for="{{typeOptions}}"
+      wx:key="*this"
+      bindtap="filterType"
+      data-type="{{item}}"
+    >{{item}}</view>
+  </view>
+
+  <view class="list-wrap" wx:if="{{filteredList.length > 0}}">
+    <view class="list-item card" wx:for="{{filteredList}}" wx:key="id" bindtap="goDetail" data-id="{{item.id}}">
+      <view class="list-item-header">
+        <view class="list-item-title">{{item.title}}</view>
+        <view class="list-item-type">{{item.type}}</view>
+      </view>
+      <view class="list-item-info">
+        <text class="list-item-date">日期：{{item.date}}</text>
+        <text class="list-item-time">时间：{{item.time || '待定'}}</text>
+      </view>
+      <view class="list-item-info">
+        <text class="list-item-location">地点：{{item.location || '待定'}}</text>
+      </view>
+      <view class="list-item-stats">
+        <text class="stat-tag" style="background: #E8F5E9; color: #07C160;">已到 {{item.stats.arrived || 0}}</text>
+        <text class="stat-tag" style="background: #FFF3E0; color: #FFA500;">迟到 {{item.stats.late || 0}}</text>
+        <text class="stat-tag" style="background: #FFEBEE; color: #EE0000;">缺勤 {{item.stats.absent || 0}}</text>
+        <text class="stat-tag" style="background: #E8EAF6; color: #576B95;">请假 {{item.stats.leave || 0}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="empty-state" wx:else>
+    <view class="empty-title">{{isMineMode ? '暂无与你相关的训练记录' : '暂无训练记录'}}</view>
+  </view>
+
+  <view class="fab-btn" wx:if="{{isAdmin && !isMineMode}}" bindtap="goCreate">+</view>
+</view>

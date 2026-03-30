@@ -1,0 +1,123 @@
+<view class="container" wx:if="{{detail}}">
+  <view class="card">
+    <view class="detail-top-actions" wx:if="{{isAdmin && !isMakeupTraining}}">
+      <view class="detail-edit-btn" bindtap="goEdit">编辑</view>
+    </view>
+
+    <view class="detail-title">{{detail.title}}</view>
+    <view class="detail-type">{{detail.type}}</view>
+    <view class="info-row">
+      <text class="info-label">日期</text>
+      <text class="info-value">{{detail.date}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">时间</text>
+      <text class="info-value">{{detail.time || '待定'}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">地点</text>
+      <text class="info-value">{{detail.location || '待定'}}</text>
+    </view>
+    <view class="info-row" wx:if="{{detail.description}}">
+      <text class="info-label">描述</text>
+      <text class="info-value">{{detail.description}}</text>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="section-header">考勤统计</view>
+    <view class="stats-row">
+      <view class="stat-box">
+        <view class="stat-num" style="color: #333;">{{stats.total}}</view>
+        <view class="stat-label">总人数</view>
+      </view>
+      <view class="stat-box">
+        <view class="stat-num" style="color: #07C160;">{{stats.arrived || 0}}</view>
+        <view class="stat-label">已到</view>
+      </view>
+      <view class="stat-box">
+        <view class="stat-num" style="color: #FFA500;">{{stats.late || 0}}</view>
+        <view class="stat-label">迟到</view>
+      </view>
+      <view class="stat-box">
+        <view class="stat-num" style="color: #EE0000;">{{stats.absent || 0}}</view>
+        <view class="stat-label">缺勤</view>
+      </view>
+      <view class="stat-box">
+        <view class="stat-num" style="color: #576B95;">{{stats.leave || 0}}</view>
+        <view class="stat-label">请假</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="section-header">考勤明细</view>
+    <block wx:if="{{detail.attendance.length}}">
+      <view class="att-item" wx:for="{{detail.attendance}}" wx:key="memberId">
+        <view class="att-name">{{item.name}}</view>
+        <view wx:if="{{isAdmin}}" class="att-status-selector">
+          <view class="att-status-btn {{item.status === statusKeys.arrived ? 'active-green' : ''}}" bindtap="changeStatus" data-index="{{index}}" data-status="{{statusKeys.arrived}}">已到</view>
+          <view class="att-status-btn {{item.status === statusKeys.late ? 'active-orange' : ''}}" bindtap="changeStatus" data-index="{{index}}" data-status="{{statusKeys.late}}">迟到</view>
+          <view class="att-status-btn {{item.status === statusKeys.absent ? 'active-red' : ''}}" bindtap="changeStatus" data-index="{{index}}" data-status="{{statusKeys.absent}}">缺勤</view>
+          <view class="att-status-btn {{item.status === statusKeys.leave ? 'active-blue' : ''}}" bindtap="changeStatus" data-index="{{index}}" data-status="{{statusKeys.leave}}">请假</view>
+        </view>
+        <view wx:else class="status-badge" style="background: {{statusColors[item.status]}};">{{item.status}}</view>
+      </view>
+    </block>
+    <view wx:else class="member-empty">当前暂无参与成员</view>
+  </view>
+
+  <view class="bottom-actions" wx:if="{{isMakeupTraining || isAdmin}}">
+    <button wx:if="{{isMakeupTraining}}" class="btn-primary action-btn" bindtap="handleJoinMakeup" loading="{{isJoiningMakeup}}">参加补训</button>
+    <button wx:if="{{isMakeupTraining && isAdmin}}" class="btn-secondary action-btn" bindtap="handleRecordMakeup" loading="{{isRecordingMakeup}}">记录补登</button>
+    <button wx:if="{{isAdmin}}" class="btn-danger action-btn" bindtap="handleDelete">删除此训练</button>
+  </view>
+
+  <view class="record-panel-mask" wx:if="{{showRecordMakeupPanel}}" bindtap="closeRecordMakeupPanel">
+    <view class="record-panel" catchtap="noop">
+      <view class="record-panel-header">
+        <view class="record-panel-title">记录补登</view>
+        <view class="record-panel-close" bindtap="closeRecordMakeupPanel">关闭</view>
+      </view>
+
+      <view class="record-panel-tip">先选择成员，再选择一条尚未关联任何补训的请假记录。</view>
+
+      <view class="record-panel-section">
+        <view class="record-panel-label">选择成员</view>
+        <scroll-view class="record-member-list" scroll-y="true">
+          <view
+            class="record-member-item {{selectedRecordMemberId === item.id ? 'active' : ''}}"
+            wx:for="{{recordMakeupMembers}}"
+            wx:key="id"
+            bindtap="selectRecordMakeupMember"
+            data-member-id="{{item.id}}"
+          >
+            <view class="record-member-name">{{item.name}}</view>
+            <view class="record-member-meta">待补训 {{item.makeupPendingCount}} 条</view>
+          </view>
+        </scroll-view>
+      </view>
+
+      <view class="record-panel-section">
+        <view class="record-panel-label">{{selectedRecordMemberName ? (selectedRecordMemberName + ' 的待补登记记录') : '待补登记记录'}}</view>
+        <scroll-view class="record-leave-list" scroll-y="true">
+          <block wx:if="{{recordMakeupItems.length}}">
+            <view
+              class="record-leave-item"
+              wx:for="{{recordMakeupItems}}"
+              wx:key="id"
+              bindtap="submitRecordMakeup"
+              data-index="{{index}}"
+            >
+              <view class="record-leave-title">{{item.leaveTrainingTitle}}</view>
+              <view class="record-leave-meta">{{item.leaveTrainingDate}} {{item.leaveTrainingTime || '时间待定'}}</view>
+              <view class="record-leave-meta" wx:if="{{item.leaveTrainingLocation}}">{{item.leaveTrainingLocation}}</view>
+              <view class="record-leave-action">补登到当前补训</view>
+            </view>
+          </block>
+          <view wx:else class="record-panel-empty">当前成员暂无可补登的请假记录</view>
+        </scroll-view>
+      </view>
+    </view>
+  </view>
+</view>

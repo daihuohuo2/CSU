@@ -1,0 +1,57 @@
+<view class="container">
+  <view class="search-bar">
+    <input class="search-input" placeholder="搜索成员姓名/学号" value="{{keyword}}" bindinput="onSearch" />
+  </view>
+
+  <view class="filter-toolbar">
+    <view class="filter-bar">
+      <view class="filter-tag {{currentStatus === '' ? 'active' : ''}}" bindtap="filterStatus" data-status="">全部</view>
+      <view class="filter-tag {{currentStatus === '在队' ? 'active' : ''}}" bindtap="filterStatus" data-status="在队">在队</view>
+      <view class="filter-tag {{currentStatus === '离队' ? 'active' : ''}}" bindtap="filterStatus" data-status="离队">离队</view>
+    </view>
+
+    <view wx:if="{{isAdmin}}" class="toolbar-actions">
+      <view class="toolbar-action toolbar-action-secondary" bindtap="resetPasswordsToStudentId">
+        重置密码
+      </view>
+      <view class="toolbar-action {{isBatchMode ? 'active' : ''}}" bindtap="toggleBatchMode">
+        {{isBatchMode ? '取消' : '批量调整'}}
+      </view>
+    </view>
+  </view>
+
+  <view class="batch-tip-bar" wx:if="{{isBatchMode}}">
+    <text>已选择 {{selectedIds.length}} 人</text>
+  </view>
+
+  <view wx:if="{{filteredList.length > 0}}">
+    <view class="member-card card {{selectedMap[item.id] ? 'selected' : ''}}" wx:for="{{filteredList}}" wx:key="id" bindtap="handleMemberTap" data-id="{{item.id}}">
+      <view wx:if="{{isBatchMode}}" class="member-check {{selectedMap[item.id] ? 'checked' : ''}}">
+        <text>{{selectedMap[item.id] ? '✓' : ''}}</text>
+      </view>
+      <view class="member-avatar">{{item.name[0]}}</view>
+      <view class="member-info">
+        <view class="member-name-row">
+          <text class="member-name">{{item.name}}</text>
+          <text class="member-pos">{{item.positionText}}</text>
+        </view>
+        <view class="member-sub">{{item.college}} · {{item.grade}}级</view>
+        <view class="member-sub">部门：{{item.department || '未分配'}}</view>
+        <view class="member-sub">学号：{{item.studentId}}</view>
+      </view>
+      <view class="member-status {{item.status === '在队' ? 'status-active' : 'status-inactive'}}">{{item.status}}</view>
+    </view>
+  </view>
+
+  <view class="empty-state" wx:else>
+    <view class="empty-icon">👥</view>
+    <view class="empty-text">暂无成员</view>
+  </view>
+
+  <view class="batch-action-bar" wx:if="{{isBatchMode}}">
+    <button class="btn-secondary batch-action-btn" bindtap="batchSetActive" loading="{{isBatchSubmitting}}" disabled="{{isBatchSubmitting}}">批量入队</button>
+    <button class="btn-danger batch-action-btn" bindtap="batchSetInactive" loading="{{isBatchSubmitting}}" disabled="{{isBatchSubmitting}}">批量离队</button>
+  </view>
+
+  <view class="fab-btn" wx:if="{{isAdmin && !isBatchMode}}" bindtap="goAdd">+</view>
+</view>

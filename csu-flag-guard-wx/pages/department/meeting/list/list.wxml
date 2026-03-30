@@ -1,0 +1,52 @@
+<view class="container" wx:if="{{isAdmin}}">
+  <view class="card intro-card">
+    <view class="section-header">会议记录</view>
+    <view class="intro-text">支持上传和查看办公室会议记录，文件使用 PDF 格式并存入云存储。</view>
+  </view>
+
+  <view class="card upload-entry-card" bindtap="openUploadPanel">
+    <view class="upload-entry-title">上传会议记录</view>
+    <view class="upload-entry-desc">填写文件命名后上传 PDF，上传成功后会出现在下方列表。</view>
+    <view class="upload-entry-action">开始上传 ›</view>
+  </view>
+
+  <view class="card empty-state" wx:if="{{!isLoading && records.length === 0}}">
+    <view class="empty-title">当前还没有会议记录</view>
+  </view>
+
+  <view class="card record-card" wx:for="{{records}}" wx:key="id" bindtap="openRecord" data-index="{{index}}">
+    <view class="record-header">
+      <view class="record-title">{{item.name}}</view>
+      <view class="record-tag">PDF</view>
+    </view>
+    <view class="record-meta">原文件：{{item.fileName}}</view>
+    <view class="record-meta">上传人：{{item.uploadedBy || '未知'}}</view>
+    <view class="record-meta">上传时间：{{item.displayCreatedAt}}</view>
+    <view class="record-action">查看记录 ›</view>
+  </view>
+
+  <view class="record-panel-mask" wx:if="{{showUploadPanel}}" bindtap="closeUploadPanel">
+    <view class="record-panel" catchtap="noop">
+      <view class="record-panel-header">
+        <view class="record-panel-title">上传会议记录</view>
+        <view class="record-panel-close" bindtap="closeUploadPanel">关闭</view>
+      </view>
+
+      <view class="form-group">
+        <text class="form-label">文件命名 *</text>
+        <input class="form-input" placeholder="请输入会议记录名称" value="{{draftName}}" bindinput="onNameInput" />
+      </view>
+
+      <view class="form-group">
+        <text class="form-label">PDF 文件 *</text>
+        <view class="file-card" bindtap="chooseFile">
+          <view class="file-name" wx:if="{{selectedFile}}">{{selectedFile.name}}</view>
+          <view class="file-placeholder" wx:else>点击选择 PDF 文件</view>
+          <view class="file-size" wx:if="{{selectedFile}}">大小：{{selectedFile.size}} 字节</view>
+        </view>
+      </view>
+
+      <button class="btn-primary submit-btn" bindtap="submitUpload" loading="{{isSubmitting}}" disabled="{{isSubmitting}}">上传到云存储</button>
+    </view>
+  </view>
+</view>

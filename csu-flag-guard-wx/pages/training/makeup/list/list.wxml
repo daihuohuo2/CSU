@@ -1,0 +1,48 @@
+<view class="container">
+  <view class="card summary-card" wx:if="{{memberInfo}}">
+    <view class="section-header">补训概览</view>
+    <view class="summary-row">
+      <view class="summary-box">
+        <view class="summary-num pending">{{pendingCount}}</view>
+        <view class="summary-label">待补训</view>
+      </view>
+      <view class="summary-box">
+        <view class="summary-num scheduled">{{upcomingCount}}</view>
+        <view class="summary-label">待参加</view>
+      </view>
+      <view class="summary-box">
+        <view class="summary-num">{{items.length}}</view>
+        <view class="summary-label">请假总数</view>
+      </view>
+    </view>
+    <view class="summary-tip">这里只统计你在训练考勤中的请假记录，点击卡片可登记对应补训。</view>
+  </view>
+
+  <view class="empty-state" wx:if="{{!isLoading && items.length === 0}}">
+    <view class="empty-title">当前没有需要处理的补训记录</view>
+  </view>
+
+  <view
+    class="card record-card"
+    wx:for="{{items}}"
+    wx:key="id"
+    bindtap="goSelect"
+    data-leave-training-id="{{item.leaveTrainingId}}"
+    data-attendance-index="{{item.attendanceIndex}}"
+  >
+    <view class="record-header">
+      <view class="record-title">{{item.leaveTrainingTitle}}</view>
+      <view class="record-status {{item.statusType}}">{{item.statusText}}</view>
+    </view>
+    <view class="record-meta">{{item.leaveTrainingDate}} {{item.leaveTrainingTime || '时间待定'}}</view>
+    <view class="record-meta" wx:if="{{item.leaveTrainingLocation}}">{{item.leaveTrainingLocation}}</view>
+    <view class="record-block">
+      <view class="record-block-label">{{item.isPending ? '待登记补训' : (item.isScheduled ? '已预约补训' : '已登记补训')}}</view>
+      <view class="record-block-value" wx:if="{{item.makeupTrainingId}}">
+        {{item.makeupTrainingTitle}} / {{item.makeupTrainingDate}} {{item.makeupTrainingTime || '时间待定'}}
+      </view>
+      <view class="record-block-value pending-text" wx:else>点击选择未来补训日程</view>
+    </view>
+    <view class="record-action">{{item.isPending ? '去登记补训' : '调整补训'}} ›</view>
+  </view>
+</view>

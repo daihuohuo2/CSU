@@ -1,0 +1,51 @@
+<view class="container">
+  <view class="card loading-card" wx:if="{{isLoading}}">
+    <loading color="#6D3FC1"></loading>
+    <view class="loading-text">正在加载人物志...</view>
+  </view>
+
+  <block wx:elif="{{detail}}">
+    <view class="card hero-card">
+      <view class="hero-cover" wx:if="{{detail.displayCoverImage}}" bindtap="previewCover">
+        <image class="hero-cover-image" src="{{detail.displayCoverImage.tempFileURL}}" mode="aspectFill" />
+      </view>
+      <view class="hero-cover placeholder" wx:else>
+        <view class="placeholder-text">暂无封面</view>
+      </view>
+
+      <view class="hero-meta">
+        <view class="hero-info">
+          <view class="hero-name">{{detail.personName}}</view>
+          <view class="hero-grade">{{detail.gradeLabel}}</view>
+        </view>
+        <view class="hero-edit" wx:if="{{isAdmin}}" bindtap="goEdit">编辑</view>
+      </view>
+    </view>
+
+    <view class="card">
+      <view class="section-header">人物志正文</view>
+      <view class="detail-content" wx:if="{{detail.content}}">{{detail.content}}</view>
+      <view class="detail-empty" wx:else>暂无正文内容</view>
+    </view>
+
+    <view class="card">
+      <view class="section-header">配图</view>
+      <view class="gallery-grid" wx:if="{{detail.images.length}}">
+        <image
+          class="gallery-image"
+          wx:for="{{detail.images}}"
+          wx:key="imageId"
+          src="{{item.tempFileURL}}"
+          mode="aspectFill"
+          bindtap="previewImage"
+          data-index="{{index}}"
+        />
+      </view>
+      <view class="detail-empty" wx:else>当前还没有配图</view>
+    </view>
+  </block>
+
+  <view class="card empty-state" wx:else>
+    <view class="empty-text">未找到对应人物志</view>
+  </view>
+</view>

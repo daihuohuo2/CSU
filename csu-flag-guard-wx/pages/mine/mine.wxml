@@ -1,0 +1,118 @@
+<view class="container">
+  <!-- 用户头像 + 基本信息 -->
+  <view class="profile-header" wx:if="{{userInfo}}">
+    <view class="profile-avatar">{{userInfo.name[0]}}</view>
+    <view class="profile-info">
+      <view class="profile-name">{{userInfo.name}}</view>
+      <view class="profile-role {{isAdmin ? 'admin' : ''}}">
+        {{isAdmin ? '管理员' : '普通成员'}}
+      </view>
+    </view>
+  </view>
+
+  <!-- 个人档案 -->
+  <view class="card" wx:if="{{memberInfo}}">
+    <view class="section-header">个人档案</view>
+    <view class="info-row">
+      <text class="info-label">学号</text>
+      <text class="info-value">{{memberInfo.studentId || '未填写'}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">学院</text>
+      <text class="info-value">{{memberInfo.college || '未填写'}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">专业</text>
+      <text class="info-value">{{memberInfo.major || '未填写'}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">年级 / 班级</text>
+      <text class="info-value">{{memberInfo.grade || '未填写'}} {{memberInfo.className || ''}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">部门</text>
+      <text class="info-value">{{memberInfo.department || '未分配'}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">职务</text>
+      <text class="info-value">{{memberInfo.positionText || '未填写'}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">入队时间</text>
+      <text class="info-value">{{memberInfo.joinDate || '未填写'}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">状态</text>
+      <text class="info-value">{{memberInfo.status || '未填写'}}</text>
+    </view>
+  </view>
+
+  <!-- 功能菜单 -->
+  <view class="card menu-card">
+    <view class="mine-menu-item" bindtap="goTraining">
+      <text class="mine-menu-icon">🗂</text>
+      <text class="mine-menu-text">我的训练记录</text>
+      <text class="arrow-right">›</text>
+    </view>
+    <view class="mine-menu-item" bindtap="goMakeupList">
+      <text class="mine-menu-icon">🗑️</text>
+      <text class="mine-menu-text">我的补训</text>
+      <text class="menu-badge {{makeupBadgeType}}">{{makeupBadgeText}}</text>
+      <text class="arrow-right">›</text>
+    </view>
+    <view class="mine-menu-item" bindtap="goFlag">
+      <text class="mine-menu-icon">🚩</text>
+      <text class="mine-menu-text">我的升降旗记录</text>
+      <text class="arrow-right">›</text>
+    </view>
+  </view>
+
+  <!-- 管理工具 -->
+  <view class="card menu-card">
+    <view class="mine-menu-item" wx:if="{{isCadre}}" bindtap="switchRole">
+      <text class="mine-menu-icon">🔧</text>
+      <text class="mine-menu-text">切换身份</text>
+      <text class="arrow-right">›</text>
+    </view>
+    <view class="mine-menu-item" wx:if="{{isAdmin}}" bindtap="resetData">
+      <text class="mine-menu-icon">🧦</text>
+      <text class="mine-menu-text">清除本地缓存</text>
+      <text class="arrow-right">›</text>
+    </view>
+    <view class="mine-menu-item" wx:if="{{isAdmin}}" bindtap="deduplicateMembers">
+      <text class="mine-menu-icon">🧹</text>
+      <text class="mine-menu-text">人员去重</text>
+      <text class="arrow-right">›</text>
+    </view>
+    <view class="mine-menu-item" wx:if="{{isAdmin}}" bindtap="goBugSummary">
+      <text class="mine-menu-icon">🐞</text>
+      <text class="mine-menu-text">BUG汇总</text>
+      <text class="arrow-right">›</text>
+    </view>
+  </view>
+
+  <!-- BUG反馈 -->
+  <view class="card bug-card">
+    <view class="section-header">BUG反馈</view>
+    <view class="form-group">
+      <text class="form-label">BUG标题</text>
+      <input class="form-input" placeholder="例如：训练记录页面无法刷新" value="{{bugTitle}}" maxlength="40" bindinput="onBugTitleInput" />
+    </view>
+    <view class="form-group">
+      <text class="form-label">问题描述</text>
+      <textarea class="form-textarea" placeholder="请描述问题：出现在哪个页面、如何复现等" value="{{bugContent}}" maxlength="1200" auto-height bindinput="onBugContentInput" />
+    </view>
+    <button class="btn-primary bug-submit-btn" loading="{{isBugSubmitting}}" bindtap="submitBugReport">提交BUG</button>
+  </view>
+
+  <!-- 退出登录 -->
+  <view class="card menu-card logout-card">
+    <view class="mine-menu-item logout" bindtap="handleLogout">
+      <text class="mine-menu-icon">🚪</text>
+      <text class="mine-menu-text" style="color: #EE4D4D;">退出登录</text>
+      <text class="arrow-right">›</text>
+    </view>
+  </view>
+
+  <view style="height: 120rpx;"></view>
+</view>

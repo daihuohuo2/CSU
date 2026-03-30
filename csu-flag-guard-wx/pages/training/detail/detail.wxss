@@ -1,0 +1,224 @@
+.detail-top-actions {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 20rpx;
+}
+
+.detail-edit-btn {
+  font-size: 24rpx;
+  color: #C41A1A;
+  background: #FFF2F2;
+  padding: 8rpx 20rpx;
+  border-radius: 999rpx;
+  font-weight: 600;
+}
+
+.detail-title {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #333333;
+  margin-bottom: 8rpx;
+}
+
+.detail-type {
+  display: inline-block;
+  font-size: 22rpx;
+  padding: 4rpx 16rpx;
+  border-radius: 20rpx;
+  background: #FFF0F0;
+  color: #C41A1A;
+  margin-bottom: 20rpx;
+}
+
+.stats-row {
+  display: flex;
+  justify-content: space-around;
+  text-align: center;
+}
+
+.stat-box {
+  flex: 1;
+}
+
+.stat-num {
+  font-size: 40rpx;
+  font-weight: bold;
+}
+
+.stat-label {
+  font-size: 22rpx;
+  color: #999999;
+  margin-top: 8rpx;
+}
+
+.att-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #F5F5F5;
+}
+
+.att-item:last-child {
+  border-bottom: none;
+}
+
+.att-name {
+  font-size: 28rpx;
+  font-weight: bold;
+  min-width: 100rpx;
+}
+
+.att-status-selector {
+  display: flex;
+  gap: 8rpx;
+}
+
+.att-status-btn {
+  font-size: 22rpx;
+  padding: 6rpx 14rpx;
+  border-radius: 8rpx;
+  background: #F5F5F5;
+  color: #999999;
+}
+
+.att-status-btn.active-green {
+  background: #E8F5E9;
+  color: #07C160;
+  font-weight: bold;
+}
+
+.att-status-btn.active-orange {
+  background: #FFF3E0;
+  color: #FFA500;
+  font-weight: bold;
+}
+
+.att-status-btn.active-red {
+  background: #FFEBEE;
+  color: #EE0000;
+  font-weight: bold;
+}
+
+.att-status-btn.active-blue {
+  background: #E8EAF6;
+  color: #576B95;
+  font-weight: bold;
+}
+
+.bottom-actions {
+  padding: 30rpx 24rpx;
+}
+
+.action-btn {
+  margin-bottom: 20rpx;
+}
+
+.action-btn:last-child {
+  margin-bottom: 0;
+}
+
+.member-empty {
+  font-size: 24rpx;
+  color: #999999;
+  padding: 16rpx 0 4rpx;
+}
+
+.record-panel-mask {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 300;
+  display: flex;
+  align-items: flex-end;
+}
+
+.record-panel {
+  width: 100%;
+  max-height: 78vh;
+  background: #FFFFFF;
+  border-radius: 28rpx 28rpx 0 0;
+  padding: 28rpx 24rpx 36rpx;
+  box-sizing: border-box;
+}
+
+.record-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.record-panel-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333333;
+}
+
+.record-panel-close {
+  font-size: 24rpx;
+  color: #999999;
+}
+
+.record-panel-tip {
+  margin-top: 16rpx;
+  font-size: 24rpx;
+  color: #666666;
+}
+
+.record-panel-section {
+  margin-top: 26rpx;
+}
+
+.record-panel-label {
+  font-size: 26rpx;
+  font-weight: bold;
+  color: #333333;
+  margin-bottom: 14rpx;
+}
+
+.record-member-list {
+  max-height: 280rpx;
+}
+
+.record-leave-list {
+  max-height: 420rpx;
+}
+
+.record-member-item,
+.record-leave-item {
+  padding: 22rpx 20rpx;
+  border-radius: 14rpx;
+  background: #F8F8F8;
+  margin-bottom: 14rpx;
+}
+
+.record-member-item.active {
+  background: #FFF1F1;
+  border: 2rpx solid #F3B2B2;
+}
+
+.record-member-name,
+.record-leave-title {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #333333;
+}
+
+.record-member-meta,
+.record-leave-meta {
+  margin-top: 8rpx;
+  font-size: 24rpx;
+  color: #777777;
+}
+
+.record-leave-action {
+  margin-top: 14rpx;
+  font-size: 24rpx;
+  color: #C41A1A;
+}
+
+.record-panel-empty {
+  font-size: 24rpx;
+  color: #999999;
+  padding: 18rpx 0;
+}
