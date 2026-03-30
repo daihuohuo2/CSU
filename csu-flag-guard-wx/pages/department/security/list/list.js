@@ -70,6 +70,10 @@ Page({
     wx.navigateTo({ url: '/pages/department/security/makeup/list/list' });
   },
 
+  goLeaveApproval: function() {
+    wx.navigateTo({ url: '/pages/department/security/leave/list/list' });
+  },
+
   goMakeupScheduleManage: function() {
     wx.navigateTo({ url: '/pages/training/list/list?type=补训' });
   }

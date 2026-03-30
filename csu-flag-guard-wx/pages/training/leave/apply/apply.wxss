@@ -1,0 +1,60 @@
+.proof-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.proof-count {
+  font-size: 24rpx;
+  color: #999999;
+}
+
+.proof-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+
+.proof-item {
+  position: relative;
+  width: 200rpx;
+  height: 200rpx;
+  border-radius: 14rpx;
+  overflow: hidden;
+  background: #F5F5F5;
+}
+
+.proof-image {
+  width: 100%;
+  height: 100%;
+}
+
+.proof-remove {
+  position: absolute;
+  top: 10rpx;
+  right: 10rpx;
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.6);
+  color: #FFFFFF;
+  font-size: 28rpx;
+  line-height: 40rpx;
+  text-align: center;
+}
+
+.proof-empty {
+  font-size: 24rpx;
+  color: #999999;
+  line-height: 1.8;
+}
+
+.proof-btn {
+  margin-top: 20rpx;
+}
+
+.approved-tip {
+  font-size: 24rpx;
+  color: #07C160;
+  line-height: 1.8;
+}
