@@ -1,0 +1,77 @@
+<view class="container">
+  <view class="card" wx:if="{{training}}">
+    <view class="section-header">请假申请</view>
+    <view class="info-row">
+      <text class="info-label">训练名称</text>
+      <text class="info-value">{{training.title}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">日期</text>
+      <text class="info-value">{{training.date}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">时间</text>
+      <text class="info-value">{{training.time || '待定'}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">地点</text>
+      <text class="info-value">{{training.location || '待定'}}</text>
+    </view>
+    <view class="info-row" wx:if="{{application}}">
+      <text class="info-label">当前状态</text>
+      <text class="info-value">{{application.status}}</text>
+    </view>
+  </view>
+
+  <view class="card" wx:if="{{training}}">
+    <view class="form-group">
+      <text class="form-label">请假理由</text>
+      <textarea
+        class="form-textarea"
+        auto-height
+        maxlength="600"
+        placeholder="请填写请假原因，管理员会在特勤部请假审批中查看。"
+        value="{{reason}}"
+        disabled="{{application && application.status === '已通过'}}"
+        bindinput="onReasonInput"
+      />
+    </view>
+
+    <view class="form-group">
+      <view class="proof-header">
+        <text class="form-label">图片证明</text>
+        <text class="proof-count">{{proofs.length}} / 3</text>
+      </view>
+
+      <view class="proof-grid" wx:if="{{proofs.length}}">
+        <view class="proof-item" wx:for="{{proofs}}" wx:key="index">
+          <image class="proof-image" src="{{item.url || item.tempFilePath}}" mode="aspectFill" bindtap="previewProof" data-index="{{index}}" />
+          <view class="proof-remove" wx:if="{{!(application && application.status === '已通过')}}" bindtap="removeProof" data-index="{{index}}">×</view>
+        </view>
+      </view>
+
+      <view class="proof-empty" wx:else>可选上传相关图片证明，最多 3 张。</view>
+
+      <button
+        wx:if="{{!(application && application.status === '已通过') && proofs.length < 3}}"
+        class="btn-secondary proof-btn"
+        bindtap="chooseProofs"
+      >
+        上传证明图片
+      </button>
+    </view>
+
+    <button
+      class="btn-primary"
+      wx:if="{{!(application && application.status === '已通过')}}"
+      loading="{{isSubmitting}}"
+      bindtap="submitApplication"
+    >
+      {{application ? '更新请假申请' : '提交请假申请'}}
+    </button>
+
+    <view class="approved-tip" wx:if="{{application && application.status === '已通过'}}">
+      该请假申请已经审批通过，无需重复提交。
+    </view>
+  </view>
+</view>

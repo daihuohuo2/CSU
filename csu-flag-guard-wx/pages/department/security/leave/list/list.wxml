@@ -1,0 +1,76 @@
+<view class="container" wx:if="{{isAdmin}}">
+  <view class="card summary-card">
+    <view class="section-header">请假审批</view>
+    <view class="summary-text">待审批 {{pendingApplications.length}} 条，已通过 {{approvedApplications.length}} 条。</view>
+  </view>
+
+  <view class="card" wx:if="{{pendingApplications.length}}">
+    <view class="section-header">待审批</view>
+    <view class="application-card pending" wx:for="{{pendingApplications}}" wx:key="id">
+      <view class="application-head">
+        <view>
+          <view class="application-title">{{item.memberName}} · {{item.trainingTitle}}</view>
+          <view class="application-meta">{{item.trainingDate}} {{item.trainingTime || '时间待定'}} {{item.trainingLocation || ''}}</view>
+          <view class="application-meta">{{item.memberDepartment}} · {{item.displayCreatedAt}}</view>
+        </view>
+        <view class="application-status pending-text">{{item.status}}</view>
+      </view>
+
+      <view class="application-reason">{{item.reason}}</view>
+
+      <view class="proof-list" wx:if="{{item.proofs.length}}">
+        <image
+          class="proof-thumb"
+          wx:for="{{item.proofs}}"
+          wx:for-item="proof"
+          wx:for-index="proofIndex"
+          wx:key="fileID"
+          src="{{proof.url}}"
+          mode="aspectFill"
+          bindtap="previewProof"
+          data-list-type="pending"
+          data-index="{{index}}"
+          data-proof-index="{{proofIndex}}"
+        />
+      </view>
+
+      <button class="btn-primary approve-btn" bindtap="approveApplication" data-index="{{index}}" loading="{{isApproving}}">批准请假</button>
+    </view>
+  </view>
+
+  <view class="card empty-card" wx:else>
+    <view class="empty-title">暂无待审批请假</view>
+  </view>
+
+  <view class="card" wx:if="{{approvedApplications.length}}">
+    <view class="section-header">已通过</view>
+    <view class="application-card approved" wx:for="{{approvedApplications}}" wx:key="id">
+      <view class="application-head">
+        <view>
+          <view class="application-title">{{item.memberName}} · {{item.trainingTitle}}</view>
+          <view class="application-meta">{{item.trainingDate}} {{item.trainingTime || '时间待定'}} {{item.trainingLocation || ''}}</view>
+          <view class="application-meta">审批人：{{item.approvedBy || '管理员'}} · {{item.displayApprovedAt || item.displayCreatedAt}}</view>
+        </view>
+        <view class="application-status approved-text">{{item.status}}</view>
+      </view>
+
+      <view class="application-reason">{{item.reason}}</view>
+
+      <view class="proof-list" wx:if="{{item.proofs.length}}">
+        <image
+          class="proof-thumb"
+          wx:for="{{item.proofs}}"
+          wx:for-item="proof"
+          wx:for-index="proofIndex"
+          wx:key="fileID"
+          src="{{proof.url}}"
+          mode="aspectFill"
+          bindtap="previewProof"
+          data-list-type="approved"
+          data-index="{{index}}"
+          data-proof-index="{{proofIndex}}"
+        />
+      </view>
+    </view>
+  </view>
+</view>
