@@ -2,6 +2,7 @@ var storage = require('../../../utils/storage');
 var util = require('../../../utils/util');
 var makeupHelper = require('../../../utils/makeup');
 var memberSorter = require('../../../utils/member-sort');
+var leaveApplicationHelper = require('../../../utils/leave-application');
 
 var ARRIVED_STATUS = '已到';
 var LEAVE_STATUS = '请假';
@@ -34,7 +35,11 @@ Page({
     detail: null,
     stats: {},
     isAdmin: false,
+    currentMember: null,
     isMakeupTraining: false,
+    canApplyLeave: false,
+    leaveButtonText: '\u8bf7\u5047\u7533\u8bf7',
+    currentLeaveApplication: null,
     isJoiningMakeup: false,
     isRecordingMakeup: false,
     showRecordMakeupPanel: false,
@@ -140,6 +145,16 @@ Page({
     });
   },
 
+  goLeaveApply: function() {
+    if (!this.data.canApplyLeave) {
+      return;
+    }
+
+    wx.navigateTo({
+      url: '/pages/training/leave/apply/apply?id=' + encodeURIComponent(this.data.id)
+    });
+  },
+
   sortAttendanceByMemberOrder: function(attendance, memberMap) {
     var map = memberMap || {};
     return (attendance || []).slice().sort(function(a, b) {
@@ -173,17 +188,48 @@ Page({
     try {
       var result = await Promise.all([
         storage.getById(storage.KEYS.TRAININGS, this.data.id),
-        storage.getList(storage.KEYS.MEMBERS)
+        storage.getList(storage.KEYS.MEMBERS),
+        storage.getCurrentMember()
       ]);
       var detail = result[0];
       var members = storage.enrichMembers(result[1] || []);
+      var currentMember = storage.enrichMember(result[2]);
       if (detail) {
         detail.attendance = this.sortAttendanceByMemberOrder(detail.attendance || [], buildMemberMap(members));
         var stats = util.calcAttendanceStats(detail.attendance || []);
+        var canApplyLeave = false;
+        var leaveButtonText = '\u8bf7\u5047\u7533\u8bf7';
+        var currentLeaveApplication = null;
+
+        if (currentMember && detail.date && detail.date >= makeupHelper.getToday() && detail.type !== MAKEUP_TYPE) {
+          var attendance = detail.attendance || [];
+          var hasAttendance = attendance.some(function(item) {
+            return item && item.memberId === currentMember.id;
+          });
+
+          if (hasAttendance) {
+            canApplyLeave = true;
+            try {
+              currentLeaveApplication = await leaveApplicationHelper.getMemberTrainingApplication(detail.id, currentMember.id);
+              if (currentLeaveApplication) {
+                leaveButtonText = currentLeaveApplication.status === '\u5df2\u901a\u8fc7'
+                  ? '\u8bf7\u5047\u5df2\u901a\u8fc7'
+                  : '\u67e5\u770b\u8bf7\u5047\u7533\u8bf7';
+              }
+            } catch (leaveErr) {
+              console.warn('load leave application failed', leaveErr);
+            }
+          }
+        }
+
         this.setData({
           detail: detail,
           stats: stats,
-          isMakeupTraining: detail.type === MAKEUP_TYPE
+          isMakeupTraining: detail.type === MAKEUP_TYPE,
+          currentMember: currentMember,
+          canApplyLeave: canApplyLeave,
+          leaveButtonText: leaveButtonText,
+          currentLeaveApplication: currentLeaveApplication
         });
       }
     } catch (err) {

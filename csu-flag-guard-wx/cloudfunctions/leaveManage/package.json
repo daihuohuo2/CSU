@@ -1,0 +1,9 @@
+{
+  "name": "leave-manage",
+  "version": "1.0.0",
+  "description": "Leave application management cloud function",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}

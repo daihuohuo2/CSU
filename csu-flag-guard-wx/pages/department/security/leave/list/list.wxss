@@ -1,0 +1,90 @@
+.summary-card {
+  margin-bottom: 0;
+}
+
+.summary-text {
+  font-size: 26rpx;
+  color: #666666;
+  line-height: 1.7;
+}
+
+.application-card {
+  padding: 24rpx 0;
+  border-bottom: 1rpx solid #F5F5F5;
+}
+
+.application-card:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.application-card:first-child {
+  padding-top: 0;
+}
+
+.application-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24rpx;
+}
+
+.application-title {
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #333333;
+  line-height: 1.5;
+}
+
+.application-meta {
+  margin-top: 8rpx;
+  font-size: 24rpx;
+  color: #999999;
+}
+
+.application-status {
+  flex-shrink: 0;
+  padding: 6rpx 16rpx;
+  border-radius: 20rpx;
+  font-size: 22rpx;
+}
+
+.pending-text {
+  background: #FFF0F0;
+  color: #C41A1A;
+}
+
+.approved-text {
+  background: #EEF8F2;
+  color: #1D8A52;
+}
+
+.application-reason {
+  margin-top: 16rpx;
+  font-size: 28rpx;
+  color: #444444;
+  line-height: 1.8;
+  white-space: pre-wrap;
+}
+
+.proof-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+  margin-top: 18rpx;
+}
+
+.proof-thumb {
+  width: 180rpx;
+  height: 180rpx;
+  border-radius: 14rpx;
+  background: #F5F5F5;
+}
+
+.approve-btn {
+  margin-top: 20rpx;
+}
+
+.empty-card {
+  text-align: center;
+}

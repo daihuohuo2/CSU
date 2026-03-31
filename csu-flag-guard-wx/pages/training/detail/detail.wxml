@@ -67,7 +67,8 @@
     <view wx:else class="member-empty">当前暂无参与成员</view>
   </view>
 
-  <view class="bottom-actions" wx:if="{{isMakeupTraining || isAdmin}}">
+  <view class="bottom-actions" wx:if="{{isMakeupTraining || isAdmin || canApplyLeave}}">
+    <button wx:if="{{canApplyLeave}}" class="btn-secondary action-btn" bindtap="goLeaveApply">{{leaveButtonText}}</button>
     <button wx:if="{{isMakeupTraining}}" class="btn-primary action-btn" bindtap="handleJoinMakeup" loading="{{isJoiningMakeup}}">参加补训</button>
     <button wx:if="{{isMakeupTraining && isAdmin}}" class="btn-secondary action-btn" bindtap="handleRecordMakeup" loading="{{isRecordingMakeup}}">记录补登</button>
     <button wx:if="{{isAdmin}}" class="btn-danger action-btn" bindtap="handleDelete">删除此训练</button>

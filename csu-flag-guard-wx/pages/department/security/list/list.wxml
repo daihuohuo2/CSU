@@ -53,6 +53,15 @@
     <view class="module-action">进入模块 ›</view>
   </view>
 
+  <view class="card module-card" bindtap="goLeaveApproval">
+    <view class="module-header">
+      <view class="module-title">请假审批</view>
+      <view class="module-tag">已接入</view>
+    </view>
+    <view class="module-desc">集中查看成员提交的训练请假申请，审批通过后会自动把对应训练考勤更新为请假。</view>
+    <view class="module-action">进入模块 ›</view>
+  </view>
+
   <view class="card module-card" bindtap="goMakeupScheduleManage">
     <view class="module-header">
       <view class="module-title">补训日程管理</view>
