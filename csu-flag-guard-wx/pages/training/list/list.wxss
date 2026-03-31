@@ -1,0 +1,67 @@
+/* 列表容器 */
+.list-wrap {
+  padding-top: 4rpx;
+}
+
+/* 列表项 */
+.list-item {
+  position: relative;
+}
+
+/* 头部：标题 + 类型标签 */
+.list-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16rpx;
+}
+
+.list-item-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333333;
+  flex: 1;
+  margin-right: 16rpx;
+  line-height: 1.4;
+}
+
+.list-item-type {
+  font-size: 26rpx;
+  font-weight: bold;
+  flex-shrink: 0;
+  padding: 4rpx 0;
+  color: #C41A1A;
+}
+
+/* 信息行 */
+.list-item-info {
+  font-size: 26rpx;
+  color: #888888;
+  margin-bottom: 8rpx;
+  line-height: 1.6;
+}
+
+.list-item-date,
+.list-item-time {
+  margin-right: 24rpx;
+}
+
+.list-item-location {
+  display: block;
+}
+
+/* 统计标签 */
+.list-item-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+  margin-top: 16rpx;
+}
+
+.stat-tag {
+  display: inline-block;
+  padding: 6rpx 20rpx;
+  border-radius: 8rpx;
+  font-size: 24rpx;
+  font-weight: bold;
+}

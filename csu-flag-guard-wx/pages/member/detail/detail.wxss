@@ -1,0 +1,104 @@
+.container {
+  min-height: 100vh;
+  background: #f5f5f5;
+  padding-bottom: 40rpx;
+}
+
+/* 头部红色渐变区域 */
+.detail-header {
+  background: linear-gradient(135deg, #c0392b 0%, #a93226 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 60rpx 0 50rpx;
+}
+
+.detail-avatar {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  color: #fff;
+  font-size: 48rpx;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20rpx;
+}
+
+.detail-name {
+  color: #fff;
+  font-size: 40rpx;
+  font-weight: bold;
+  margin-bottom: 10rpx;
+}
+
+.detail-pos {
+  color: #f0c040;
+  font-size: 28rpx;
+}
+
+/* 卡片 */
+.card {
+  background: #fff;
+  margin: 24rpx 24rpx 0;
+  border-radius: 16rpx;
+  padding: 30rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.05);
+}
+
+.section-header {
+  font-size: 34rpx;
+  font-weight: bold;
+  color: #333;
+  padding-bottom: 20rpx;
+  border-bottom: 1rpx solid #eee;
+  margin-bottom: 10rpx;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #f5f5f5;
+}
+
+.info-row:last-child {
+  border-bottom: none;
+}
+
+.info-label {
+  font-size: 28rpx;
+  color: #999;
+}
+
+.info-value {
+  font-size: 28rpx;
+  color: #333;
+}
+
+/* 底部操作按钮 */
+.bottom-actions {
+  padding: 40rpx 24rpx;
+}
+
+.btn-primary {
+  background: #c0392b !important;
+  color: #fff !important;
+  border-radius: 12rpx !important;
+  font-size: 30rpx !important;
+  height: 88rpx;
+  line-height: 88rpx;
+}
+
+.btn-danger {
+  background: #fff !important;
+  color: #c0392b !important;
+  border: 2rpx solid #c0392b !important;
+  border-radius: 12rpx !important;
+  font-size: 30rpx !important;
+  height: 88rpx;
+  line-height: 88rpx;
+}

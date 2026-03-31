@@ -1,17 +1,22 @@
 <view class="login-page">
-  <!-- 顶部背景区 -->
+  <!-- 背景图区域 -->
   <view class="login-bg">
+    <image class="login-bg-img" src="/mock/login-bg.jpg" mode="aspectFill" />
+    <view class="login-bg-mask"></view>
+
+    <!-- 左上角徽章组 -->
     <view class="login-emblems">
       <image class="login-badge" src="/mock/university.png" mode="aspectFit" />
       <text class="login-star">★</text>
       <image class="login-badge" src="/mock/class.png" mode="aspectFit" />
     </view>
-    <view class="login-title">中南大学国旗班</view>
-    <view class="login-subtitle">智慧管理系统</view>
   </view>
 
   <!-- 登录表单卡片 -->
   <view class="login-form">
+    <view class="login-form-title">中南大学国旗班</view>
+    <view class="login-form-subtitle">智慧管理系统</view>
+
     <view class="form-group">
       <text class="form-label">学号</text>
       <input class="form-input" placeholder="请输入学号或手机号" value="{{studentId}}" bindinput="onStudentIdInput" type="text"
